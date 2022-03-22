@@ -285,12 +285,12 @@ void CoppeliaSimThymio2::update_sensing(float dt) {
     wheel.update_sensing(dt);
   }
   for (auto & prox : proximity_sensors) {
-    prox.update_sensing(dt);
+    if (prox.active) prox.update_sensing(dt);
   }
   for (auto & ground : ground_sensors) {
-    ground.update_sensing(dt);
+    if (ground.active) ground.update_sensing(dt);
   }
-  accelerometer.update_sensing(dt);
+  if (accelerometer.active) accelerometer.update_sensing(dt);
 }
 
 void CoppeliaSimThymio2::update_actuation(float dt) {}
@@ -357,8 +357,7 @@ void CoppeliaSimThymio2::ProximitySensor::update_sensing(float dt) {
   }
 }
 
-CoppeliaSimThymio2::GroundSensor::GroundSensor(simInt handle_) :
-  handle(handle_) {
+CoppeliaSimThymio2::GroundSensor::GroundSensor(simInt handle_) : handle(handle_), active(true) {
   if (handle >= 0) {
     simChar * alias = simGetObjectAlias(handle, 2);
     std::string path = std::string(alias);
@@ -429,7 +428,7 @@ void CoppeliaSimThymio2::GroundSensor::update_sensing(float dt) {
   }
 }
 
-CoppeliaSimThymio2::Accelerometer::Accelerometer(int handle_) : handle(handle_) {
+CoppeliaSimThymio2::Accelerometer::Accelerometer(int handle_) : handle(handle_), active(true) {
   if (handle >= 0) {
     simChar * alias = simGetObjectAlias(handle, 2);
     std::string path = std::string(alias);

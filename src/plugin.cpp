@@ -235,6 +235,27 @@ class Plugin : public sim::Plugin {
       out->nodes = Aseba::node_list(in->port);
     }
 
+    void enable_accelerometer(enable_accelerometer_in *in, enable_accelerometer_out *out) {
+      if (thymios.count(in->handle)) {
+        auto & thymio = thymios.at(in->handle);
+        thymio.enable_accelerometer(in->state);
+      }
+    }
+
+    void enable_ground(enable_ground_in *in, enable_ground_out *out) {
+      if (thymios.count(in->handle)) {
+        auto & thymio = thymios.at(in->handle);
+        thymio.enable_ground(in->state);
+      }
+    }
+
+    void enable_proximity(enable_proximity_in *in, enable_proximity_out *out) {
+      if (thymios.count(in->handle)) {
+        auto & thymio = thymios.at(in->handle);
+        thymio.enable_proximity(in->state);
+      }
+    }
+
  private:
   std::map<simInt, CoppeliaSimThymio2> thymios;
   std::set<int> standalone_thymios;

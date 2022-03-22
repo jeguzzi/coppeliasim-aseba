@@ -48,11 +48,12 @@ class CoppeliaSimThymio2 {
     float value;
     bool detected;
     simInt handle;
+    bool active;
     int16_t saturated_value() const {
       if (!detected) return 0;
       return static_cast<int16_t>(value);
     }
-    ProximitySensor(simInt handle_=-1) : handle(handle_), detected(false) {}
+    ProximitySensor(simInt handle_=-1) : handle(handle_), detected(false), active(true) {}
     void update_sensing(float dt);
   };
 
@@ -60,6 +61,7 @@ class CoppeliaSimThymio2 {
     float reflected_light;
     // float ambient_light;
     simInt handle;
+    bool active;
     // int16_t reflected() const {
     //   return static_cast<int16_t>(reflected_light);
     // }
@@ -75,6 +77,7 @@ class CoppeliaSimThymio2 {
   struct Accelerometer {
     float values[3];
     simInt handle;
+    bool active;
     Accelerometer(int handle_=-1);
     void update_sensing(float dt);
   private:
@@ -156,6 +159,21 @@ class CoppeliaSimThymio2 {
   float get_acceleration(size_t index) const {
     if(index < 3) return accelerometer.values[index];
     return 0.0;
+  }
+  void enable_accelerometer(bool value) {
+    accelerometer.active = value;
+  }
+
+  void enable_ground(bool value) {
+    for (auto & sensor : ground_sensors) {
+      sensor.active = value;
+    }
+  }
+
+  void enable_proximity(bool value) {
+    for (auto & sensor : proximity_sensors) {
+      sensor.active = value;
+    }
   }
 
   void set_led_color(size_t index, bool force, float r = 0, float g = 0, float b = 0);
