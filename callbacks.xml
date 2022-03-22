@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<?xml-stylesheet type="text/xsl" href="callbacks.xsl"?>
+
+<plugin name="Aseba" author="jerome.guzzi@idsia.ch">
+    <description></description>
+    <command name="create_thymio2">
+        <description>Create a Thymio2 robot</description>
+        <params>
+          <param name="handle" type="int">
+              <description>handle of the coppelia object</description>
+          </param>
+          <param name="with_aseba" type="bool" default="true">
+            <description>instantiate an Aseba firmware emulation</description>
+          </param>
+          <param name="port" type="int" default="33333">
+            <description>The port number</description>
+          </param>
+          <param name="id" type="int" default="-1">
+            <description>The node id (-1 to choose the next available)</description>
+          </param>
+        </params>
+        <return>
+            <param name="handle" type="int">
+                <description>handle of the newly created robot</description>
+            </param>
+        </return>
+    </command>
+    <command name="create_node">
+        <description>Create a Thymio2 robot</description>
+        <params>
+          <param name="handle" type="int">
+              <description>handle of the coppelia object</description>
+          </param>
+          <param name="port" type="int" default="33333">
+            <description>The port number</description>
+          </param>
+          <param name="id" type="int" default="-1">
+            <description>The node id (-1 to choose the next available)</description>
+          </param>
+          <param name="prefix" type="string" default='"node"'>
+            <description>The prefix for the node name</description>
+          </param>
+        </params>
+        <return>
+            <param name="handle" type="int">
+                <description>handle of the newly created robot</description>
+            </param>
+        </return>
+    </command>
+    <command name="destroy">
+        <description></description>
+        <params>
+            <param name="handle" type="int">
+                <description>handle of the object</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="connect_node">
+        <description>Connect a node to the aseba network</description>
+        <params>
+            <param name="handle" type="int">
+              <description>The node handle</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="addVariable">
+        <description>Add an aseba variable</description>
+        <params>
+            <param name="nodeHandle" type="int">
+                <description>The node handle</description>
+            </param>
+            <param name="name" type="string">
+                <description>The varible name</description>
+            </param>
+            <param name="size" type="int">
+                <description>The varible size</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="setVariable">
+        <description>Set an aseba variable</description>
+        <params>
+            <param name="nodeHandle" type="int">
+                <description>The node handle</description>
+            </param>
+            <param name="name" type="string">
+                <description>The varible name</description>
+            </param>
+            <param name="value" type="table" item-type="int">
+                <description>The variable value</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="getVariable">
+        <description>Get an aseba variable</description>
+        <params>
+            <param name="nodeHandle" type="int">
+                <description>The node handle</description>
+            </param>
+            <param name="name" type="string">
+                <description>The varible name</description>
+            </param>
+        </params>
+        <return>
+          <param name="value" type="table" item-type="int">
+              <description>The variable value</description>
+          </param>
+        </return>
+    </command>
+    <command name="addEvent">
+        <description>Add an aseba event</description>
+        <params>
+            <param name="nodeHandle" type="int">
+                <description>The node handle</description>
+            </param>
+            <param name="name" type="string">
+                <description>The varible name</description>
+            </param>
+            <param name="description" type="string">
+                <description>The varible description</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="emitEvent">
+        <description>Emit an aseba event</description>
+        <params>
+            <param name="nodeHandle" type="int">
+                <description>The node handle</description>
+            </param>
+            <param name="name" type="string">
+                <description>The event name</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="addFunction">
+        <description>Add an aseba function</description>
+        <params>
+            <param name="nodeHandle" type="int">
+                <description>The node handle</description>
+            </param>
+            <param name="name" type="string">
+                <description>The function name</description>
+            </param>
+            <param name="description" type="string">
+                <description>The function description</description>
+            </param>
+            <param name="arguments" type="table" item-type="argument_t">
+                <description>The function description</description>
+            </param>
+            <param name="callback" type="string">
+                <description>The name of the LUA function</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="nodeList">
+        <description>Get a list of Aseba nodes</description>
+        <params>
+            <param name="port" type="int" default="-1">
+                <description>The optional port</description>
+            </param>
+        </params>
+        <return>
+          <param name="nodes" type="table" item-type="node_t">
+              <description>The list of nodes</description>
+          </param>
+        </return>
+    </command>
+    <command name="disconnectPort">
+        <description>Destroy all nodes and disconnect</description>
+        <params>
+            <param name="port" type="int" default="-1">
+                <description>The optional port</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="set_led">
+        <description></description>
+        <params>
+            <param name="handle" type="int">
+                <description>handle of the object</description>
+            </param>
+            <param name="index" type="int">
+                <description></description>
+            </param>
+            <param name="r" type="float">
+                <description></description>
+            </param>
+            <param name="g" type="float">
+                <description></description>
+            </param>
+            <param name="b" type="float">
+                <description></description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="set_target_speed">
+        <description></description>
+        <params>
+            <param name="handle" type="int">
+                <description>handle of the object</description>
+            </param>
+            <param name="index" type="int">
+                <description></description>
+            </param>
+            <param name="speed" type="float">
+                <description></description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="get_speed">
+        <description></description>
+        <params>
+            <param name="handle" type="int">
+                <description>handle of the object</description>
+            </param>
+            <param name="index" type="int">
+                <description></description>
+            </param>
+        </params>
+        <return>
+          <param name="speed" type="float">
+              <description></description>
+          </param>
+        </return>
+    </command>
+    <command name="get_proximity">
+        <description></description>
+        <params>
+            <param name="handle" type="int">
+                <description>handle of the object</description>
+            </param>
+            <param name="index" type="int">
+                <description></description>
+            </param>
+        </params>
+        <return>
+          <param name="reading" type="float">
+              <description></description>
+          </param>
+        </return>
+    </command>
+    <command name="get_ground">
+        <description></description>
+        <params>
+            <param name="handle" type="int">
+                <description>handle of the object</description>
+            </param>
+            <param name="index" type="int">
+                <description></description>
+            </param>
+        </params>
+        <return>
+          <param name="reflected" type="float">
+              <description></description>
+          </param>
+        </return>
+    </command>
+    <command name="get_acceleration">
+        <description></description>
+        <params>
+            <param name="handle" type="int">
+                <description>handle of the object</description>
+            </param>
+        </params>
+        <return>
+          <param name="x" type="float">
+              <description></description>
+          </param>
+          <param name="y" type="float">
+              <description></description>
+          </param>
+          <param name="z" type="float">
+              <description></description>
+          </param>
+        </return>
+    </command>
+    <struct name="argument_t">
+        <description>Arguments for function <command-ref name="addFunction"/>.</description>
+        <param name="size" type="int" default="1">
+            <description>The argument size</description>
+        </param>
+        <param name="name" type="string" default="">
+            <description>The argument name</description>
+        </param>
+    </struct>
+    <struct name="node_t">
+        <description>Aseba node</description>
+        <param name="port" type="int" default="1">
+            <description>port</description>
+        </param>
+        <param name="name" type="string" default="">
+            <description>name</description>
+        </param>
+        <param name="id" type="int" default="">
+            <description>id</description>
+        </param>
+    </struct>
+</plugin>
