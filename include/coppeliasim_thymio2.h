@@ -92,8 +92,12 @@ class CoppeliaSimThymio2 {
       return a && r && g && b;
     }
 
-    void set_a(float a_) {
-      a = a_;
+    bool set_a(float a_) {
+      if (a != a_) {
+        a = a_;
+        return true;
+      }
+      return false;
     }
 
     bool set_rgb(float r_, float g_, float b_) {

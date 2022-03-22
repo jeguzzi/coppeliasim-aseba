@@ -153,7 +153,8 @@ class AsebaDashel : public Dashel::Hub {
     if (type >= ASEBA_MESSAGE_SET_BYTECODE &&
         type <= ASEBA_MESSAGE_GET_NODE_DESCRIPTION) {
       uint16_t dest = bswap16(lastMessageData[1]);
-      printf("Got message of type %d from IDE (%d) for node %d\n", type, lastMessageSource, dest);
+      // printf("Got message of type %d from IDE (%d) for node %d\n",
+      //         type, lastMessageSource, dest);
       if (nodes.count(dest)) {
         DynamicAsebaNode *node = nodes[dest];
         if (node->finalized) {
@@ -165,7 +166,7 @@ class AsebaDashel : public Dashel::Hub {
         return;
       }
     }
-    printf("Got message of type %d from node %d\n", type, lastMessageSource);
+    // printf("Got message of type %d from node %d\n", type, lastMessageSource);
     for (auto kv : nodes) {
       DynamicAsebaNode *node = kv.second;
       if (node->finalized) {
@@ -375,7 +376,7 @@ AsebaGetNativeFunctionsDescriptions(AsebaVMState *vm) {
 }
 
 extern "C" void AsebaNativeFunction(AsebaVMState *vm, uint16_t id) {
-  printf("AsebaNativeFunction %d\n", id);
+  // printf("AsebaNativeFunction %d\n", id);
   DynamicAsebaNode *node = node_for_vm(vm);
   if (!node) return;
   if (id < node->number_of_native_function) {
