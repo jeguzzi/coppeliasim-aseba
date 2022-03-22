@@ -135,6 +135,12 @@ class Plugin : public sim::Plugin {
       }
     }
 
+    void set_led_intensity(set_led_intensity_in *in, set_led_intensity_out *out) {
+      if (thymios.count(in->handle)) {
+        thymios.at(in->handle).set_led_intensity(in->index, in->a);
+      }
+    }
+
     void set_target_speed(set_target_speed_in *in, set_target_speed_out *out) {
       if (thymios.count(in->handle)) {
         thymios.at(in->handle).set_target_speed(in->index, in->speed);

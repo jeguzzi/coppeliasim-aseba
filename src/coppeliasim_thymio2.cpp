@@ -1,6 +1,5 @@
 #include "coppeliasim_thymio2.h"
 
-#define TEXTURE_DIR "/Users/Jerome/Dev/My/coppeliasim-aseba/models/"
 #define TEXTURE_SIZE 1024
 
 static cv::Mat body_texture;
@@ -161,13 +160,13 @@ static void draw_rect(uint8_t* target, uint8_t* base, uint32_t * diff, int width
 static void load_textures() {
   if (loaded_textures) return;
   body_texture = cv::imread(
-      TEXTURE_DIR "thymio-body-texture.png");
+      TEXTURE_DIR "/thymio-body-texture.png");
   led_texture_images[TOP_TEXTURE] = cv::imread(
-      TEXTURE_DIR "thymio-body-diffusionMap0.png", cv::IMREAD_UNCHANGED);
+      TEXTURE_DIR "/thymio-body-diffusionMap0.png", cv::IMREAD_UNCHANGED);
   led_texture_images[BOTTOM_TEXTURE] = cv::imread(
-      TEXTURE_DIR "thymio-body-diffusionMap1.png", cv::IMREAD_UNCHANGED);
+      TEXTURE_DIR "/thymio-body-diffusionMap1.png", cv::IMREAD_UNCHANGED);
   led_texture_images[LED_TEXTURE] = cv::imread(
-      TEXTURE_DIR "thymio-body-diffusionMap2.png", cv::IMREAD_UNCHANGED);
+      TEXTURE_DIR "/thymio-body-diffusionMap2.png", cv::IMREAD_UNCHANGED);
   loaded_textures = true;
 }
 
@@ -218,6 +217,13 @@ CoppeliaSimThymio2::CoppeliaSimThymio2(simInt handle) {
   simInt acc_handle = simGetObject(acc_path.c_str(), -1, -1, 0);
   accelerometer = Accelerometer(acc_handle);
   simReleaseBuffer(alias);
+
+  for (size_t i = BUTTON_UP; i < LEFT_BLUE; i++) {
+    leds[i].color = Color(1, 0, 0);
+  }
+  leds[RIGHT_RED].color = Color(1, 0, 0);
+  leds[LEFT_BLUE].color = Color(0, 0, 1);
+  leds[RIGHT_BLUE].color = Color(0, 0, 1);
   reset();
 }
 
@@ -232,27 +238,32 @@ void CoppeliaSimThymio2::set_target_speed(size_t index, float speed) {
 }
 
 void CoppeliaSimThymio2::set_led_intensity(size_t index, float intensity) {
-  // TODO(Jerome)
+  if (index >= LED_COUNT) return;
+  LED & led = leds[index];
+  led.color.set_a(std::clamp(intensity, 0.0f, 1.0f));
+  set_led_color(index, true);
 }
 
 void CoppeliaSimThymio2::set_led_color(size_t index, bool force,
                                        float r, float g, float b) {
-  // printf("set led color %zu (%.2f %.2f %.2f)\n", index, r, g, b);
+  printf("set led color %zu (%.2f %.2f %.2f)\n", index, r, g, b);
   if (index >= LED_COUNT) return;
   const LEDTexture & led_texture = led_textures[index];
   LED & led = leds[index];
   if (!force && !led.color.set_rgb(r, g, b)) return;
-  // printf("push led color %zu (%d %d %d %d)\n",
-  //        index, led.color.r, led.color.g, led.color.b, led.color.a);
+  printf("push led color %zu (%.2f %.2f %.2f %.2f)\n",
+         index, led.color.r, led.color.g, led.color.b, led.color.a);
   uint8_t * base_image;
   uint32_t * led_image = led_texture_images[led_texture.texture_index].ptr<uint32_t>();
-
+  printf("A\n");
   if (index < 3) {
     base_image = body_texture.ptr<uint8_t>();
   } else {
     base_image = texture.ptr<uint8_t>();
   }
+  printf("B\n");
   for (auto & a : led_texture.regions) {
+    printf("C\n");
     uint8_t * roi = (uint8_t *) malloc(a.h * a.w * 3);
     draw_rect(roi, base_image, led_image, TEXTURE_SIZE, a.x, a.y, a.w, a.h,
               led.color.r, led.color.g, led.color.b, led.color.a,
@@ -260,10 +271,12 @@ void CoppeliaSimThymio2::set_led_color(size_t index, bool force,
     simWriteTexture(texture_id, 0, (const char *)roi, a.x, TEXTURE_SIZE - a.y - a.h, a.w, a.h, 0);
     free(roi);
   }
+  printf("D\n");
 
   for (auto & index : led_texture.overlapping_leds) {
     set_led_color(index, true);
   }
+  printf("E\n");
 }
 
 void CoppeliaSimThymio2::update_sensing(float dt) {

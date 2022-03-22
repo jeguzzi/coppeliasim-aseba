@@ -87,9 +87,18 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-coppeliasim_generate_stubs(${CMAKE_CURRENT_BINARY_DIR}/generated XML_FILE ${CMAKE_CURRENT_SOURCE_DIR}/callbacks.xml LUA_FILE ${CMAKE_CURRENT_SOURCE_DIR}/simAseba.lua)
+coppeliasim_generate_stubs(
+  ${CMAKE_CURRENT_BINARY_DIR}/generated
+  XML_FILE ${CMAKE_CURRENT_SOURCE_DIR}/callbacks.xml
+  LUA_FILE ${CMAKE_CURRENT_SOURCE_DIR}/simAseba.lua
+)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h ESCAPE_QUOTES)
+add_compile_definitions(TEXTURE_DIR="${MODEL_FOLDER}")
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/config.h
+ESCAPE_QUOTES)
 
 coppeliasim_add_plugin(simExtAseba
   SOURCES
@@ -103,10 +112,18 @@ coppeliasim_add_plugin(simExtAseba
   src/aseba_network.cpp
 )
 
-target_link_libraries(simExtAseba ${OpenCV_LIBS} dashel  asebacommon asebavmbuffer asebavm
+target_link_libraries(simExtAseba ${OpenCV_LIBS} dashel asebacommon asebavmbuffer asebavm
   ${EXTRA_LIBS}
 )
 
 if(DEFINED MODEL_FOLDER)
-  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio.ttm DESTINATION ${MODEL_FOLDER})
+  install(
+    FILES
+      ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio.ttm
+      ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-diffusionMap0.png
+      ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-diffusionMap1.png
+      ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-diffusionMap2.png
+      ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-texture.png
+    DESTINATION ${MODEL_FOLDER}
+  )
 endif()

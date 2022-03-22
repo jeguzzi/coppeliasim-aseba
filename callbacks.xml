@@ -211,6 +211,22 @@
         <return>
         </return>
     </command>
+    <command name="set_led_intensity">
+        <description></description>
+        <params>
+            <param name="handle" type="int">
+                <description>handle of the object</description>
+            </param>
+            <param name="index" type="int">
+                <description></description>
+            </param>
+            <param name="a" type="float">
+                <description></description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
     <command name="set_target_speed">
         <description></description>
         <params>
