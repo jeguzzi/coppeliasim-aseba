@@ -133,6 +133,15 @@ void AsebaThymio2::step(float dt) {
   if (tap && !first)
     emit(EVENT_TAP);
 
+  for (size_t i = 0; i < 5; i++) {
+    // buttons enum, variables and events are all in the same order!
+    int16_t v = robot->get_button(i) ? 1 : 0;
+    if (v != thymio_variables->buttons[i]) {
+       thymio_variables->buttons[i] = v;
+       emit(EVENT_B_BACKWARD + i);
+    }
+  }
+
   // run timers
   timer0.step(dt);
   timer1.step(dt);

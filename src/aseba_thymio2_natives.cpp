@@ -118,14 +118,14 @@ extern "C" void PlaygroundThymio2Native_leds_circle(AsebaVMState *vm) {
 
   AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
   if (node) {
-    node->robot->set_led_intensity(RING_0, l0/32.);
-    node->robot->set_led_intensity(RING_1, l1/32.);
-    node->robot->set_led_intensity(RING_2, l2/32.);
-    node->robot->set_led_intensity(RING_3, l3/32.);
-    node->robot->set_led_intensity(RING_4, l4/32.);
-    node->robot->set_led_intensity(RING_5, l5/32.);
-    node->robot->set_led_intensity(RING_6, l6/32.);
-    node->robot->set_led_intensity(RING_7, l7/32.);
+    node->robot->set_led_intensity(CS::LED::RING_0, l0/32.);
+    node->robot->set_led_intensity(CS::LED::RING_1, l1/32.);
+    node->robot->set_led_intensity(CS::LED::RING_2, l2/32.);
+    node->robot->set_led_intensity(CS::LED::RING_3, l3/32.);
+    node->robot->set_led_intensity(CS::LED::RING_4, l4/32.);
+    node->robot->set_led_intensity(CS::LED::RING_5, l5/32.);
+    node->robot->set_led_intensity(CS::LED::RING_6, l6/32.);
+    node->robot->set_led_intensity(CS::LED::RING_7, l7/32.);
 
     logNativeFromThymio2(*node, 4, { l0, l1, l2, l3, l4, l5, l6, l7 });
   }
@@ -140,7 +140,8 @@ extern "C" void PlaygroundThymio2Native_leds_top(AsebaVMState *vm) {
   printf("PlaygroundThymio2Native_leds_top\n");
   AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
   if (node) {
-    node->robot->set_led_color(TOP, false, r / 32.0, g / 32.0, b / 32.0);
+    node->robot->set_led_color(CS::LED::TOP,
+                               false, r / 32.0, g / 32.0, b / 32.0);
     logNativeFromThymio2(*node, 5, { r, g, b });
   }
 }
@@ -151,7 +152,8 @@ extern "C" void PlaygroundThymio2Native_leds_bottom_right(AsebaVMState *vm) {
   const int16_t b(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
   AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
   if (node) {
-    node->robot->set_led_color(BOTTOM_RIGHT, false, r / 32.0, g / 32.0, b / 32.0);
+    node->robot->set_led_color(CS::LED::BOTTOM_RIGHT,
+                               false, r / 32.0, g / 32.0, b / 32.0);
     logNativeFromThymio2(*node, 6, { r, g, b });
   }
 }
@@ -162,7 +164,7 @@ extern "C" void PlaygroundThymio2Native_leds_bottom_left(AsebaVMState *vm) {
   const int16_t b(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
   AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
   if (node) {
-    node->robot->set_led_color(BOTTOM_LEFT, false, r / 32.0, g / 32.0, b / 32.0);
+    node->robot->set_led_color(CS::LED::BOTTOM_LEFT, false, r / 32.0, g / 32.0, b / 32.0);
     logNativeFromThymio2(*node, 7, { r, g, b });
   }
 }
@@ -175,10 +177,10 @@ extern "C" void PlaygroundThymio2Native_leds_buttons(AsebaVMState *vm) {
 
   AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
   if (node) {
-    node->robot->set_led_intensity(BUTTON_UP,    l0 / 32.0);
-    node->robot->set_led_intensity(BUTTON_RIGHT, l1 / 32.0);
-    node->robot->set_led_intensity(BUTTON_DOWN,  l2 / 32.0);
-    node->robot->set_led_intensity(BUTTON_LEFT,  l3 / 32.0);
+    node->robot->set_led_intensity(CS::LED::BUTTON_UP,    l0 / 32.0);
+    node->robot->set_led_intensity(CS::LED::BUTTON_RIGHT, l1 / 32.0);
+    node->robot->set_led_intensity(CS::LED::BUTTON_DOWN,  l2 / 32.0);
+    node->robot->set_led_intensity(CS::LED::BUTTON_LEFT,  l3 / 32.0);
 
     logNativeFromThymio2(*node, 9, { l0, l1, l2, l3 });
   }
@@ -196,14 +198,14 @@ extern "C" void PlaygroundThymio2Native_leds_prox_h(AsebaVMState *vm) {
 
   AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
   if (node) {
-    node->robot->set_led_intensity(IR_FRONT_0, l0/32.);
-    node->robot->set_led_intensity(IR_FRONT_1, l1/32.);
-    node->robot->set_led_intensity(IR_FRONT_2, l2/32.);
-    node->robot->set_led_intensity(IR_FRONT_3, l3/32.);
-    node->robot->set_led_intensity(IR_FRONT_4, l4/32.);
-    node->robot->set_led_intensity(IR_FRONT_5, l5/32.);
-    node->robot->set_led_intensity(IR_BACK_0,  l6/32.);
-    node->robot->set_led_intensity(IR_BACK_1,  l7/32.);
+    node->robot->set_led_intensity(CS::LED::IR_FRONT_0, l0/32.);
+    node->robot->set_led_intensity(CS::LED::IR_FRONT_1, l1/32.);
+    node->robot->set_led_intensity(CS::LED::IR_FRONT_2, l2/32.);
+    node->robot->set_led_intensity(CS::LED::IR_FRONT_3, l3/32.);
+    node->robot->set_led_intensity(CS::LED::IR_FRONT_4, l4/32.);
+    node->robot->set_led_intensity(CS::LED::IR_FRONT_5, l5/32.);
+    node->robot->set_led_intensity(CS::LED::IR_BACK_0,  l6/32.);
+    node->robot->set_led_intensity(CS::LED::IR_BACK_1,  l7/32.);
 
     logNativeFromThymio2(*node, 10, { l0, l1, l2, l3, l4, l5, l6, l7 });
   }

@@ -45,11 +45,7 @@ typedef struct {
  int16_t productId;
  int16_t fwversion[2];
 
- int16_t buttonBackward;
- int16_t buttonLeft;
- int16_t buttonCenter;
- int16_t buttonForward;
- int16_t buttonRight;
+ int16_t buttons[5];
 
  int16_t proxHorizontal[7];
 
@@ -146,7 +142,7 @@ class AsebaThymio2 : public DynamicAsebaNode {
  public:
   AsebaThymio2(int node_id, std::string _name, int script_id);
   void notify_missing_feature() {};
-  CoppeliaSimThymio2 * robot;
+  CS::Thymio2 * robot;
   virtual void step(float dt) override;
   // bool openSDCardFile(int number);
 

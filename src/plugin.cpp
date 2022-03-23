@@ -78,6 +78,14 @@ class Plugin : public sim::Plugin {
             // delete handles.remove(obj);
     }
 
+    void onSimulationAboutToStart() {
+      simSetInt32Parameter(
+          sim_intparam_prox_sensor_select_down, sim_objectspecialproperty_detectable);
+      simSetInt32Parameter(
+          sim_intparam_prox_sensor_select_up, sim_objectspecialproperty_detectable);
+    }
+
+
     void onModuleHandle(char *customData) {
       simFloat time_step = simGetSimulationTimeStep();
       for (auto uid : standalone_thymios) {
@@ -95,17 +103,41 @@ class Plugin : public sim::Plugin {
     void onBeforeRendering() {
     }
 
+    void onProxSensorSelectDown(int objectID, simFloat *clickedPoint, simFloat *normalVector) {
+      printf("DOWN %d\n", objectID);
+      if (buttons.count(objectID)) {
+        auto button = buttons.at(objectID);
+        printf("is button %d %d\n", button.first, button.second);
+        thymios.at(button.first).set_button(button.second, true);
+      }
+    }
+
+    void onProxSensorSelectUp(int objectID, simFloat *clickedPoint, simFloat *normalVector) {
+      printf("UP %d\n", objectID);
+      if (buttons.count(objectID)) {
+        auto button = buttons.at(objectID);
+        printf("is button %d %d\n", button.first, button.second);
+        thymios.at(button.first).set_button(button.second, false);
+      }
+    }
+
     void create_thymio2(create_thymio2_in *in, create_thymio2_out *out) {
       simInt uid = free_uid();
       uids.insert(uid);
       simInt script_handle = simGetScriptHandleEx(sim_scripttype_childscript, in->handle, nullptr);
       thymios.emplace(uid, in->handle);
+      CS::Thymio2 & thymio = thymios.at(uid);
       if (in->with_aseba) {
         AsebaThymio2 * node = Aseba::create_node<AsebaThymio2>(
             uid, in->port, "thymio-II", script_handle);
-        node->robot = &thymios.at(uid);
+        node->robot = &thymio;
       } else {
         standalone_thymios.insert(uid);
+      }
+      unsigned i = 0;
+      for (simInt button_handle : thymio.button_handles()) {
+        buttons[button_handle] = std::make_pair(uid, i);
+        i++;
       }
       out->handle = uid;
     }
@@ -119,13 +151,18 @@ class Plugin : public sim::Plugin {
     }
 
     void destroy(destroy_in *in, destroy_out *out) {
-      if (thymios.count(in->handle)) {
-        thymios.erase(in->handle);
+      simInt uid = in->handle;
+      if (thymios.count(uid)) {
+        CS::Thymio2 & thymio = thymios.at(uid);
+        for (simInt button_handle : thymio.button_handles()) {
+          buttons.erase(button_handle);
+        }
+        thymios.erase(uid);
       }
-      Aseba::destroy_node(in->handle);
-      uids.erase(in->handle);
-      if (standalone_thymios.count(in->handle)) {
-        standalone_thymios.erase(in->handle);
+      Aseba::destroy_node(uid);
+      uids.erase(uid);
+      if (standalone_thymios.count(uid)) {
+        standalone_thymios.erase(uid);
       }
     }
 
@@ -256,9 +293,24 @@ class Plugin : public sim::Plugin {
       }
     }
 
+    void get_button(get_button_in *in, get_button_out *out) {
+      if (thymios.count(in->handle)) {
+        auto & thymio = thymios.at(in->handle);
+        out->value = thymio.get_button(in->index);
+      }
+    }
+
+    void set_button(set_button_in *in, set_button_out *out) {
+      if (thymios.count(in->handle)) {
+        auto & thymio = thymios.at(in->handle);
+        thymio.set_button(in->index, in->value);
+      }
+    }
+
  private:
-  std::map<simInt, CoppeliaSimThymio2> thymios;
+  std::map<simInt, CS::Thymio2> thymios;
   std::set<int> standalone_thymios;
+  std::map<simInt, std::pair<simInt, unsigned>> buttons;
 };
 
 SIM_PLUGIN(PLUGIN_NAME, PLUGIN_VERSION, Plugin)

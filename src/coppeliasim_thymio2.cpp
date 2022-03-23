@@ -6,6 +6,8 @@ static cv::Mat body_texture;
 static std::array<cv::Mat, 3> led_texture_images;
 static bool loaded_textures = false;
 
+namespace CS {
+
 enum {
   TOP_TEXTURE,
   BOTTOM_TEXTURE,
@@ -28,20 +30,20 @@ class LEDTexture {
     regions(regions), texture_index(index), overlapping_leds(leds) {}
 };
 
-std::array<LEDTexture, LED_COUNT> led_textures = {
+std::array<LEDTexture, LED::COUNT> led_textures = {
   LEDTexture{{{130, 535, 350, 488}, {485, 630, 500, 100},
               {480, 846, 265, 50}, {790, 160, 50, 265}
             }, TOP_TEXTURE,
-            {BUTTON_DOWN, BUTTON_LEFT, BUTTON_RIGHT,
-             RING_2, RING_3, RING_4, RING_5, RING_6,
-             IR_BACK_0, IR_BACK_1,
-             LEFT_RED, LEFT_BLUE, RIGHT_BLUE, RIGHT_RED}},
+            {LED::BUTTON_DOWN, LED::BUTTON_LEFT, LED::BUTTON_RIGHT,
+             LED::RING_2, LED::RING_3, LED::RING_4, LED::RING_5, LED::RING_6,
+             LED::IR_BACK_0, LED::IR_BACK_1,
+             LED::LEFT_RED, LED::LEFT_BLUE, LED::RIGHT_BLUE, LED::RIGHT_RED}},
   LEDTexture{{{563, 38, 117, 301}, {651, 731, 210, 113}}, BOTTOM_TEXTURE,
-             {IR_FRONT_0, IR_FRONT_1, IR_FRONT_2, IR_FRONT_3,
-              LEFT_RED, LEFT_BLUE, RIGHT_BLUE, RIGHT_RED}},
+             {LED::IR_FRONT_0, LED::IR_FRONT_1, LED::IR_FRONT_2, LED::IR_FRONT_3,
+              LED::LEFT_RED, LED::LEFT_BLUE, LED::RIGHT_BLUE, LED::RIGHT_RED}},
   LEDTexture{{{565, 344, 224, 192}}, BOTTOM_TEXTURE,
-             {IR_FRONT_2, IR_FRONT_3, IR_FRONT_4, IR_FRONT_5,
-              LEFT_RED, LEFT_BLUE, RIGHT_BLUE, RIGHT_RED}},
+             {LED::IR_FRONT_2, LED::IR_FRONT_3, LED::IR_FRONT_4, LED::IR_FRONT_5,
+              LED::LEFT_RED, LED::LEFT_BLUE, LED::RIGHT_BLUE, LED::RIGHT_RED}},
   LEDTexture{{{82, 759, 36, 47}}, LED_TEXTURE},
   LEDTexture{{{160, 759, 36, 47}}, LED_TEXTURE},
   LEDTexture{{{116, 803, 47, 36}}, LED_TEXTURE},
@@ -170,30 +172,14 @@ static void load_textures() {
   loaded_textures = true;
 }
 
-void CoppeliaSimThymio2::reset_texture() {
-  load_textures();
-  texture = cv::Mat(TEXTURE_SIZE, TEXTURE_SIZE, CV_8UC3);
-  cv::cvtColor(body_texture, texture, cv::COLOR_BGR2RGB);
-  cv::Mat m = cv::Mat(TEXTURE_SIZE, TEXTURE_SIZE, CV_8UC3);
-  cv::flip(texture, m, 0);
-  simWriteTexture(texture_id, 0, (const char *)m.ptr(), 0, 0, TEXTURE_SIZE, TEXTURE_SIZE, 0);
-}
-
-void CoppeliaSimThymio2::reset() {
-  for (auto & led : leds) {
-    led.color.a = 0;
-  }
-  reset_texture();
-  set_target_speed(LEFT_WHEEL, 0.0);
-  set_target_speed(RIGHT_WHEEL, 0.0);
-}
-
 static std::array<std::string, 2> wheel_prefixes = {"/Left", "/Right"};
 static std::array<std::string, 7> proximity_names = {
     "Left", "CenterLeft", "Center", "CenterRight", "Right", "RearLeft", "RearLeft"};
 static std::array<std::string, 2> ground_names = {"Left", "Right"};
+static std::array<std::string, Button::COUNT> button_names = {
+    "Backward", "Left", "Center", "Forward", "Right"};
 
-CoppeliaSimThymio2::CoppeliaSimThymio2(simInt handle) {
+Thymio2::Thymio2(simInt handle) {
   simChar * alias = simGetObjectAlias(handle, 2);
   std::string body_path = std::string(alias)+"/Body";
   simInt body_handle = simGetObject(body_path.c_str(), -1, -1, 0);
@@ -216,45 +202,69 @@ CoppeliaSimThymio2::CoppeliaSimThymio2(simInt handle) {
   std::string acc_path = std::string(alias)+"/Accelerometer";
   simInt acc_handle = simGetObject(acc_path.c_str(), -1, -1, 0);
   accelerometer = Accelerometer(acc_handle);
-  simReleaseBuffer(alias);
-
-  for (size_t i = BUTTON_UP; i <= BUTTON_RIGHT; i++) {
+  for (size_t i = LED::BUTTON_UP; i <= LED::BUTTON_RIGHT; i++) {
     leds[i].color = Color(1, 0, 0);
   }
-  for (size_t i = RING_0; i <= RING_7; i++) {
+  for (size_t i = LED::RING_0; i <= LED::RING_7; i++) {
     leds[i].color = Color(1, 0.5, 0);
   }
-  for (size_t i = IR_FRONT_0; i <= IR_BACK_1; i++) {
+  for (size_t i = LED::IR_FRONT_0; i <= LED::IR_BACK_1; i++) {
     leds[i].color = Color(1, 0, 0);
   }
-  leds[RIGHT_RED].color = Color(1, 0, 0);
-  leds[LEFT_BLUE].color = Color(0, 1, 1);
-  leds[RIGHT_BLUE].color = Color(0, 1, 1);
+  leds[LED::RIGHT_RED].color = Color(1, 0, 0);
+  leds[LED::LEFT_BLUE].color = Color(0, 1, 1);
+  leds[LED::RIGHT_BLUE].color = Color(0, 1, 1);
+
+  for (size_t i = 0; i < buttons.size(); i++) {
+    std::string button_path = std::string(alias)+"/Button" + button_names[i];
+    simInt button_handle = simGetObject(button_path.c_str(), -1, -1, 0);
+    buttons[i] = Button(button_handle);
+  }
+
+  simReleaseBuffer(alias);
   reset();
 }
 
-CoppeliaSimThymio2::~CoppeliaSimThymio2() {
+Thymio2::~Thymio2() {
   reset_texture();
 }
 
-void CoppeliaSimThymio2::set_target_speed(size_t index, float speed) {
+void Thymio2::reset_texture() {
+  load_textures();
+  texture = cv::Mat(TEXTURE_SIZE, TEXTURE_SIZE, CV_8UC3);
+  cv::cvtColor(body_texture, texture, cv::COLOR_BGR2RGB);
+  cv::Mat m = cv::Mat(TEXTURE_SIZE, TEXTURE_SIZE, CV_8UC3);
+  cv::flip(texture, m, 0);
+  simWriteTexture(texture_id, 0, (const char *)m.ptr(), 0, 0, TEXTURE_SIZE, TEXTURE_SIZE, 0);
+}
+
+void Thymio2::reset() {
+  for (auto & led : leds) {
+    led.color.a = 0;
+  }
+  reset_texture();
+  set_target_speed(Wheel::LEFT, 0.0);
+  set_target_speed(Wheel::RIGHT, 0.0);
+}
+
+void Thymio2::set_target_speed(size_t index, float speed) {
   if (index < wheels.size()) {
     wheels[index].set_target_speed(speed);
   }
 }
 
-void CoppeliaSimThymio2::set_led_intensity(size_t index, float intensity) {
-  if (index >= LED_COUNT) return;
+void Thymio2::set_led_intensity(size_t index, float intensity) {
+  if (index >= LED::COUNT) return;
   LED & led = leds[index];
   if (led.color.set_a(std::clamp(intensity, 0.0f, 1.0f))) {
     set_led_color(index, true);
   }
 }
 
-void CoppeliaSimThymio2::set_led_color(size_t index, bool force,
+void Thymio2::set_led_color(size_t index, bool force,
                                        float r, float g, float b) {
   // printf("set led color %zu (%.2f %.2f %.2f)\n", index, r, g, b);
-  if (index >= LED_COUNT) return;
+  if (index >= LED::COUNT) return;
   const LEDTexture & led_texture = led_textures[index];
   LED & led = leds[index];
   if (!force && !led.color.set_rgb(r, g, b)) return;
@@ -280,7 +290,7 @@ void CoppeliaSimThymio2::set_led_color(size_t index, bool force,
   }
 }
 
-void CoppeliaSimThymio2::update_sensing(float dt) {
+void Thymio2::update_sensing(float dt) {
   for (auto & wheel : wheels) {
     wheel.update_sensing(dt);
   }
@@ -293,17 +303,17 @@ void CoppeliaSimThymio2::update_sensing(float dt) {
   if (accelerometer.active) accelerometer.update_sensing(dt);
 }
 
-void CoppeliaSimThymio2::update_actuation(float dt) {}
+void Thymio2::update_actuation(float dt) {}
 
 // TODO(Jerome): should be in two different callbacks/messages
-void CoppeliaSimThymio2::do_step(float dt) {
+void Thymio2::do_step(float dt) {
   update_sensing(dt);
   update_actuation(dt);
 }
 
 
 
-void CoppeliaSimThymio2::Wheel::set_target_speed(float speed) {
+void Wheel::set_target_speed(float speed) {
   float value = speed / radius;
   if (value != nominal_angular_target_speed) {
     simSetJointTargetVelocity(handle, value);
@@ -311,7 +321,7 @@ void CoppeliaSimThymio2::Wheel::set_target_speed(float speed) {
   }
 }
 
-void CoppeliaSimThymio2::Wheel::update_sensing(float dt) {
+void Wheel::update_sensing(float dt) {
   simInt r = simGetJointVelocity(handle, &angular_speed);
 }
 
@@ -330,7 +340,7 @@ static float proximity_response(
   return v;
 }
 
-void CoppeliaSimThymio2::ProximitySensor::update_sensing(float dt) {
+void ProximitySensor::update_sensing(float dt) {
   // TODO(Jerome): check if we should use max angle and which detection mode
   // (now No and front face, accurate)
   // https://www.coppeliarobotics.com/helpFiles/en/regularApi/simCheckProximitySensorEx.htm
@@ -357,7 +367,7 @@ void CoppeliaSimThymio2::ProximitySensor::update_sensing(float dt) {
   }
 }
 
-CoppeliaSimThymio2::GroundSensor::GroundSensor(simInt handle_) : handle(handle_), active(true) {
+GroundSensor::GroundSensor(simInt handle_) : handle(handle_), active(true) {
   if (handle >= 0) {
     simChar * alias = simGetObjectAlias(handle, 2);
     std::string path = std::string(alias);
@@ -378,7 +388,7 @@ static float ground_response(
     return _sigm(intensity - cFactor, sFactor) * mFactor + aFactor;
 }
 
-void CoppeliaSimThymio2::GroundSensor::update_sensing(float dt) {
+void GroundSensor::update_sensing(float dt) {
   simFloat detectedPoint[4];
   simInt detectedObjectHandle = 0;
   simFloat surfaceNormalVector[3];
@@ -428,7 +438,7 @@ void CoppeliaSimThymio2::GroundSensor::update_sensing(float dt) {
   }
 }
 
-CoppeliaSimThymio2::Accelerometer::Accelerometer(int handle_) : handle(handle_), active(true) {
+Accelerometer::Accelerometer(int handle_) : handle(handle_), active(true) {
   if (handle >= 0) {
     simChar * alias = simGetObjectAlias(handle, 2);
     std::string path = std::string(alias);
@@ -442,7 +452,7 @@ CoppeliaSimThymio2::Accelerometer::Accelerometer(int handle_) : handle(handle_),
   }
 }
 
-void CoppeliaSimThymio2::Accelerometer::update_sensing(float dt) {
+void Accelerometer::update_sensing(float dt) {
     float force[3];
     simInt result = simReadForceSensor(sensor, force, nullptr);
     if (result > 0) {
@@ -457,3 +467,5 @@ void CoppeliaSimThymio2::Accelerometer::update_sensing(float dt) {
       }
     }
 }
+
+}  // namespace CS

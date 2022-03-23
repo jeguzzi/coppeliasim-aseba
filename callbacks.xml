@@ -349,6 +349,38 @@
         <return>
         </return>
     </command>
+    <command name="get_button">
+        <description></description>
+        <params>
+            <param name="handle" type="int">
+                <description>handle of the object</description>
+            </param>
+            <param name="index" type="int">
+                <description></description>
+            </param>
+        </params>
+        <return>
+          <param name="value" type="bool">
+              <description></description>
+          </param>
+        </return>
+    </command>
+    <command name="set_button">
+        <description></description>
+        <params>
+            <param name="handle" type="int">
+                <description>handle of the object</description>
+            </param>
+            <param name="index" type="int">
+                <description></description>
+            </param>
+            <param name="value" type="bool">
+                <description></description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
     <struct name="argument_t">
         <description>Arguments for function <command-ref name="addFunction"/>.</description>
         <param name="size" type="int" default="1">
