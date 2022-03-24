@@ -102,8 +102,10 @@ void AsebaThymio2::step(float dt) {
     thymio_variables->proxHorizontal[i] = robot->get_proximity_value(i);
   }
   for (size_t i = 0; i < 2; i++) {
-    thymio_variables->proxGroundReflected[i] = robot->get_ground_reflected(i);
-    thymio_variables->proxGroundDelta[i] = robot->get_ground_delta(i);
+    thymio_variables->proxGroundReflected[i] = std::clamp(
+        (int)(robot->get_ground_reflected(i)), 0, 1023);
+    thymio_variables->proxGroundDelta[i] = std::clamp(
+        (int)(robot->get_ground_delta(i)), 0, 1023);
     // thymio_variables->proxGroundAmbient[i] = 0;
   }
   thymio_variables->motorLeftSpeed = robot->get_speed(0) * 500. / 0.166;
@@ -168,7 +170,10 @@ void AsebaThymio2::step(float dt) {
     timer1.setPeriod(thymio_variables->timerPeriod[1] / 1000.);
   }
 
-  robot->set_prox_comm_tx(thymio_variables->proxCommTx);
+  uint16_t tx = thymio_variables->proxCommTx;
+  // limit to 11 bits
+  tx &= ((1>>11) - 1);
+  robot->set_prox_comm_tx(tx);
 
   // set physical variables
   robot->set_target_speed(0, double(thymio_variables->motorLeftTarget) * 0.166 / 500.);

@@ -222,23 +222,33 @@ extern "C" void PlaygroundThymio2Native_leds_prox_v(AsebaVMState *vm) {
 extern "C" void PlaygroundThymio2Native_leds_rc(AsebaVMState *vm) {
   const int16_t l0(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
 
-  logNativeFromVM(vm, 12, { l0 });
-  missing(vm);
+  AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
+  if (node) {
+    node->robot->set_led_intensity(CS::LED::RIGHT_RED, l0 / 32.0);
+    logNativeFromThymio2(*node, 12, { l0});
+  }
 }
 
 extern "C" void PlaygroundThymio2Native_leds_sound(AsebaVMState *vm) {
   const int16_t l0(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
 
-  logNativeFromVM(vm, 13, { l0 });
-  missing(vm);
+  AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
+  if (node) {
+    node->robot->set_led_intensity(CS::LED::RIGHT_BLUE, l0 / 32.0);
+    logNativeFromThymio2(*node, 13, { l0});
+  }
 }
 
 extern "C" void PlaygroundThymio2Native_leds_temperature(AsebaVMState *vm) {
   const int16_t r(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
   const int16_t b(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
-
-  logNativeFromVM(vm, 14, { r, b });
-  missing(vm);
+  AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
+  if (node) {
+    // node->robot->set_led_intensity(CS::LED::LED_RED, r / 32.0);
+    // node->robot->set_led_intensity(CS::LED::LED_BLUE, b / 32.0);
+    node->robot->set_led_color(CS::LED::LEFT_BLUE, false, r / 32.0, 0, b/32.0);
+    logNativeFromVM(vm, 14, { r, b });
+  }
 }
 
 extern "C" void PlaygroundThymio2Native_prox_comm_enable(AsebaVMState *vm) {
