@@ -246,9 +246,11 @@ extern "C" void PlaygroundThymio2Native_prox_comm_enable(AsebaVMState *vm) {
 
   logNativeFromVM(vm, 16, { enable });
 
-  // AsebaThymio2* thymio2(node_for_vm<AsebaThymio2>(vm));
-  // thymio2->irComm.set_enable(bool(enable));
-  missing(vm);
+  AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
+  if (node) {
+    node->robot->enable_prox_comm(bool(enable));
+  }
+  // missing(vm);
 }
 
 extern "C" void PlaygroundThymio2Native_sd_open(AsebaVMState *vm) {

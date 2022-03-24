@@ -349,6 +349,45 @@
         <return>
         </return>
     </command>
+    <command name="enable_prox_comm">
+        <description></description>
+        <params>
+            <param name="handle" type="int">
+                <description>handle of the object</description>
+            </param>
+            <param name="state" type="bool">
+                <description>state</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="set_prox_comm_tx">
+        <description></description>
+        <params>
+            <param name="handle" type="int">
+                <description>handle of the object</description>
+            </param>
+            <param name="tx" type="int">
+                <description></description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="get_prox_comm_rx">
+        <description></description>
+        <params>
+            <param name="handle" type="int">
+                <description>handle of the object</description>
+            </param>
+        </params>
+        <return>
+          <param name="messages" type="table" item-type="prox_comm_message_t">
+            <description></description>
+          </param>
+        </return>
+    </command>
     <command name="get_button">
         <description></description>
         <params>
@@ -402,4 +441,17 @@
             <description>id</description>
         </param>
     </struct>
+    <struct name="prox_comm_message_t">
+        <description></description>
+        <param name="rx" type="int">
+            <description></description>
+        </param>
+        <param name="payloads" type="table" item-type="int">
+            <description></description>
+        </param>
+        <param name="intensities" type="table" item-type="float">
+            <description></description>
+        </param>
+    </struct>
+
 </plugin>

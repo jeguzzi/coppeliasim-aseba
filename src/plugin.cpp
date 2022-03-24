@@ -91,7 +91,24 @@ class Plugin : public sim::Plugin {
       for (auto uid : standalone_thymios) {
         thymios.at(uid).do_step(time_step);
       }
+      for (auto & [uid, thymio] : thymios) {
+        if (thymio.prox_comm_enabled()) {
+            thymio.reset_prox_comm_rx();
+          for (const auto & [tid, tx] : prox_comm_tx) {
+            if (uid == tid) continue;
+            // printf("push tx %d %d\n", tid, tx);
+            thymio.update_prox_comm(thymios.at(tid).prox_comm_emitter_handles(), tx);
+          }
+        }
+      }
       Aseba::spin(time_step);
+      prox_comm_tx.clear();
+      for (const auto & [uid, thymio] : thymios) {
+        if (thymio.prox_comm_enabled()) {
+          prox_comm_tx[uid] = thymio.prox_comm_tx();
+          // printf("set tx %d %d\n", uid, prox_comm_tx[uid]);
+        }
+      }
     }
 
     void onGuiPass() {
@@ -104,19 +121,19 @@ class Plugin : public sim::Plugin {
     }
 
     void onProxSensorSelectDown(int objectID, simFloat *clickedPoint, simFloat *normalVector) {
-      printf("DOWN %d\n", objectID);
+      // printf("DOWN %d\n", objectID);
       if (buttons.count(objectID)) {
         auto button = buttons.at(objectID);
-        printf("is button %d %d\n", button.first, button.second);
+        // printf("is button %d %d\n", button.first, button.second);
         thymios.at(button.first).set_button(button.second, true);
       }
     }
 
     void onProxSensorSelectUp(int objectID, simFloat *clickedPoint, simFloat *normalVector) {
-      printf("UP %d\n", objectID);
+      // printf("UP %d\n", objectID);
       if (buttons.count(objectID)) {
         auto button = buttons.at(objectID);
-        printf("is button %d %d\n", button.first, button.second);
+        // printf("is button %d %d\n", button.first, button.second);
         thymios.at(button.first).set_button(button.second, false);
       }
     }
@@ -307,10 +324,39 @@ class Plugin : public sim::Plugin {
       }
     }
 
+    void enable_prox_comm(enable_prox_comm_in *in, enable_prox_comm_out *out) {
+      if (thymios.count(in->handle)) {
+        auto & thymio = thymios.at(in->handle);
+        thymio.enable_prox_comm(in->state);
+      }
+    }
+
+    void set_prox_comm_tx(set_prox_comm_tx_in *in, set_prox_comm_tx_out *out) {
+      if (thymios.count(in->handle)) {
+        auto & thymio = thymios.at(in->handle);
+        // printf("set_prox_comm_tx %d\n", in->tx);
+        thymio.set_prox_comm_tx(in->tx);
+      }
+    }
+
+    void get_prox_comm_rx(get_prox_comm_rx_in *in, get_prox_comm_rx_out *out) {
+      if (thymios.count(in->handle)) {
+        auto & thymio = thymios.at(in->handle);
+        for (const auto & msg : thymio.prox_comm_rx()) {
+          prox_comm_message_t omsg;
+          omsg.rx = msg.rx;
+          omsg.payloads = std::vector<int>(msg.payloads.begin(), msg.payloads.end());
+          omsg.intensities = std::vector<float>(msg.intensities.begin(), msg.intensities.end());
+          out->messages.push_back(omsg);
+        }
+      }
+    }
+
  private:
   std::map<simInt, CS::Thymio2> thymios;
   std::set<int> standalone_thymios;
   std::map<simInt, std::pair<simInt, unsigned>> buttons;
+  std::map<int, int> prox_comm_tx;
 };
 
 SIM_PLUGIN(PLUGIN_NAME, PLUGIN_VERSION, Plugin)

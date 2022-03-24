@@ -174,16 +174,17 @@ static void load_textures() {
 
 static std::array<std::string, 2> wheel_prefixes = {"/Left", "/Right"};
 static std::array<std::string, 7> proximity_names = {
-    "Left", "CenterLeft", "Center", "CenterRight", "Right", "RearLeft", "RearLeft"};
+    "Left", "CenterLeft", "Center", "CenterRight", "Right", "RearLeft", "RearRight"};
 static std::array<std::string, 2> ground_names = {"Left", "Right"};
 static std::array<std::string, Button::COUNT> button_names = {
     "Backward", "Left", "Center", "Forward", "Right"};
 
-Thymio2::Thymio2(simInt handle) {
+Thymio2::Thymio2(simInt handle_) : handle(handle_) {
   simChar * alias = simGetObjectAlias(handle, 2);
   std::string body_path = std::string(alias)+"/Body";
-  simInt body_handle = simGetObject(body_path.c_str(), -1, -1, 0);
+  body_handle = simGetObject(body_path.c_str(), -1, -1, 0);
   texture_id = simGetShapeTextureId(body_handle);
+  printf("init: handle %d has texture_id %d\n", handle, texture_id);
   for (size_t i = 0; i < wheels.size(); i++) {
     std::string wheel_path = std::string(alias) + wheel_prefixes[i] + "Motor";
     simInt wheel_handle = simGetObject(wheel_path.c_str(), -1, -1, 0);
@@ -193,6 +194,8 @@ Thymio2::Thymio2(simInt handle) {
     std::string prox_path = std::string(alias)+"/Proximity" + proximity_names[i];
     simInt prox_handle = simGetObject(prox_path.c_str(), -1, -1, 0);
     proximity_sensors[i] = ProximitySensor(prox_handle);
+    prox_comm.emitter_handles[i] = prox_handle;
+    prox_comm.sensor_handles[i] = simGetObject((prox_path + "/Comm").c_str(), -1, -1, 0);
   }
   for (size_t i = 0; i < ground_sensors.size(); i++) {
     std::string ground_path = std::string(alias)+"/Ground" + ground_names[i];
@@ -226,23 +229,48 @@ Thymio2::Thymio2(simInt handle) {
 }
 
 Thymio2::~Thymio2() {
-  reset_texture();
+  reset_texture(false);
 }
 
-void Thymio2::reset_texture() {
+void Thymio2::reset_texture(bool reload) {
   load_textures();
   texture = cv::Mat(TEXTURE_SIZE, TEXTURE_SIZE, CV_8UC3);
   cv::cvtColor(body_texture, texture, cv::COLOR_BGR2RGB);
   cv::Mat m = cv::Mat(TEXTURE_SIZE, TEXTURE_SIZE, CV_8UC3);
   cv::flip(texture, m, 0);
-  simWriteTexture(texture_id, 0, (const char *)m.ptr(), 0, 0, TEXTURE_SIZE, TEXTURE_SIZE, 0);
+  simInt64 uid = simGetObjectUid(handle);
+  // HACK(Jerome): One pixel should be specific to each robot,
+  // else coppeliaSim will link them when it save the scene
+  // But this hack isnot working for image loaded textures
+  printf("hack: add pixel with uid %lld\n", uid);
+  m.data[0] = (uint8_t) (uid & 0xFF);
+  m.data[1] = (uint8_t) ((uid >> 8) & 0xFF);
+  m.data[2] = (uint8_t) ((uid >> 16) & 0xFF);
+  if (reload) {
+    // simInt textureResolution[2] = {TEXTURE_SIZE, TEXTURE_SIZE};
+    SShapeVizInfo info;
+    simInt r = simGetShapeViz(body_handle, 0, &info);
+    // printf("r %d, (%d, %d) %d \n", r, info.textureRes[0], info.textureRes[1], info.indicesSize);
+    texture_id = simApplyTexture(
+        body_handle, info.textureCoords, info.indicesSize * 2,
+        (const simUChar *)m.ptr(), info.textureRes, 1);
+    // bottom-left corner is not mapped on the shape (i.e., the pixel is not visible)
+
+    printf("reset_texture: handle %d has texture_id %d\n", handle, texture_id);
+    simReleaseBuffer((const char *)info.indices);
+    simReleaseBuffer((const char *)info.normals);
+    simReleaseBuffer((const char *)info.texture);
+    simReleaseBuffer((const char *)info.textureCoords);
+  } else {
+    simWriteTexture(texture_id, 0, (const char *)m.ptr(), 0, 0, TEXTURE_SIZE, TEXTURE_SIZE, 0);
+  }
 }
 
 void Thymio2::reset() {
   for (auto & led : leds) {
     led.color.a = 0;
   }
-  reset_texture();
+  reset_texture(true);
   set_target_speed(Wheel::LEFT, 0.0);
   set_target_speed(Wheel::RIGHT, 0.0);
 }
@@ -466,6 +494,115 @@ void Accelerometer::update_sensing(float dt) {
         values[i] = 0;
       }
     }
+}
+
+// to align z axis
+static void get_vector_orientation(float * dp, float * q) {
+  float nhs = dp[0] * dp[0] + dp[1] * dp[1];
+  float n  = sqrt(nhs + dp[2] * dp[2]);
+  float nh  = sqrt(nhs);
+  // rot angle
+  float a = acos(dp[2]/n);
+  // rot axis = (0, 0, 1) x dp = (-dp[1], dp[0], 0)
+  q[0] = -sin(a/2) * dp[1] / nh;
+  q[1] = sin(a/2) * dp[0] / nh;
+  q[2] = 0;
+  q[3] = cos(a/2);
+}
+
+// TODO(Jerome) check params
+static float prox_comm_sensor_response(
+    float distance, float cos_emitter_angle, float cos_receiver_angle,
+    float x0 = 2.0e-3,
+    float c = 0.0917,
+    float k_e = 18,
+    float k_r = 9) {
+  return (pow(abs(cos_emitter_angle), k_e) * pow(abs(cos_receiver_angle), k_r) * (c - x0 * x0) /
+          (distance - x0) / (distance - x0));
+}
+
+static float prox_comm_response(float intensity,
+                                float m = 4600.0,
+                                float min_value = 1400) {
+  float v = m / (1 / intensity + 1);
+  if (v < min_value) v= 0.0;
+  return v;
+}
+
+// NOTE(Jerome): My enki implementation differ a bit from what I documented:
+// - I use 5 rays, not 3 so the max_emitter_angle is 30 degrees, not 15.
+// - there is a factor cos(a_r)^k_r * cos(a_e)*k_e
+// Difference between my enki and this implementation
+// - enki: I sum over all sectors; here: I just use 1 ray, not sure if this is still calibrated
+
+static bool check_emitter_receiver(simInt emitter_handle, simInt receiver_handle,
+                                   simInt receiver_sensor,
+                                   float & distance,
+                                   float & cos_emitter_angle,
+                                   float & cos_receiver_angle,
+                                   float max_emitter_angle = 0.524,
+                                   float max_receiver_angle = 0.644,
+                                   float max_range = 0.48) {
+  float position[3];
+  simGetObjectPosition(receiver_handle, emitter_handle, position);
+  distance = sqrt(position[0] * position[0] + position[1] * position[1] +
+                  position[2] * position[2]);
+  // printf("distance %.2f <? %.2f\n", distance, max_range);
+  if (distance > max_range) return false;
+  cos_emitter_angle = position[2] / distance;
+  float emitter_angle = abs(acos(cos_emitter_angle));
+  // printf("emitter angle %.2f <? %.2f\n", emitter_angle, max_emitter_angle);
+  if (emitter_angle > max_emitter_angle) return false;
+  float emitter_position[3];
+  simGetObjectPosition(emitter_handle, receiver_handle, emitter_position);
+  cos_receiver_angle = emitter_position[2] / distance;
+  float receiver_angle = abs(acos(cos_receiver_angle));
+  // printf("receiver angle %.2f <? %.2f\n", receiver_angle, max_receiver_angle);
+  if (receiver_angle > max_receiver_angle) return false;
+  float q[4];
+  get_vector_orientation(emitter_position, q);
+  // printf("Set orientation of ray %d to %.2f %.2f %.2f %.2f\n",
+  //        receiver_sensor, q[0], q[1], q[2], q[3]);
+  simSetObjectQuaternion(receiver_sensor, receiver_handle, q);
+  simInt detectedObjectHandle = -1;
+  float detectedPoint[4];
+  simInt r = simCheckProximitySensorEx(receiver_sensor, sim_handle_all, 5, distance - 1e-3, 0.0,
+                                       detectedPoint, &detectedObjectHandle, nullptr);
+  // printf("Collision? %d: %d (%d) at %.2f (%.2f)\n",
+  // receiver_sensor, r, detectedObjectHandle, detectedPoint[3], distance - 1e-3);
+  return r == 0;
+}
+
+void ProximityComm::update_sensing(const std::array<simInt, 7> & tx_handles, simInt value) {
+  // printf("update_sensing %d\n", value);
+  ProxCommMsg msg;
+  int i = 0;
+  bool received = false;
+  for (size_t i = 0; i < 7; i++) {
+    /* code */
+    simInt receiver = emitter_handles[i];
+    simInt sensor = sensor_handles[i];
+    float intensity = 0.0;
+    // printf("receiver %d with sensor %d\n", receiver, sensor);
+    for (const simInt emitter : tx_handles) {
+      float distance, cos_e, cos_r;
+      // printf("emitter %d\n", emitter);
+      if (check_emitter_receiver(emitter, receiver, sensor, distance, cos_e, cos_r)) {
+        intensity += prox_comm_sensor_response(distance, cos_e, cos_r);
+      }
+    }
+    msg.intensities[i] = prox_comm_response(intensity);
+    if (msg.intensities[i]) {
+      received = true;
+      msg.payloads[i] = value;
+      msg.rx = value;
+    } else {
+      msg.payloads[i] = 0;
+    }
+  }
+  if (received) {
+    rx_buffer.push_back(msg);
+  }
 }
 
 }  // namespace CS

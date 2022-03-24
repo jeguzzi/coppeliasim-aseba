@@ -142,6 +142,15 @@ void AsebaThymio2::step(float dt) {
     }
   }
 
+  for (auto & msg : robot->prox_comm_rx()) {
+    for (size_t i = 0; i < 7; i++) {
+      thymio_variables->proxCommPayloads[i] = (int16_t) msg.payloads[i];
+      thymio_variables->proxCommIntensities[i] = (int16_t) msg.intensities[i];
+    }
+    thymio_variables->proxCommRx = msg.rx;
+    emit(EVENT_PROX_COMM);
+  }
+
   // run timers
   timer0.step(dt);
   timer1.step(dt);
@@ -158,6 +167,8 @@ void AsebaThymio2::step(float dt) {
     oldTimerPeriod[1] = thymio_variables->timerPeriod[1];
     timer1.setPeriod(thymio_variables->timerPeriod[1] / 1000.);
   }
+
+  robot->set_prox_comm_tx(thymio_variables->proxCommTx);
 
   // set physical variables
   robot->set_target_speed(0, double(thymio_variables->motorLeftTarget) * 0.166 / 500.);

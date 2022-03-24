@@ -52,6 +52,23 @@ struct ProximitySensor {
   void update_sensing(float dt);
 };
 
+struct ProxCommMsg {
+  std::array<float, 7> intensities;
+  std::array<int, 7> payloads;
+  int rx;
+};
+
+struct ProximityComm {
+  bool enabled;
+  simInt tx;
+  std::vector<ProxCommMsg> rx_buffer;
+  std::array<simInt, 7> sensor_handles;
+  std::array<simInt, 7> emitter_handles;
+  ProximityComm() :
+    enabled(false), tx(0), rx_buffer(), sensor_handles(), emitter_handles()  {};
+  void update_sensing(const std::array<simInt, 7> & tx_handles, simInt tx);
+};
+
 struct GroundSensor {
   float reflected_light;
   // float ambient_light;
@@ -146,8 +163,11 @@ class Thymio2 {
   std::array<LED, LED::COUNT> leds;
   std::array<Button, Button::COUNT> buttons;
   Accelerometer accelerometer;
+  ProximityComm prox_comm;
   cv::Mat texture;
   simInt texture_id;
+  simInt handle;
+  simInt body_handle;
 
  public:
   Thymio2(simInt handle);
@@ -214,9 +234,42 @@ class Thymio2 {
     return handles;
   }
 
+  const std::vector<ProxCommMsg> & prox_comm_rx() const {
+    return prox_comm.rx_buffer;
+  }
+
+  int prox_comm_tx() const {
+    return prox_comm.tx;
+  }
+
+  void set_prox_comm_tx(simInt tx) {
+    // printf("robot set_prox_comm_tx %d\n", tx);
+    prox_comm.tx = tx;
+  }
+
+  void enable_prox_comm(bool value) {
+    prox_comm.enabled = value;
+  }
+
+  const std::array<simInt, 7> & prox_comm_emitter_handles() const {
+    return prox_comm.emitter_handles;
+  }
+
+  bool prox_comm_enabled() const {
+    return prox_comm.enabled;
+  }
+
+  void update_prox_comm(const std::array<simInt, 7> & emitter_handles, simInt tx) {
+    prox_comm.update_sensing(emitter_handles, tx);
+  }
+
+  void reset_prox_comm_rx() {
+    prox_comm.rx_buffer.clear();
+  }
+
   void set_led_color(size_t index, bool force, float r = 0, float g = 0, float b = 0);
   void set_led_intensity(size_t index, float intensity);
-  void reset_texture();
+  void reset_texture(bool reload = false);
   void reset();
   bool had_collision() const {return false;}
 };
