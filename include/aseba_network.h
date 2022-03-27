@@ -16,6 +16,7 @@ T * create_node(unsigned uid, unsigned port = 33333,
                 std::string prefix = "node", int script_handle = -1);
 
 void destroy_node(unsigned uid);
+void destroy_all_nodes();
 DynamicAsebaNode *node_with_handle(int handle);
 
 void remove_all_networks();

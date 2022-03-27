@@ -137,6 +137,9 @@ class AsebaThymio2 : public DynamicAsebaNode {
   Aseba::SoftTimer timer0;
   Aseba::SoftTimer timer1;
   int16_t oldTimerPeriod[2];
+  int16_t oldProxCommTx;
+  int16_t oldMotorLeftTarget;
+  int16_t oldMotorRightTarget;
   Aseba::SoftTimer timer100Hz;
   unsigned counter100Hz;
  public:

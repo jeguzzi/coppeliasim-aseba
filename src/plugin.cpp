@@ -68,9 +68,9 @@ class Plugin : public sim::Plugin {
     void onStart() {
         if (!registerScriptStuff())
             throw std::runtime_error("script stuff initialization failed");
-
         setExtVersion("ASEBA HERE");
         setBuildDate(BUILD_DATE);
+        sim::registerScriptVariable("simThymio", "require('simThymio-typecheck')", 0);
     }
 
     void onScriptStateDestroyed(int scriptID) {
@@ -85,6 +85,13 @@ class Plugin : public sim::Plugin {
           sim_intparam_prox_sensor_select_up, sim_objectspecialproperty_detectable);
     }
 
+    void onSimulationAboutToEnd() {
+      while (thymios.size()) {
+        auto it = thymios.begin();
+        destroy_node_with_uid(it->first);
+      }
+      Aseba::destroy_all_nodes();
+    }
 
     void onModuleHandle(char *customData) {
       simFloat time_step = simGetSimulationTimeStep();
@@ -138,7 +145,7 @@ class Plugin : public sim::Plugin {
       }
     }
 
-    void create_thymio2(create_thymio2_in *in, create_thymio2_out *out) {
+    void _thymio2_create(_thymio2_create_in *in, _thymio2_create_out *out) {
       simInt uid = free_uid();
       uids.insert(uid);
       simInt script_handle = simGetScriptHandleEx(sim_scripttype_childscript, in->handle, nullptr);
@@ -167,8 +174,7 @@ class Plugin : public sim::Plugin {
       out->handle = uid;
     }
 
-    void destroy(destroy_in *in, destroy_out *out) {
-      simInt uid = in->handle;
+    void destroy_node_with_uid(unsigned uid) {
       if (thymios.count(uid)) {
         CS::Thymio2 & thymio = thymios.at(uid);
         for (simInt button_handle : thymio.button_handles()) {
@@ -183,43 +189,62 @@ class Plugin : public sim::Plugin {
       }
     }
 
-    void set_led(set_led_in *in, set_led_out *out) {
-      if (thymios.count(in->handle)) {
+    void destroy_node(destroy_node_in *in, destroy_node_out *out) {
+      destroy_node_with_uid(in->handle);
+    }
+
+    void _thymio2_set_led(_thymio2_set_led_in *in, _thymio2_set_led_out *out) {
+      if (in->handle == -1) {
+        for (auto & [_, thymio] : thymios) {
+          thymio.set_led_color(in->index, false, in->r, in->g, in->b);
+        }
+      } else if (thymios.count(in->handle)) {
         thymios.at(in->handle).set_led_color(in->index, false, in->r, in->g, in->b);
       }
     }
 
-    void set_led_intensity(set_led_intensity_in *in, set_led_intensity_out *out) {
-      if (thymios.count(in->handle)) {
+    void _thymio2_set_led_intensity(_thymio2_set_led_intensity_in *in,
+                                    _thymio2_set_led_intensity_out *out) {
+      if (in->handle == -1) {
+        for (auto & [_, thymio] : thymios) {
+          thymio.set_led_intensity(in->index, in->a);
+        }
+      } else if (thymios.count(in->handle)) {
         thymios.at(in->handle).set_led_intensity(in->index, in->a);
       }
     }
 
-    void set_target_speed(set_target_speed_in *in, set_target_speed_out *out) {
-      if (thymios.count(in->handle)) {
+    void _thymio2_set_target_speed(_thymio2_set_target_speed_in *in,
+                                   _thymio2_set_target_speed_out *out) {
+      if (in->handle == -1) {
+         for (auto & [_, thymio] : thymios) {
+           thymio.set_target_speed(in->index, in->speed);
+         }
+      } else if (thymios.count(in->handle)) {
         thymios.at(in->handle).set_target_speed(in->index, in->speed);
       }
     }
 
-    void get_speed(get_speed_in *in, get_speed_out *out) {
+    void _thymio2_get_speed(_thymio2_get_speed_in *in, _thymio2_get_speed_out *out) {
       if (thymios.count(in->handle)) {
         out->speed = thymios.at(in->handle).get_speed(in->index);
       }
     }
 
-    void get_proximity(get_proximity_in *in, get_proximity_out *out) {
+    void _thymio2_get_proximity(_thymio2_get_proximity_in *in, _thymio2_get_proximity_out *out) {
       if (thymios.count(in->handle)) {
         out->reading = thymios.at(in->handle).get_proximity_value(in->index);
       }
     }
 
-    void get_ground(get_ground_in *in, get_ground_out *out) {
+    void _thymio2_get_ground(_thymio2_get_ground_in *in, _thymio2_get_ground_out *out) {
       if (thymios.count(in->handle)) {
         out->reflected = thymios.at(in->handle).get_ground_reflected(in->index);
       }
     }
 
-    void get_acceleration(get_acceleration_in *in, get_acceleration_out *out) {
+    void _thymio2_get_acceleration(_thymio2_get_acceleration_in *in,
+                                   _thymio2_get_acceleration_out *out) {
       if (thymios.count(in->handle)) {
         const auto & thymio = thymios.at(in->handle);
         out->x = thymio.get_acceleration(0);
@@ -228,55 +253,55 @@ class Plugin : public sim::Plugin {
       }
     }
 
-    void connect_node(connect_node_in *in, connect_node_out *out) {
-      DynamicAsebaNode * node = Aseba::node_with_handle(in->handle);
-      if (node)
-        node->connect();
-    }
+    // void connect_node(connect_node_in *in, connect_node_out *out) {
+    //   DynamicAsebaNode * node = Aseba::node_with_handle(in->handle);
+    //   if (node)
+    //     node->connect();
+    // }
 
-    void addVariable(addVariable_in *in, addVariable_out *out) {
-      DynamicAsebaNode *node = Aseba::node_with_handle(in->nodeHandle);
+    void add_variable(add_variable_in *in, add_variable_out *out) {
+      DynamicAsebaNode *node = Aseba::node_with_handle(in->node_handle);
       if (node)
         node->add_variable(in->name, in->size);
     }
 
-    void setVariable(setVariable_in *in, setVariable_out *out) {
-      DynamicAsebaNode *node = Aseba::node_with_handle(in->nodeHandle);
+    void set_variable(set_variable_in *in, set_variable_out *out) {
+      DynamicAsebaNode *node = Aseba::node_with_handle(in->node_handle);
       if (node)
         node->set_variable(in->name, in->value);
     }
 
-    void getVariable(getVariable_in *in, getVariable_out *out) {
-      DynamicAsebaNode *node = Aseba::node_with_handle(in->nodeHandle);
+    void get_variable(get_variable_in *in, get_variable_out *out) {
+      DynamicAsebaNode *node = Aseba::node_with_handle(in->node_handle);
       if (node)
         out->value = node->get_variable(in->name);
     }
 
-    void emitEvent(emitEvent_in *in, emitEvent_out *out) {
-      DynamicAsebaNode *node = Aseba::node_with_handle(in->nodeHandle);
+    void emit_event(emit_event_in *in, emit_event_out *out) {
+      DynamicAsebaNode *node = Aseba::node_with_handle(in->node_handle);
       if (node)
         node->emit(in->name);
     }
 
-    void addEvent(addEvent_in *in, addEvent_out *out) {
-      DynamicAsebaNode *node = Aseba::node_with_handle(in->nodeHandle);
+    void add_event(add_event_in *in, add_event_out *out) {
+      DynamicAsebaNode *node = Aseba::node_with_handle(in->node_handle);
       if (node)
         node->add_event(in->name, in->description);
     }
 
-    void addFunction(addFunction_in *in, addFunction_out *out) {
-      // printf("addFunction %s to node %d \n", in->name.data(), in->nodeHandle);
+    void add_function(add_function_in *in, add_function_out *out) {
+      // printf("add_function %s to node %d \n", in->name.data(), in->node_handle);
       // printf("with arguments:\n");
       // std::vector<argument> args = in->arguments;
       // for (auto &arg : args) {
       //   printf("\t %s %d\n", arg.name.data(), arg.size);
       // }
-      DynamicAsebaNode *node = Aseba::node_with_handle(in->nodeHandle);
+      DynamicAsebaNode *node = Aseba::node_with_handle(in->node_handle);
       if (node)
         node->add_function(in->name, in->description, in->arguments, in->callback);
     }
 
-    void disconnectPort(disconnectPort_in *in, disconnectPort_out *out) {
+    void disconnect_port(disconnect_port_in *in, disconnect_port_out *out) {
       int port = in->port;
       if (port < 0) {
         Aseba::remove_all_networks();
@@ -285,53 +310,74 @@ class Plugin : public sim::Plugin {
       }
     }
 
-    void nodeList(nodeList_in *in, nodeList_out *out) {
+    void node_list(node_list_in *in, node_list_out *out) {
       out->nodes = Aseba::node_list(in->port);
     }
 
-    void enable_accelerometer(enable_accelerometer_in *in, enable_accelerometer_out *out) {
-      if (thymios.count(in->handle)) {
+    void _thymio2_enable_accelerometer(_thymio2_enable_accelerometer_in *in,
+                                       _thymio2_enable_accelerometer_out *out) {
+      if (in->handle == -1) {
+        for (auto & [_, thymio] : thymios) {
+          thymio.enable_accelerometer(in->state);
+        }
+      } else if (thymios.count(in->handle)) {
         auto & thymio = thymios.at(in->handle);
         thymio.enable_accelerometer(in->state);
       }
     }
 
-    void enable_ground(enable_ground_in *in, enable_ground_out *out) {
-      if (thymios.count(in->handle)) {
+    void _thymio2_enable_ground(_thymio2_enable_ground_in *in, _thymio2_enable_ground_out *out) {
+      if (in->handle == -1) {
+        for (auto & [_, thymio] : thymios) {
+          thymio.enable_ground(in->state);
+        }
+      } else if (thymios.count(in->handle)) {
         auto & thymio = thymios.at(in->handle);
         thymio.enable_ground(in->state);
       }
     }
 
-    void enable_proximity(enable_proximity_in *in, enable_proximity_out *out) {
-      if (thymios.count(in->handle)) {
+    void _thymio2_enable_proximity(_thymio2_enable_proximity_in *in,
+                                   _thymio2_enable_proximity_out *out) {
+    if (in->handle == -1) {
+       for (auto & [_, thymio] : thymios) {
+         thymio.enable_proximity(in->state);
+       }
+    } else if (thymios.count(in->handle)) {
         auto & thymio = thymios.at(in->handle);
         thymio.enable_proximity(in->state);
       }
     }
 
-    void get_button(get_button_in *in, get_button_out *out) {
+    void _thymio2_get_button(_thymio2_get_button_in *in, _thymio2_get_button_out *out) {
       if (thymios.count(in->handle)) {
         auto & thymio = thymios.at(in->handle);
         out->value = thymio.get_button(in->index);
       }
     }
 
-    void set_button(set_button_in *in, set_button_out *out) {
+    void _thymio2_set_button(_thymio2_set_button_in *in, _thymio2_set_button_out *out) {
       if (thymios.count(in->handle)) {
         auto & thymio = thymios.at(in->handle);
         thymio.set_button(in->index, in->value);
       }
     }
 
-    void enable_prox_comm(enable_prox_comm_in *in, enable_prox_comm_out *out) {
-      if (thymios.count(in->handle)) {
+    void _thymio2_enable_prox_comm(_thymio2_enable_prox_comm_in *in,
+                                   _thymio2_enable_prox_comm_out *out) {
+    if (in->handle == -1) {
+        for (auto & [_, thymio] : thymios) {
+          thymio.enable_prox_comm(in->state);
+        }
+    } else if (thymios.count(in->handle)) {
         auto & thymio = thymios.at(in->handle);
         thymio.enable_prox_comm(in->state);
       }
     }
 
-    void set_prox_comm_tx(set_prox_comm_tx_in *in, set_prox_comm_tx_out *out) {
+    void _thymio2_set_prox_comm_tx(
+        _thymio2_set_prox_comm_tx_in *in,
+        _thymio2_set_prox_comm_tx_out *out) {
       if (thymios.count(in->handle)) {
         auto & thymio = thymios.at(in->handle);
         // printf("set_prox_comm_tx %d\n", in->tx);
@@ -339,7 +385,9 @@ class Plugin : public sim::Plugin {
       }
     }
 
-    void get_prox_comm_rx(get_prox_comm_rx_in *in, get_prox_comm_rx_out *out) {
+    void _thymio2_get_prox_comm_rx(
+      _thymio2_get_prox_comm_rx_in *in,
+      _thymio2_get_prox_comm_rx_out *out) {
       if (thymios.count(in->handle)) {
         auto & thymio = thymios.at(in->handle);
         for (const auto & msg : thymio.prox_comm_rx()) {

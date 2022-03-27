@@ -20,6 +20,9 @@ struct Wheel {
   }
   void update_sensing(float dt);
   void set_target_speed(float speed);
+  float get_target_speed() const {
+    return nominal_angular_target_speed * radius;
+  }
   Wheel(simInt handle=-1) : angular_speed(0.0), handle(handle), nominal_angular_target_speed(0.0) {}
  private:
   float nominal_angular_target_speed;
@@ -173,6 +176,7 @@ class Thymio2 {
   Thymio2(simInt handle);
   ~Thymio2();
   void set_target_speed(size_t index, float speed);
+  float get_target_speed(size_t index);
   virtual void update_sensing(float dt);
   virtual void update_actuation(float dt);
   virtual void do_step(float dt);

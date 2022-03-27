@@ -183,8 +183,10 @@ class AsebaDashel : public Dashel::Hub {
       return false;
     for (const auto kv : nodes) {
       auto node = kv.second;
-      if (node->finalized)
-        node->step(dt);
+      // if (node->finalized)
+      //   node->step(dt);
+      node->finalized = true;
+      node->step(dt);
     }
     // disconnect old streams
     for (size_t i = 0; i < toDisconnect.size(); ++i) {
@@ -294,6 +296,15 @@ void destroy_node(unsigned uid) {
     AsebaDashel *network = network_for_vm(&(node->vm));
     remove_node(node, network, uid);
     delete node;
+  }
+}
+
+void destroy_all_nodes() {
+  auto it = nodes.cbegin();
+  while (it != nodes.cend()) {
+    AsebaDashel *network = network_for_vm(&(it->second->vm));
+    remove_node(it->second, network, it->first);
+    nodes.erase(it++);
   }
 }
 

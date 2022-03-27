@@ -3,7 +3,7 @@
 
 <plugin name="Aseba" author="jerome.guzzi@idsia.ch">
     <description></description>
-    <command name="create_thymio2">
+    <command name="_thymio2_create">
         <description>Create a Thymio2 robot</description>
         <params>
           <param name="handle" type="int">
@@ -26,7 +26,7 @@
         </return>
     </command>
     <command name="create_node">
-        <description>Create a Thymio2 robot</description>
+        <description>Create an aseba node</description>
         <params>
           <param name="handle" type="int">
               <description>handle of the coppelia object</description>
@@ -47,7 +47,7 @@
             </param>
         </return>
     </command>
-    <command name="destroy">
+    <command name="destroy_node">
         <description></description>
         <params>
             <param name="handle" type="int">
@@ -57,7 +57,7 @@
         <return>
         </return>
     </command>
-    <command name="connect_node">
+    <!-- <command name="connect_node">
         <description>Connect a node to the aseba network</description>
         <params>
             <param name="handle" type="int">
@@ -66,11 +66,11 @@
         </params>
         <return>
         </return>
-    </command>
-    <command name="addVariable">
+    </command> -->
+    <command name="add_variable">
         <description>Add an aseba variable</description>
         <params>
-            <param name="nodeHandle" type="int">
+            <param name="node_handle" type="int">
                 <description>The node handle</description>
             </param>
             <param name="name" type="string">
@@ -83,10 +83,10 @@
         <return>
         </return>
     </command>
-    <command name="setVariable">
+    <command name="set_variable">
         <description>Set an aseba variable</description>
         <params>
-            <param name="nodeHandle" type="int">
+            <param name="node_handle" type="int">
                 <description>The node handle</description>
             </param>
             <param name="name" type="string">
@@ -99,10 +99,10 @@
         <return>
         </return>
     </command>
-    <command name="getVariable">
+    <command name="get_variable">
         <description>Get an aseba variable</description>
         <params>
-            <param name="nodeHandle" type="int">
+            <param name="node_handle" type="int">
                 <description>The node handle</description>
             </param>
             <param name="name" type="string">
@@ -115,10 +115,10 @@
           </param>
         </return>
     </command>
-    <command name="addEvent">
+    <command name="add_event">
         <description>Add an aseba event</description>
         <params>
-            <param name="nodeHandle" type="int">
+            <param name="node_handle" type="int">
                 <description>The node handle</description>
             </param>
             <param name="name" type="string">
@@ -131,10 +131,10 @@
         <return>
         </return>
     </command>
-    <command name="emitEvent">
+    <command name="emit_event">
         <description>Emit an aseba event</description>
         <params>
-            <param name="nodeHandle" type="int">
+            <param name="node_handle" type="int">
                 <description>The node handle</description>
             </param>
             <param name="name" type="string">
@@ -144,10 +144,10 @@
         <return>
         </return>
     </command>
-    <command name="addFunction">
+    <command name="add_function">
         <description>Add an aseba function</description>
         <params>
-            <param name="nodeHandle" type="int">
+            <param name="node_handle" type="int">
                 <description>The node handle</description>
             </param>
             <param name="name" type="string">
@@ -166,7 +166,7 @@
         <return>
         </return>
     </command>
-    <command name="nodeList">
+    <command name="node_list">
         <description>Get a list of Aseba nodes</description>
         <params>
             <param name="port" type="int" default="-1">
@@ -179,7 +179,7 @@
           </param>
         </return>
     </command>
-    <command name="disconnectPort">
+    <command name="disconnect_port">
         <description>Destroy all nodes and disconnect</description>
         <params>
             <param name="port" type="int" default="-1">
@@ -189,7 +189,7 @@
         <return>
         </return>
     </command>
-    <command name="set_led">
+    <command name="_thymio2_set_led">
         <description></description>
         <params>
             <param name="handle" type="int">
@@ -211,7 +211,7 @@
         <return>
         </return>
     </command>
-    <command name="set_led_intensity">
+    <command name="_thymio2_set_led_intensity">
         <description></description>
         <params>
             <param name="handle" type="int">
@@ -227,7 +227,7 @@
         <return>
         </return>
     </command>
-    <command name="set_target_speed">
+    <command name="_thymio2_set_target_speed">
         <description></description>
         <params>
             <param name="handle" type="int">
@@ -243,7 +243,7 @@
         <return>
         </return>
     </command>
-    <command name="get_speed">
+    <command name="_thymio2_get_speed">
         <description></description>
         <params>
             <param name="handle" type="int">
@@ -259,7 +259,7 @@
           </param>
         </return>
     </command>
-    <command name="get_proximity">
+    <command name="_thymio2_get_proximity">
         <description></description>
         <params>
             <param name="handle" type="int">
@@ -275,7 +275,7 @@
           </param>
         </return>
     </command>
-    <command name="get_ground">
+    <command name="_thymio2_get_ground">
         <description></description>
         <params>
             <param name="handle" type="int">
@@ -291,7 +291,7 @@
           </param>
         </return>
     </command>
-    <command name="get_acceleration">
+    <command name="_thymio2_get_acceleration">
         <description></description>
         <params>
             <param name="handle" type="int">
@@ -310,7 +310,7 @@
           </param>
         </return>
     </command>
-    <command name="enable_ground">
+    <command name="_thymio2_enable_ground">
         <description></description>
         <params>
             <param name="handle" type="int">
@@ -323,7 +323,7 @@
         <return>
         </return>
     </command>
-    <command name="enable_proximity">
+    <command name="_thymio2_enable_proximity">
         <description></description>
         <params>
             <param name="handle" type="int">
@@ -336,7 +336,7 @@
         <return>
         </return>
     </command>
-    <command name="enable_accelerometer">
+    <command name="_thymio2_enable_accelerometer">
         <description></description>
         <params>
             <param name="handle" type="int">
@@ -349,7 +349,7 @@
         <return>
         </return>
     </command>
-    <command name="enable_prox_comm">
+    <command name="_thymio2_enable_prox_comm">
         <description></description>
         <params>
             <param name="handle" type="int">
@@ -362,7 +362,7 @@
         <return>
         </return>
     </command>
-    <command name="set_prox_comm_tx">
+    <command name="_thymio2_set_prox_comm_tx">
         <description></description>
         <params>
             <param name="handle" type="int">
@@ -375,7 +375,7 @@
         <return>
         </return>
     </command>
-    <command name="get_prox_comm_rx">
+    <command name="_thymio2_get_prox_comm_rx">
         <description></description>
         <params>
             <param name="handle" type="int">
@@ -388,7 +388,7 @@
           </param>
         </return>
     </command>
-    <command name="get_button">
+    <command name="_thymio2_get_button">
         <description></description>
         <params>
             <param name="handle" type="int">
@@ -404,7 +404,7 @@
           </param>
         </return>
     </command>
-    <command name="set_button">
+    <command name="_thymio2_set_button">
         <description></description>
         <params>
             <param name="handle" type="int">

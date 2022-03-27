@@ -93,6 +93,13 @@ coppeliasim_generate_stubs(
   LUA_FILE ${CMAKE_CURRENT_SOURCE_DIR}/simAseba.lua
 )
 
+# add_custom_target(
+#  generate_thymio_lua ALL
+#  COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/generate_thymio_lua.py ${CMAKE_CURRENT_BINARY_DIR}/generated
+#  BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/generated/simThymio-typecheck.lua
+#  COMMENT "Generating Thymio lua script"
+# )
+
 add_compile_definitions(TEXTURE_DIR="${MODEL_FOLDER}")
 
 configure_file(
@@ -112,6 +119,16 @@ coppeliasim_add_plugin(simExtAseba
   src/aseba_network.cpp
 )
 
+
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+add_custom_target(
+  generate_thymio_lua ALL
+  COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/generate_thymio_lua.py ${CMAKE_CURRENT_BINARY_DIR}/generated
+  BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/generated/simThymio-typecheck.lua
+  DEPENDS simExtAseba
+  COMMENT "Generating Thymio lua script"
+)
+
 target_link_libraries(simExtAseba ${OpenCV_LIBS} dashel asebacommon asebavmbuffer asebavm
   ${EXTRA_LIBS}
 )
@@ -127,3 +144,11 @@ if(DEFINED MODEL_FOLDER)
     DESTINATION ${MODEL_FOLDER}
   )
 endif()
+
+
+install(
+  FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/generated/simThymio-typecheck.lua
+    ${CMAKE_CURRENT_SOURCE_DIR}/simThymio.lua
+  DESTINATION $ENV{COPPELIASIM_ROOT_DIR}/../MacOs/lua
+)

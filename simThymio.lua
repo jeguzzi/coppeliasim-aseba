@@ -1,0 +1,3 @@
+local simThymio={}
+
+return simThymio

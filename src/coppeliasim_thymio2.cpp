@@ -281,6 +281,13 @@ void Thymio2::set_target_speed(size_t index, float speed) {
   }
 }
 
+float Thymio2::get_target_speed(size_t index) {
+  if (index < wheels.size()) {
+    return wheels[index].get_target_speed();
+  }
+  return 0.0;
+}
+
 void Thymio2::set_led_intensity(size_t index, float intensity) {
   if (index >= LED::COUNT) return;
   LED & led = leds[index];
@@ -357,7 +364,7 @@ static float proximity_response(
     float distance, float normal, float intensity,
     float x0 = 0.0003, float c = 0.0073, float m = 4505, float min_value = 1000) {
   float r = distance - x0;
-  float d = 1 + r * r / (c - x0 * x0) * abs(normal) * intensity;
+  float d = 1 + r * r / (c - x0 * x0) / abs(normal) / intensity;
   if (d < 1) {
     return m;
   }
@@ -411,9 +418,15 @@ inline double _sigm(float x, float s) {
 }
 
 static float ground_response(
-    float distance, float intensity,
-    float cFactor = 0.44, float sFactor = 9, float mFactor = 884, float aFactor = 60) {
-    return _sigm(intensity - cFactor, sFactor) * mFactor + aFactor;
+    float distance, float normal, float value,
+    float cFactor = 0.44, float sFactor = 9, float mFactor = 884, float aFactor = 60,
+    float x0 = 0.0084, float c = 0.000187, float m = 1032.0) {
+
+    // v = _sigm(intensity - cFactor, sFactor) * mFactor + aFactor;
+    float r = _sigm(value - cFactor, sFactor);
+    float d = distance - x0;
+    float v = 1.0 + (d * d) / (c - x0 * x0) / abs(normal);
+    return std::clamp(r * m / v, 0.0f, 1023.0f);
 }
 
 void GroundSensor::update_sensing(float dt) {
@@ -424,6 +437,7 @@ void GroundSensor::update_sensing(float dt) {
   simInt r = simCheckProximitySensorEx(
       handle, sim_handle_all, 1, 0.1, 0, detectedPoint, &detectedObjectHandle,
       surfaceNormalVector);
+  // printf("GroundSensor::update_sensing r %d %d %.3f\n", detectedObjectHandle, detectedPoint[3]);
   // printf("GS update_sensing\n");
   if (r > 0) {
     // printf("Detection %d\n", detectedObjectHandle);
@@ -434,10 +448,16 @@ void GroundSensor::update_sensing(float dt) {
       simFloat* auxValues = nullptr;
       simInt* auxValuesCount = nullptr;
       // const simFloat * rgbData = simCheckVisionSensorEx(vision_handle, sim_handle_all, true);
-      simInt r1 = simCheckVisionSensor(vision_handle, sim_handle_all, &auxValues, &auxValuesCount);
+      // simInt r1 = simCheckVisionSensor(vision_handle, detectedObjectHandle,
+      //                                  &auxValues, &auxValuesCount);
+      simHandleVisionSensor(vision_handle, &auxValues, &auxValuesCount);
       // HACK(Jerome): seems to always return 0
-      if ((auxValuesCount[0] > 0) || (auxValuesCount[1] >= 15)) {
+      if ((auxValuesCount[0] > 0) && (auxValuesCount[1] >= 15)) {
+        // TODO(Jerome): use value = (max-min)/2  instead of max?
         intensity = std::max({auxValues[11], auxValues[12], auxValues[13]});
+      } else {
+        // printf("ERORR: no detection by %d\n", vision_handle);
+        intensity = 0.0;
       }
       simReleaseBuffer((char*)auxValues);
       simReleaseBuffer((char*)auxValuesCount);
@@ -459,7 +479,7 @@ void GroundSensor::update_sensing(float dt) {
       intensity = std::max({rgbData[0], rgbData[1], rgbData[2]});
     }
     // printf("intensity %.2f\n", intensity);
-    reflected_light = ground_response(detectedPoint[3], intensity);
+    reflected_light = ground_response(detectedPoint[3], surfaceNormalVector[2], intensity);
   } else {
     // printf("No detection\n");
     reflected_light = 0;

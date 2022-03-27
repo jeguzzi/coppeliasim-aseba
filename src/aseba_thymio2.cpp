@@ -169,25 +169,34 @@ void AsebaThymio2::step(float dt) {
     oldTimerPeriod[1] = thymio_variables->timerPeriod[1];
     timer1.setPeriod(thymio_variables->timerPeriod[1] / 1000.);
   }
-
   uint16_t tx = thymio_variables->proxCommTx;
   // limit to 11 bits
   tx &= ((1>>11) - 1);
-  robot->set_prox_comm_tx(tx);
+  if (first || oldProxCommTx == tx) {
+    tx = robot->prox_comm_tx();
+    tx &= ((1>>11) - 1);
+    thymio_variables->proxCommTx = tx;
+  } else {
+    robot->set_prox_comm_tx(tx);
+  }
+  oldProxCommTx = thymio_variables->proxCommTx;
+  if (first || oldMotorLeftTarget == thymio_variables->motorLeftTarget) {
+    thymio_variables->motorLeftTarget = robot->get_target_speed(0) * 500. / 0.166;
+  } else {
+    robot->set_target_speed(0, double(thymio_variables->motorLeftTarget) * 0.166 / 500.);
+  }
+  if (first || oldMotorRightTarget == thymio_variables->motorRightTarget) {
+    thymio_variables->motorRightTarget = robot->get_target_speed(1) * 500. / 0.166;
+  } else {
+    robot->set_target_speed(1, double(thymio_variables->motorRightTarget) * 0.166 / 500.);
+  }
+  oldMotorLeftTarget = thymio_variables->motorLeftTarget;
+  oldMotorRightTarget = thymio_variables->motorRightTarget;
 
   // set physical variables
-  robot->set_target_speed(0, double(thymio_variables->motorLeftTarget) * 0.166 / 500.);
-  robot->set_target_speed(1, double(thymio_variables->motorRightTarget) * 0.166 / 500.);
+  // robot->set_target_speed(0, double(thymio_variables->motorLeftTarget) * 0.166 / 500.);
+  // robot->set_target_speed(1, double(thymio_variables->motorRightTarget) * 0.166 / 500.);
 
-  // irComm.set_tx(variables.proxCommTx & 0x7FF);
-  // for (auto& event : irComm.get_events()) {
-  //   variables.proxCommRx = event.rx_value;
-  //     for (size_t i = 0; i < 7; i++) {
-  //       variables.proxCommPayloads[i] = event.payloads[i];
-  //       variables.proxCommIntensities[i] = event.intensities[i];
-  //     }
-  //   emit(EVENT_PROX_COMM);
-  // }
   first = false;
 }
 
