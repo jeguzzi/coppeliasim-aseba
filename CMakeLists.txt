@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 project(simExtAseba)
+
 set(CMAKE_C_STANDARD 99)
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   # add_compile_options(-Wall -Wextra -Wpedantic)
@@ -32,7 +33,9 @@ list(APPEND CMAKE_MODULE_PATH
 
 find_package(CoppeliaSim 4.3 REQUIRED)
 set(LIB_INSTALL_DIR ${COPPELIASIM_LIBRARIES_DIR} CACHE FILEPATH "")
-set(MODEL_FOLDER ${COPPELIASIM_MODELS_DIR}/robots/mobile)
+set(MODEL_DIR ${COPPELIASIM_MODELS_DIR}/robots/mobile)
+
+message("MODEL DIR ${MODEL_DIR}")
 
 macro(codesign target)
 endmacro(codesign)
@@ -44,7 +47,7 @@ else()
   set(DASHEL_DIR ${PROJECT_SOURCE_DIR}/dashel)
 endif()
 
-add_subdirectory(${DASHEL_DIR} dashel)
+add_subdirectory(${DASHEL_DIR} dashel EXCLUDE_FROM_ALL)
 
 if(DEFINED ENV{ASEBA_DIR})
   set(ASEBA_DIR $ENV{ASEBA_DIR})
@@ -69,16 +72,16 @@ if(ZEROCONF)
   add_compile_definitions(ZEROCONF=1)
   include(zeroconf.cmake)
   set(HAS_ZEROCONF_SUPPORT true)
-  add_subdirectory(${ASEBA_DIR}/aseba/transport/dashel_plugins dashel_plugins)
+  add_subdirectory(${ASEBA_DIR}/aseba/transport/dashel_plugins dashel_plugins EXCLUDE_FROM_ALL)
   set(EXTRA_LIBS
     asebazeroconf
     asebadashelplugins
   )
 endif()
 
-add_subdirectory(${ASEBA_DIR}/aseba/common asebacommon)
-add_subdirectory(${ASEBA_DIR}/aseba/transport/buffer asebavmbuffer)
-add_subdirectory(${ASEBA_DIR}/aseba/vm asebavm)
+add_subdirectory(${ASEBA_DIR}/aseba/common asebacommon EXCLUDE_FROM_ALL)
+add_subdirectory(${ASEBA_DIR}/aseba/transport/buffer asebavmbuffer EXCLUDE_FROM_ALL)
+add_subdirectory(${ASEBA_DIR}/aseba/vm asebavm EXCLUDE_FROM_ALL)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
@@ -114,7 +117,7 @@ coppeliasim_generate_stubs(
 #  COMMENT "Generating Thymio lua script"
 # )
 
-add_compile_definitions(TEXTURE_DIR="${COPPELIASIM_MODELS_DIR}")
+add_compile_definitions(TEXTURE_DIR="${MODEL_DIR}")
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/include/config.h.in
@@ -155,7 +158,7 @@ target_link_libraries(simExtAseba ${OpenCV_LIBS} dashel asebacommon asebavmbuffe
   ${EXTRA_LIBS}
 )
 
-if(DEFINED MODEL_FOLDER)
+if(DEFINED MODEL_DIR)
   install(
     FILES
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio.ttm
@@ -163,7 +166,7 @@ if(DEFINED MODEL_FOLDER)
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-diffusionMap1.png
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-diffusionMap2.png
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-texture.png
-    DESTINATION ${MODEL_FOLDER}
+    DESTINATION ${MODEL_DIR}
   )
 endif()
 
@@ -172,4 +175,9 @@ install(
     ${CMAKE_CURRENT_BINARY_DIR}/generated/simThymio-typecheck.lua
     ${CMAKE_CURRENT_SOURCE_DIR}/lua/simThymio.lua
   DESTINATION ${COPPELIASIM_LUA_DIR}
+)
+
+install(
+  TARGETS dashel asebacommon asebavmbuffer asebavm ${EXTRA_LIBS}
+  DESTINATION ${COPPELIASIM_LIBRARIES_DIR}
 )
