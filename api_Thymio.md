@@ -88,7 +88,7 @@ simThymio.set_led(int handle,int index,float r,float g,float b)
 
   - **b** Blue component in [0, 1]
 
-*return*
+
 
 
 
@@ -108,7 +108,7 @@ simThymio.set_led_intensity(int handle,int index,float a)
 
   - **a** The color intensity in [0, 1]
 
-*return*
+
 
 
 
@@ -128,7 +128,7 @@ simThymio.set_target_speed(int handle,int index,float speed)
 
   - **speed** The angular speed in rad/s
 
-*return*
+
 
 
 
@@ -232,7 +232,7 @@ simThymio.enable_ground(int handle,bool state,bool red=false,bool vision=false)
 
   - **vision** Configure the sensors to use vision to get the color of the reflecting material.
 
-*return*
+
 
 
 
@@ -252,7 +252,7 @@ simThymio.enable_proximity(int handle,bool state,bool red=false)
 
   - **red** Configure the sensors to respond only to the red-compoment of the reflecting material.
 
-*return*
+
 
 
 
@@ -270,7 +270,7 @@ simThymio.enable_accelerometer(int handle,bool state)
 
   - **state** The state (enabled: true, disabled: false)
 
-*return*
+
 
 
 
@@ -288,7 +288,7 @@ simThymio.enable_prox_comm(int handle,bool state)
 
   - **state** The state (enabled: true, disabled: false)
 
-*return*
+
 
 
 
@@ -306,7 +306,7 @@ simThymio.set_prox_comm_tx(int handle,int tx)
 
   - **tx** The integer value to send.
 
-*return*
+
 
 
 
@@ -364,6 +364,6 @@ simThymio.set_button(int handle,int index,bool value)
 
   - **value** Pressed: true, Released: false
 
-*return*
+
 
 

@@ -1,4 +1,4 @@
-w## Structures
+## Structures
 | struct |
 |----|
 | [argument_t](#argument_t) |
@@ -23,7 +23,7 @@ w## Structures
 
 
 #### argument_t
-Description of an argument of an Aseba function used in
+Description of an argument of an Aseba function used in 
 ```C++
 argument_t = {int size = 1, string name }
 ```
@@ -88,7 +88,7 @@ simAseba.destroy_node(int id)
 
   - **id** The Aseba node ID.
 
-*return*
+
 
 
 
@@ -108,7 +108,7 @@ simAseba.add_variable(int id,string name,int size=1)
 
   - **size** The variable size (should be larger than 0)
 
-*return*
+
 
 
 
@@ -128,7 +128,7 @@ simAseba.set_variable(int id,string name,int[] value)
 
   - **value** The variable value
 
-*return*
+
 
 
 
@@ -168,7 +168,7 @@ simAseba.add_event(int id,string name,string description)
 
   - **description** The event description that will be publicized on the network
 
-*return*
+
 
 
 
@@ -186,7 +186,7 @@ simAseba.emit_event(int id,string name)
 
   - **name** The event name
 
-*return*
+
 
 
 
@@ -210,7 +210,7 @@ simAseba.add_function(int id,string name,string description,argument_t[] argumen
 
   - **callback** The name of the lua function that implements the callback in the current script
 
-*return*
+
 
 
 
@@ -244,4 +244,6 @@ simAseba.destroy_network(int port=-1)
 
   - **port** The Aseba network port. Use -1 to destroy all networks.
 
-*return*
+
+
+

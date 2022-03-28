@@ -44,7 +44,7 @@
 {% for param in cmd.all_params %}
   - **{{param.name}}** {{param.description}}
 {% endfor %}
-*return*
+{% if cmd.returns %}*return*{% endif %}
 {% for param in cmd.returns %}
   - **{{param.name}}** {{param.description}}
 {% endfor %}
