@@ -163,15 +163,15 @@ class Plugin : public sim::Plugin {
         buttons[button_handle] = std::make_pair(uid, i);
         i++;
       }
-      out->handle = uid;
+      out->id = uid;
     }
 
     void create_node(create_node_in *in, create_node_out *out) {
       simInt uid = free_uid();
       uids.insert(uid);
       simInt script_handle = simGetScriptHandleEx(sim_scripttype_childscript, in->handle, nullptr);
-      Aseba::create_node<DynamicAsebaNode>(uid, in->port, in->prefix, script_handle);
-      out->handle = uid;
+      Aseba::create_node<DynamicAsebaNode>(uid, in->port, in->name, script_handle);
+      out->id = uid;
     }
 
     void destroy_node_with_uid(unsigned uid) {
@@ -190,7 +190,7 @@ class Plugin : public sim::Plugin {
     }
 
     void destroy_node(destroy_node_in *in, destroy_node_out *out) {
-      destroy_node_with_uid(in->handle);
+      destroy_node_with_uid(in->id);
     }
 
     void _thymio2_set_led(_thymio2_set_led_in *in, _thymio2_set_led_out *out) {
@@ -260,48 +260,48 @@ class Plugin : public sim::Plugin {
     // }
 
     void add_variable(add_variable_in *in, add_variable_out *out) {
-      DynamicAsebaNode *node = Aseba::node_with_handle(in->node_handle);
+      DynamicAsebaNode *node = Aseba::node_with_handle(in->id);
       if (node)
         node->add_variable(in->name, in->size);
     }
 
     void set_variable(set_variable_in *in, set_variable_out *out) {
-      DynamicAsebaNode *node = Aseba::node_with_handle(in->node_handle);
+      DynamicAsebaNode *node = Aseba::node_with_handle(in->id);
       if (node)
         node->set_variable(in->name, in->value);
     }
 
     void get_variable(get_variable_in *in, get_variable_out *out) {
-      DynamicAsebaNode *node = Aseba::node_with_handle(in->node_handle);
+      DynamicAsebaNode *node = Aseba::node_with_handle(in->id);
       if (node)
         out->value = node->get_variable(in->name);
     }
 
     void emit_event(emit_event_in *in, emit_event_out *out) {
-      DynamicAsebaNode *node = Aseba::node_with_handle(in->node_handle);
+      DynamicAsebaNode *node = Aseba::node_with_handle(in->id);
       if (node)
         node->emit(in->name);
     }
 
     void add_event(add_event_in *in, add_event_out *out) {
-      DynamicAsebaNode *node = Aseba::node_with_handle(in->node_handle);
+      DynamicAsebaNode *node = Aseba::node_with_handle(in->id);
       if (node)
         node->add_event(in->name, in->description);
     }
 
     void add_function(add_function_in *in, add_function_out *out) {
-      // printf("add_function %s to node %d \n", in->name.data(), in->node_handle);
+      // printf("add_function %s to node %d \n", in->name.data(), in->id);
       // printf("with arguments:\n");
       // std::vector<argument> args = in->arguments;
       // for (auto &arg : args) {
       //   printf("\t %s %d\n", arg.name.data(), arg.size);
       // }
-      DynamicAsebaNode *node = Aseba::node_with_handle(in->node_handle);
+      DynamicAsebaNode *node = Aseba::node_with_handle(in->id);
       if (node)
         node->add_function(in->name, in->description, in->arguments, in->callback);
     }
 
-    void disconnect_port(disconnect_port_in *in, disconnect_port_out *out) {
+    void destroy_network(destroy_network_in *in, destroy_network_out *out) {
       int port = in->port;
       if (port < 0) {
         Aseba::remove_all_networks();
@@ -310,7 +310,7 @@ class Plugin : public sim::Plugin {
       }
     }
 
-    void node_list(node_list_in *in, node_list_out *out) {
+    void list_nodes(list_nodes_in *in, list_nodes_out *out) {
       out->nodes = Aseba::node_list(in->port);
     }
 
@@ -329,11 +329,11 @@ class Plugin : public sim::Plugin {
     void _thymio2_enable_ground(_thymio2_enable_ground_in *in, _thymio2_enable_ground_out *out) {
       if (in->handle == -1) {
         for (auto & [_, thymio] : thymios) {
-          thymio.enable_ground(in->state);
+          thymio.enable_ground(in->state, in->red, in->vision);
         }
       } else if (thymios.count(in->handle)) {
         auto & thymio = thymios.at(in->handle);
-        thymio.enable_ground(in->state);
+        thymio.enable_ground(in->state, in->red, in->vision);
       }
     }
 
@@ -341,11 +341,11 @@ class Plugin : public sim::Plugin {
                                    _thymio2_enable_proximity_out *out) {
     if (in->handle == -1) {
        for (auto & [_, thymio] : thymios) {
-         thymio.enable_proximity(in->state);
+         thymio.enable_proximity(in->state, in->red);
        }
     } else if (thymios.count(in->handle)) {
         auto & thymio = thymios.at(in->handle);
-        thymio.enable_proximity(in->state);
+        thymio.enable_proximity(in->state, in->red);
       }
     }
 

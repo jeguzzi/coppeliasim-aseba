@@ -19,6 +19,20 @@ list(APPEND CMAKE_MODULE_PATH
   ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules
 )
 
+if(NOT LIBPLUGIN_DIR)
+  if(DEFINED ENV{COPPELIASIM_ROOT_DIR})
+    set(LIBPLUGIN_DIR $ENV{COPPELIASIM_ROOT_DIR}/programming/libPlugin)
+  else()
+    set(LIBPLUGIN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../libPlugin)
+  endif()
+endif()
+list(APPEND CMAKE_MODULE_PATH
+  ${LIBPLUGIN_DIR}/cmake
+)
+
+find_package(CoppeliaSim 4.3 REQUIRED)
+set(LIB_INSTALL_DIR ${COPPELIASIM_LIBRARIES_DIR} CACHE FILEPATH "")
+
 macro(codesign target)
 endmacro(codesign)
 add_compile_options(-pedantic)
@@ -70,7 +84,6 @@ set(CMAKE_CXX_STANDARD 17)
 if(NOT LIBPLUGIN_DIR)
   if(DEFINED ENV{COPPELIASIM_ROOT_DIR})
     set(LIBPLUGIN_DIR $ENV{COPPELIASIM_ROOT_DIR}/programming/libPlugin)
-    set(MODEL_FOLDER $ENV{COPPELIASIM_ROOT_DIR}/models/robots/mobile)
   else()
     set(LIBPLUGIN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../libPlugin)
   endif()
@@ -100,7 +113,7 @@ coppeliasim_generate_stubs(
 #  COMMENT "Generating Thymio lua script"
 # )
 
-add_compile_definitions(TEXTURE_DIR="${MODEL_FOLDER}")
+add_compile_definitions(TEXTURE_DIR="${COPPELIASIM_MODELS_DIR}")
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
@@ -119,21 +132,29 @@ coppeliasim_add_plugin(simExtAseba
   src/aseba_network.cpp
 )
 
-
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 add_custom_target(
   generate_thymio_lua ALL
-  COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/generate_thymio_lua.py ${CMAKE_CURRENT_BINARY_DIR}/generated
+  COMMAND
+    export PYTHONPATH=$PYTHONPATH:${LIBPLUGIN_DIR}/simStubsGen
+    &&
+    ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_split_reference.py --directory ${CMAKE_CURRENT_BINARY_DIR}/generated
+    &&
+    ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_markdown_api.py --directory ${CMAKE_CURRENT_BINARY_DIR}/generated --file reference_Aseba.xml
+    &&
+    ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_markdown_api.py --directory ${CMAKE_CURRENT_BINARY_DIR}/generated --file reference_Thymio.xml
+    &&
+    ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_lua.py --directory ${CMAKE_CURRENT_BINARY_DIR}/generated
   BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/generated/simThymio-typecheck.lua
   DEPENDS simExtAseba
-  COMMENT "Generating Thymio lua script"
+  COMMENT "Generating docs and Thymio lua script"
 )
 
 target_link_libraries(simExtAseba ${OpenCV_LIBS} dashel asebacommon asebavmbuffer asebavm
   ${EXTRA_LIBS}
 )
 
-if(DEFINED MODEL_FOLDER)
+if(DEFINED COPPELIASIM_MODELS_DIR)
   install(
     FILES
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio.ttm
@@ -141,14 +162,13 @@ if(DEFINED MODEL_FOLDER)
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-diffusionMap1.png
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-diffusionMap2.png
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-texture.png
-    DESTINATION ${MODEL_FOLDER}
+    DESTINATION ${COPPELIASIM_MODELS_DIR}
   )
 endif()
-
 
 install(
   FILES
     ${CMAKE_CURRENT_BINARY_DIR}/generated/simThymio-typecheck.lua
     ${CMAKE_CURRENT_SOURCE_DIR}/simThymio.lua
-  DESTINATION $ENV{COPPELIASIM_ROOT_DIR}/../MacOs/lua
+  DESTINATION ${COPPELIASIM_LUA_DIR}
 )

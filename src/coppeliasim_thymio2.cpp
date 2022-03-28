@@ -360,20 +360,66 @@ void Wheel::update_sensing(float dt) {
   simInt r = simGetJointVelocity(handle, &angular_speed);
 }
 
-static float proximity_response(
-    float distance, float normal, float intensity,
-    float x0 = 0.0003, float c = 0.0073, float m = 4505, float min_value = 1000) {
-  float r = distance - x0;
-  float d = 1 + r * r / (c - x0 * x0) / abs(normal) / intensity;
-  if (d < 1) {
-    return m;
+static float ir_response(
+    float intensity, float max_value, float min_value) {
+  if (intensity <= 0) {
+    return 0;
   }
-  float v = m / d;
+  float v = max_value / (1 + 1/intensity);
   if (v < min_value) {
     return 0;
   }
   return v;
 }
+
+static float ir_reflected_intensity(
+    float distance, float normal, float reflectivity,
+    float x0, float lambda) {
+  float r = (lambda - x0) / (distance - x0);
+  return r * r * abs(normal) * reflectivity;
+}
+
+static float ir_reflectivity(float r, float g, float b, bool only_red = false,
+                             float beta = 0.11, float v0 = 0.44) {
+  float v;
+  if (only_red) {
+    v = 0.8 * r + 0.2;
+  } else {
+    v = (r + g + b) / 3;
+  }
+  return 1. / (1. + exp(-(v - v0) / beta));
+}
+
+static float ir(float distance, float normal, float r, float g, float b,
+                float max_value, float min_value, float x0, float lambda,
+                bool only_red = false, float beta = 0.11, float v0 = 0.44) {
+  return ir_response(
+      ir_reflected_intensity(
+          distance, normal,
+          ir_reflectivity(r, g, b, only_red, beta, v0), x0, lambda),
+        max_value, min_value);
+}
+
+// From enki: it ignores the distance (as enki is 2D)
+// TODO(Jerome): consider the distance too
+// inline double _sigm(float x, float s) {
+//   return 1. / (1. + exp(-x * s));
+// }
+
+// static float proximity_response(
+//     float distance, float normal, float intensity,
+//     float x0 = 0.0003, float c = 0.0073, float m = 4505, float min_value = 1000) {
+//   float r = distance - x0;
+//   float d = 1 + r * r / (c - x0 * x0) / abs(normal) / intensity;
+//   if (d < 1) {
+//     return m;
+//   }
+//   float v = m / d;
+//   if (v < min_value) {
+//     return 0;
+//   }
+//   return v;
+// }
 
 void ProximitySensor::update_sensing(float dt) {
   // TODO(Jerome): check if we should use max angle and which detection mode
@@ -392,8 +438,11 @@ void ProximitySensor::update_sensing(float dt) {
     // get diffusion color of detected object
     simFloat rgbData[3];
     r = simGetObjectColor(detectedObjectHandle, 0, sim_colorcomponent_ambient_diffuse, rgbData);
-    float intensity = std::max({rgbData[0], rgbData[1], rgbData[2]});
-    value = proximity_response(detectedPoint[3], surfaceNormalVector[2], intensity);
+    // float intensity = std::max({rgbData[0], rgbData[1], rgbData[2]});
+    // value = proximity_response(detectedPoint[3], surfaceNormalVector[2], intensity);
+    //
+    value = ir(detectedPoint[3], surfaceNormalVector[2], rgbData[0], rgbData[1], rgbData[2],
+               max_value, min_value, x0, lambda, only_red);
     // printf("Detected: %.2f %.2f %.2f -> %.2f\n", detectedPoint[3], surfaceNormalVector[2],
            // intensity, value);
   } else {
@@ -402,7 +451,8 @@ void ProximitySensor::update_sensing(float dt) {
   }
 }
 
-GroundSensor::GroundSensor(simInt handle_) : handle(handle_), active(true) {
+GroundSensor::GroundSensor(simInt handle_) :
+  handle(handle_), active(true), only_red(false), use_vision(false) {
   if (handle >= 0) {
     simChar * alias = simGetObjectAlias(handle, 2);
     std::string path = std::string(alias);
@@ -411,53 +461,48 @@ GroundSensor::GroundSensor(simInt handle_) : handle(handle_), active(true) {
   }
 }
 
-// From enki: it ignores the distance (as enki is 2D)
-// TODO(Jerome): consider the distance too
-inline double _sigm(float x, float s) {
-  return 1. / (1. + exp(-x * s));
-}
-
-static float ground_response(
-    float distance, float normal, float value,
-    float cFactor = 0.44, float sFactor = 9, float mFactor = 884, float aFactor = 60,
-    float x0 = 0.0084, float c = 0.000187, float m = 1032.0) {
-
-    // v = _sigm(intensity - cFactor, sFactor) * mFactor + aFactor;
-    float r = _sigm(value - cFactor, sFactor);
-    float d = distance - x0;
-    float v = 1.0 + (d * d) / (c - x0 * x0) / abs(normal);
-    return std::clamp(r * m / v, 0.0f, 1023.0f);
-}
+// static float ground_response(
+//     float distance, float normal, float value,
+//     float cFactor = 0.44, float sFactor = 9, float mFactor = 884, float aFactor = 60,
+//     float x0 = 0.0084, float c = 0.000187, float m = 1032.0) {
+//
+//     // v = _sigm(intensity - cFactor, sFactor) * mFactor + aFactor;
+//     float r = _sigm(value - cFactor, sFactor);
+//     float d = distance - x0;
+//     float v = 1.0 + (d * d) / (c - x0 * x0) / abs(normal);
+//     return std::clamp(r * m / v, 0.0f, 1023.0f);
+// }
 
 void GroundSensor::update_sensing(float dt) {
   simFloat detectedPoint[4];
   simInt detectedObjectHandle = 0;
   simFloat surfaceNormalVector[3];
-
   simInt r = simCheckProximitySensorEx(
       handle, sim_handle_all, 1, 0.1, 0, detectedPoint, &detectedObjectHandle,
       surfaceNormalVector);
   // printf("GroundSensor::update_sensing r %d %d %.3f\n", detectedObjectHandle, detectedPoint[3]);
   // printf("GS update_sensing\n");
   if (r > 0) {
+    float rgb[3];
     // printf("Detection %d\n", detectedObjectHandle);
     // bool has_texture = (simGetShapeTextureId(detectedObjectHandle) != -1);
-    bool has_texture = true;
-    float intensity;
-    if (has_texture) {
+    if (use_vision) {
       simFloat* auxValues = nullptr;
       simInt* auxValuesCount = nullptr;
       // const simFloat * rgbData = simCheckVisionSensorEx(vision_handle, sim_handle_all, true);
       // simInt r1 = simCheckVisionSensor(vision_handle, detectedObjectHandle,
       //                                  &auxValues, &auxValuesCount);
       simHandleVisionSensor(vision_handle, &auxValues, &auxValuesCount);
-      // HACK(Jerome): seems to always return 0
       if ((auxValuesCount[0] > 0) && (auxValuesCount[1] >= 15)) {
-        // TODO(Jerome): use value = (max-min)/2  instead of max?
-        intensity = std::max({auxValues[11], auxValues[12], auxValues[13]});
+        rgb[0] = auxValues[11];
+        rgb[1] = auxValues[12];
+        rgb[2] = auxValues[13];
+        // intensity = std::max({auxValues[11], auxValues[12], auxValues[13]});
       } else {
         // printf("ERORR: no detection by %d\n", vision_handle);
-        intensity = 0.0;
+        rgb[0] = 0;
+        rgb[1] = 0;
+        rgb[2] = 0;
       }
       simReleaseBuffer((char*)auxValues);
       simReleaseBuffer((char*)auxValuesCount);
@@ -474,15 +519,17 @@ void GroundSensor::update_sensing(float dt) {
       // simReleaseBuffer((const simChar *) rgbData);
     } else {
       // printf("no texture\n");
-      simFloat rgbData[3];
-      simGetObjectColor(detectedObjectHandle, 0, sim_colorcomponent_ambient_diffuse, rgbData);
-      intensity = std::max({rgbData[0], rgbData[1], rgbData[2]});
+      // simGetObjectColor(detectedObjectHandle, 0, sim_colorcomponent_ambient_diffuse, rgb);
+      // intensity = std::max({rgbData[0], rgbData[1], rgbData[2]});
     }
     // printf("intensity %.2f\n", intensity);
-    reflected_light = ground_response(detectedPoint[3], surfaceNormalVector[2], intensity);
+    // reflected_light = ground_response(detectedPoint[3], surfaceNormalVector[2], intensity);
+    reflected_light = ir(detectedPoint[3], surfaceNormalVector[2], rgb[0], rgb[1], rgb[2],
+                         max_value, min_value, x0, lambda, only_red);
   } else {
     // printf("No detection\n");
-    reflected_light = 0;
+    // reflected_light = 0;
+    reflected_light = min_value;
   }
 }
 
