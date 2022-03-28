@@ -32,6 +32,7 @@ list(APPEND CMAKE_MODULE_PATH
 
 find_package(CoppeliaSim 4.3 REQUIRED)
 set(LIB_INSTALL_DIR ${COPPELIASIM_LIBRARIES_DIR} CACHE FILEPATH "")
+set(MODEL_FOLDER ${COPPELIASIM_MODELS_DIR}/robots/mobile)
 
 macro(codesign target)
 endmacro(codesign)
@@ -154,7 +155,7 @@ target_link_libraries(simExtAseba ${OpenCV_LIBS} dashel asebacommon asebavmbuffe
   ${EXTRA_LIBS}
 )
 
-if(DEFINED COPPELIASIM_MODELS_DIR)
+if(DEFINED MODEL_FOLDER)
   install(
     FILES
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio.ttm
@@ -162,7 +163,7 @@ if(DEFINED COPPELIASIM_MODELS_DIR)
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-diffusionMap1.png
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-diffusionMap2.png
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-texture.png
-    DESTINATION ${COPPELIASIM_MODELS_DIR}
+    DESTINATION ${MODEL_FOLDER}
   )
 endif()
 
