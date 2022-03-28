@@ -519,7 +519,7 @@ void GroundSensor::update_sensing(float dt) {
       // simReleaseBuffer((const simChar *) rgbData);
     } else {
       // printf("no texture\n");
-      // simGetObjectColor(detectedObjectHandle, 0, sim_colorcomponent_ambient_diffuse, rgb);
+      simGetObjectColor(detectedObjectHandle, 0, sim_colorcomponent_ambient_diffuse, rgb);
       // intensity = std::max({rgbData[0], rgbData[1], rgbData[2]});
     }
     // printf("intensity %.2f\n", intensity);

@@ -90,10 +90,13 @@ struct GroundSensor {
   // int16_t delta() const {
   //   return static_cast<int16_t>(reflected_light - ambient_light);
   // }
-  static constexpr float max_value = 1032.0;
-  static constexpr float min_value = 1000.0;
-  static constexpr float x0 = 0.0084;
-  static constexpr float lambda = 0.0192;
+  // static constexpr float max_value = 1032.0;
+  static constexpr float min_value = 0.0;
+  // static constexpr float x0 = 0.0084;
+  static constexpr float max_value = 1291.8;
+  static constexpr float x0 = 0.0;
+  static constexpr float lambda = 0.01631;
+  // static constexpr float lambda = 0.0192;
   void update_sensing(float dt);
   GroundSensor(simInt handle_=-1);
 private:
