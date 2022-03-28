@@ -117,7 +117,7 @@ coppeliasim_generate_stubs(
 add_compile_definitions(TEXTURE_DIR="${COPPELIASIM_MODELS_DIR}")
 
 configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/config.h.in
   ${CMAKE_CURRENT_BINARY_DIR}/config.h
 ESCAPE_QUOTES)
 
