@@ -104,7 +104,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 coppeliasim_generate_stubs(
   ${CMAKE_CURRENT_BINARY_DIR}/generated
   XML_FILE ${CMAKE_CURRENT_SOURCE_DIR}/callbacks.xml
-  LUA_FILE ${CMAKE_CURRENT_SOURCE_DIR}/simAseba.lua
+  LUA_FILE ${CMAKE_CURRENT_SOURCE_DIR}/lua/simAseba.lua
 )
 
 # add_custom_target(
@@ -170,6 +170,6 @@ endif()
 install(
   FILES
     ${CMAKE_CURRENT_BINARY_DIR}/generated/simThymio-typecheck.lua
-    ${CMAKE_CURRENT_SOURCE_DIR}/simThymio.lua
+    ${CMAKE_CURRENT_SOURCE_DIR}/lua/simThymio.lua
   DESTINATION ${COPPELIASIM_LUA_DIR}
 )
