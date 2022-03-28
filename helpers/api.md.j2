@@ -1,0 +1,52 @@
+## Structures
+| struct |
+|----|
+{%- for s in plugin.structs %}
+| [{{s.name}}](#{{s.name}}) |
+{%- endfor %}
+
+
+## Functions
+| function |
+|----|
+{%- for cmd in plugin.commands %}
+| [sim{{plugin.name}}.{{cmd.name}}](#{{cmd.name}}) |
+{%- endfor %}
+
+
+{% for s in plugin.structs %}
+
+#### {{s.name}}
+{{s.description.text}}
+```C++
+{{s.name}} = {
+{%- for param in s.fields -%}
+{{param.htype()}} {{param.name}} {% if param.default %}= {{param.default}}{% endif %}
+{%- if not loop.last %}, {% endif -%}
+{%- endfor -%}
+}
+```
+*fields*
+{% for param in s.fields %}
+  - **{{param.name}}** {{param.description}}
+{% endfor %}
+{% endfor %}
+
+
+{% for cmd in plugin.commands %}
+
+#### {{cmd.name}}
+{{cmd.documentation}}
+```C++
+{{cmd.calltip}}
+```
+*parameters*
+{% for param in cmd.all_params %}
+  - **{{param.name}}** {{param.description}}
+{% endfor %}
+*return*
+{% for param in cmd.returns %}
+  - **{{param.name}}** {{param.description}}
+{% endfor %}
+
+{% endfor %}
