@@ -70,7 +70,7 @@ include_directories(
 if(ZEROCONF)
   message("With support for Zeroconf")
   add_compile_definitions(ZEROCONF=1)
-  include(zeroconf.cmake)
+  include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/zeroconf.cmake)
   set(HAS_ZEROCONF_SUPPORT true)
   add_subdirectory(${ASEBA_DIR}/aseba/transport/dashel_plugins dashel_plugins EXCLUDE_FROM_ALL)
   set(EXTRA_LIBS

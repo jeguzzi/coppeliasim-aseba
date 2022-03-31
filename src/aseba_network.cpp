@@ -37,7 +37,7 @@ class AsebaDashel : public Dashel::Hub {
       , zeroconf(*this)
 #endif
       {
-    advertised_target = std::string("CoppeliaSim ") + std::to_string(port);
+    advertised_target = std::string("Not A Thymio 3: CoppeliaSim ") + std::to_string(port);
     listenStream = listen();
     printf("Listening on tcp:port=%s\n", listenStream->getTargetParameter("port").c_str());
   }
@@ -77,10 +77,12 @@ class AsebaDashel : public Dashel::Hub {
       names += node->name + " ";
       pids.push_back(8);  // product id
     }
-    Aseba::Zeroconf::TxtRecord txt{protocolVersion, names, false, ids, pids};
+    // Aseba::Zeroconf::TxtRecord txt{protocolVersion, names, false, ids, pids};
+    Aseba::Zeroconf::TxtRecord txt{protocolVersion, "Thymio II", false, ids, pids};
     try {
       printf("Will advertise %s with %s\n", advertised_target.c_str(), txt.record().c_str());
       zeroconf.advertise(advertised_target, listenStream, txt);
+      printf("Has advertised\n");
     } catch (const std::runtime_error& e) {
       printf("Could not advertise: %s\n", e.what());
     }
@@ -117,6 +119,9 @@ class AsebaDashel : public Dashel::Hub {
   }
 
   virtual void connectionClosed(Dashel::Stream *stream, bool abnormal) {
+#ifdef ZEROCONF_SUPPORT
+    zeroconf.dashelConnectionClosed(stream);
+#endif  // ZEROCONF_SUPPORT
     this->stream = nullptr;
     // clear breakpoints
     for (auto kv : nodes) {
@@ -129,6 +134,9 @@ class AsebaDashel : public Dashel::Hub {
   }
 
   virtual void incomingData(Dashel::Stream *stream) {
+#ifdef ZEROCONF_SUPPORT
+    zeroconf.dashelIncomingData(stream);
+#endif  // ZEROCONF_SUPPORT
     // only process data for the current stream
     if (stream != this->stream)
       return;
@@ -179,8 +187,13 @@ class AsebaDashel : public Dashel::Hub {
   }
 
   bool spin(float dt) {
+#ifdef ZEROCONF
+    if (!zeroconf.dashelStep(timeout))
+#else
     if (!step(timeout))
+#endif  // ZEROCONF
       return false;
+
     for (const auto kv : nodes) {
       auto node = kv.second;
       // if (node->finalized)
@@ -291,7 +304,7 @@ template AsebaThymio2 * create_node<AsebaThymio2>(unsigned, unsigned, std::strin
 
 void destroy_node(unsigned uid) {
   DynamicAsebaNode *node = node_with_handle(uid);
-  printf("destroy_node %p\n", node);
+  printf("destroy_node # %d\n", uid);
   if (node) {
     AsebaDashel *network = network_for_vm(&(node->vm));
     remove_node(node, network, uid);
