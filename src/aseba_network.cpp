@@ -37,16 +37,18 @@ class AsebaDashel : public Dashel::Hub {
       , zeroconf(*this)
 #endif
       {
-    advertised_target = std::string("Not A Thymio 3: CoppeliaSim ") + std::to_string(port);
+    // advertised_target = std::string("Not A Thymio 3: CoppeliaSim ") + std::to_string(port);
+    advertised_target = std::string("CoppeliaSim@:") + std::to_string(port);
     listenStream = listen();
-    printf("Listening on tcp:port=%s\n", listenStream->getTargetParameter("port").c_str());
+    printf("Created Aseba network listening on tcp:port=%s\n",
+           listenStream->getTargetParameter("port").c_str());
   }
 
   ~AsebaDashel() {
     for (auto kv : nodes) {
       delete kv.second;
     }
-    printf("Deleted network on :%d\n", port);
+    printf("Deleted network on tcp:port=%d\n", port);
   }
 
   void add_node(DynamicAsebaNode *node) {
@@ -59,9 +61,10 @@ class AsebaDashel : public Dashel::Hub {
   void remove_node(DynamicAsebaNode *node) {
     nodes.erase(node->vm.nodeId);
 #ifdef ZEROCONF
-    if (nodes.size() == 0) {
-      deadvertise();
-    }
+    // if (nodes.size() == 0) {
+    //   deadvertise();
+    // }
+    advertise();
 #endif
   }
 
@@ -89,6 +92,7 @@ class AsebaDashel : public Dashel::Hub {
   }
 
   void deadvertise() {
+    printf("deadvertise network\n");
     zeroconf.forget(advertised_target, listenStream);
   }
 #endif
@@ -106,8 +110,33 @@ class AsebaDashel : public Dashel::Hub {
     return listenStream;
   }
 
+#if 1
   virtual void connectionCreated(Dashel::Stream *stream) {
     std::string targetName = stream->getTargetName();
+    printf("[DASHEL] connectionCreated %s, %p (%p)\n", targetName.c_str(), stream, this->stream);
+    if (targetName.substr(0, targetName.find_first_of(':')) == "tcp") {
+      // schedule current stream for disconnection
+      if (!this->stream) {
+        this->stream = stream;
+        printf("New client connected with %p\n", stream);
+      } else {
+        printf("Refuse connection\n");
+        // ??? Dashel say not to call closeStream in connectionCreated ???
+        closeStream(stream);
+        // but this (proper way) makes us crash (why?)
+        // toDisconnect.push_back(stream);
+      }
+        // toDisconnect.push_back(this->stream);
+      // set new stream as current stream
+      // this->stream = stream;
+      // printf("New client connected.\n");
+    }
+  }
+#endif
+#if 0
+  virtual void connectionCreated(Dashel::Stream *stream) {
+    std::string targetName = stream->getTargetName();
+    printf("[DASHEL] connectionCreated %s\n", targetName.c_str());
     if (targetName.substr(0, targetName.find_first_of(':')) == "tcp") {
       // schedule current stream for disconnection
       if (this->stream)
@@ -117,15 +146,18 @@ class AsebaDashel : public Dashel::Hub {
       printf("New client connected.\n");
     }
   }
-
+#endif
   virtual void connectionClosed(Dashel::Stream *stream, bool abnormal) {
+    printf("[DASHEL] connectionClosed %p (%p)\n", stream, this->stream);
 #ifdef ZEROCONF_SUPPORT
     zeroconf.dashelConnectionClosed(stream);
 #endif  // ZEROCONF_SUPPORT
-    this->stream = nullptr;
-    // clear breakpoints
-    for (auto kv : nodes) {
-      (kv.second)->vm.breakpointsCount = 0;
+    if (stream == this->stream) {
+      this->stream = nullptr;
+      // clear breakpoints
+      for (auto kv : nodes) {
+        (kv.second)->vm.breakpointsCount = 0;
+      }
     }
     if (abnormal)
       printf("Client has disconnected unexpectedly.\n");
@@ -135,11 +167,19 @@ class AsebaDashel : public Dashel::Hub {
 
   virtual void incomingData(Dashel::Stream *stream) {
 #ifdef ZEROCONF_SUPPORT
-    zeroconf.dashelIncomingData(stream);
-#endif  // ZEROCONF_SUPPORT
-    // only process data for the current stream
-    if (stream != this->stream)
+  if (zeroconf.isStreamHandled(stream)) {
+      printf("[ZEROCONF] incomingData from %p\n", stream);
+      zeroconf.dashelIncomingData(stream);
       return;
+  }
+#endif  // ZEROCONF_SUPPORT
+
+    // only process data for the current stream
+    if (stream != this->stream) {
+      // printf("[DASHEL] incomingData from %p (%p) -> ignore\n", stream, this->stream);
+      return;
+    }
+
 
     uint16_t temp;
     uint16_t len;
@@ -156,11 +196,14 @@ class AsebaDashel : public Dashel::Hub {
     stream->read(&lastMessageData[0], lastMessageData.size());
 
     uint16_t type = bswap16(lastMessageData[0]);
+    printf("[DASHEL] incomingData from %p (%d bytes) of type %d from %d\n",
+           stream, len, type, lastMessageSource);
     std::vector<DynamicAsebaNode *> dest_nodes;
     /* from IDE to a specific node */
     if (type >= ASEBA_MESSAGE_SET_BYTECODE &&
         type <= ASEBA_MESSAGE_GET_NODE_DESCRIPTION) {
       uint16_t dest = bswap16(lastMessageData[1]);
+      printf("[DASHEL] for %d\n", dest);
       // printf("Got message of type %d from IDE (%d) for node %d\n",
       //         type, lastMessageSource, dest);
       if (nodes.count(dest)) {
@@ -226,6 +269,7 @@ AsebaDashel *network_with_port(int port, bool create = false) {
   if (networks.count(port))
     return networks[port];
   if (create) {
+    printf("Add network with port %d\n", port);
     networks[port] = new AsebaDashel(port);
     return networks[port];
   }
@@ -233,6 +277,7 @@ AsebaDashel *network_with_port(int port, bool create = false) {
 }
 
 void remove_network_with_port(int port) {
+  printf("Remove Network with port %d\n", port);
   if (!networks.count(port))
     return;
   AsebaDashel *network = networks[port];
@@ -241,6 +286,7 @@ void remove_network_with_port(int port) {
 }
 
 void remove_all_networks() {
+  printf("Remove all networks\n");
   for (auto kv : networks) {
     delete kv.second;
   }
@@ -399,6 +445,11 @@ AsebaGetNativeFunctionsDescriptions(AsebaVMState *vm) {
   return node_for_vm(vm)->functions_description;
 }
 
+extern "C" const AsebaLocalEventDescription *
+AsebaGetLocalEventsDescriptions(AsebaVMState *vm) {
+  return node_for_vm(vm)->events_description;
+}
+
 extern "C" void AsebaNativeFunction(AsebaVMState *vm, uint16_t id) {
   // printf("AsebaNativeFunction %d\n", id);
   DynamicAsebaNode *node = node_for_vm(vm);
@@ -468,11 +519,6 @@ extern "C" void AsebaNativeFunction(AsebaVMState *vm, uint16_t id) {
     simReleaseStack(stack_id);
     return;
   }
-}
-
-extern "C" const AsebaLocalEventDescription *
-AsebaGetLocalEventsDescriptions(AsebaVMState *vm) {
-  return node_for_vm(vm)->events_description;
 }
 
 extern "C" void AsebaWriteBytecode(AsebaVMState *vm) {
