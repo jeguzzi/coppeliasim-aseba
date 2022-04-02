@@ -34,3 +34,4 @@
 archive
 *build
 thymio
+__pycache__
