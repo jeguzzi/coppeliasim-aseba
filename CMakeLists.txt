@@ -79,9 +79,12 @@ if(ZEROCONF)
   )
 endif()
 
+find_package(LibXml2 REQUIRED)
+
 add_subdirectory(${ASEBA_DIR}/aseba/common asebacommon EXCLUDE_FROM_ALL)
 add_subdirectory(${ASEBA_DIR}/aseba/transport/buffer asebavmbuffer EXCLUDE_FROM_ALL)
 add_subdirectory(${ASEBA_DIR}/aseba/vm asebavm EXCLUDE_FROM_ALL)
+add_subdirectory(${ASEBA_DIR}/aseba/compiler asebacompiler EXCLUDE_FROM_ALL)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
@@ -100,6 +103,7 @@ find_package(CoppeliaSim 4.3 REQUIRED)
 find_package(OpenCV 4 REQUIRED )
 
 include_directories(${OpenCV_INCLUDE_DIRS} )
+include_directories(${LIBXML2_INCLUDE_DIR} )
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -134,6 +138,7 @@ coppeliasim_add_plugin(simExtAseba
   src/aseba_thymio2.cpp
   src/aseba_default_description.c
   src/aseba_network.cpp
+  src/aseba_script.cpp
 )
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
@@ -154,7 +159,9 @@ add_custom_target(
   COMMENT "Generating docs and Thymio lua script"
 )
 
-target_link_libraries(simExtAseba ${OpenCV_LIBS} dashel asebacommon asebavmbuffer asebavm
+target_link_libraries(simExtAseba
+  ${OpenCV_LIBS} ${LIBXML2_LIBRARIES}
+  dashel asebacommon asebavmbuffer asebavm asebacompiler
   ${EXTRA_LIBS}
 )
 
@@ -178,6 +185,6 @@ install(
 )
 
 install(
-  TARGETS dashel asebacommon asebavmbuffer asebavm ${EXTRA_LIBS}
+  TARGETS dashel asebacommon asebavmbuffer asebavm asebacompiler ${EXTRA_LIBS}
   DESTINATION ${COPPELIASIM_LIBRARIES_DIR}
 )

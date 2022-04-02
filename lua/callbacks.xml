@@ -189,6 +189,25 @@
         <return>
         </return>
     </command>
+    <command name="load_script">
+        <description>Load an Aseba script into a node.</description>
+        <params>
+            <param name="id" type="int">
+              <description>The node ID</description>
+            </param>
+            <param name="text" type="string" default='""'>
+                <description>The text of a script. Leave empty to load from a file.</description>
+            </param>
+            <param name="path" type="string" default='""'>
+                <description>The path to the script file. Will be ignored if `text` is specified.</description>
+            </param>
+        </params>
+        <return>
+          <param name="result" type="bool">
+              <description>Whether script loading was successfull.</description>
+          </param>
+        </return>
+    </command>
     <command name="_thymio2_set_led">
         <description>Set the color of a LED</description>
         <params>

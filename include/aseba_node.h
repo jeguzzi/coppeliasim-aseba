@@ -14,7 +14,7 @@
 #include "common/utils/FormatableString.h"
 #include "transport/buffer/vm-buffer.h"
 #include "stubs.h"
-
+#include "aseba_script.h"
 
 #define VARIABLES_TOTAL_SIZE 1024
 #define ID 0
@@ -306,6 +306,80 @@ public:
 
   void do_step(double dt) {};
 
+  const Aseba::TargetDescription get_description() const {
+    Aseba::TargetDescription d;
+    d.name = widen(name);
+    d.bytecodeSize = BYTECODE_SIZE;
+    d.variablesSize = VARIABLES_TOTAL_SIZE;
+    d.stackSize = STACK_SIZE;
+
+    for (AsebaVariableDescription * v = variables_description->variables; v->name != NULL; v++) {
+      d.namedVariables.push_back(Aseba::TargetDescription::NamedVariable(widen(v->name), v->size));
+    }
+    for (AsebaLocalEventDescription * e = events_description; e->name != NULL; e++) {
+      Aseba::TargetDescription::LocalEvent event{widen(e->name), std::wstring()};
+      d.localEvents.push_back(event);
+    }
+    for (AsebaNativeFunctionDescription ** fd = functions_description; * fd != 0; fd++) {
+      Aseba::TargetDescription::NativeFunction f;
+      f.name = widen((*fd)->name);
+      for (AsebaNativeFunctionArgumentDescription * argument = (*fd)->arguments; argument->name != 0 ;
+           argument++) {
+        f.parameters.push_back(
+            Aseba::TargetDescription::NativeFunctionParameter(widen(argument->name), argument->size));
+      }
+      d.nativeFunctions.push_back(f);
+    }
+    return d;
+  }
+
+  bool load_script(const std::shared_ptr<AsebaScript> & script) {
+    bool success = false;
+    Aseba::VariablesMap user_variables;
+    Aseba::BytecodeVector bytecode;
+    const Aseba::TargetDescription desc = get_description();
+    success = script->compile(vm.nodeId, &desc, user_variables, bytecode);
+    if (!success) {
+      printf("[Aseba node] Failed to compile script\n");
+      return false;
+    }
+    printf("[Aseba node] compiled script to %d bytecodes\n", bytecode.size());
+    // mgs = {destination, start_index, bytecodes...}
+    std::vector<uint16_t> set_bytecode_data = {vm.nodeId, 0};
+    std::copy(bytecode.begin(), bytecode.end(), std::back_inserter(set_bytecode_data));
+    // std::vector<uint16_t>(bytecode.begin(), bytecode.end());
+    // printf("current bytecodes %d %d %d ...\n", vm.bytecode[0], vm.bytecode[1], vm.bytecode[2]);
+    // printf("current variable size %d\n", vm.variablesSize);
+    AsebaVMDebugMessage(&vm, ASEBA_MESSAGE_SET_BYTECODE, set_bytecode_data.data(),
+                        set_bytecode_data.size());
+    // printf("new bytecodes %d %d %d ...\n", vm.bytecode[0], vm.bytecode[1], vm.bytecode[2]);
+    // printf("new variable size %d\n", vm.variablesSize);
+    // AsebaVMRun(&vm, 1000);
+    uint16_t data[1] = {vm.nodeId};
+    AsebaVMDebugMessage(&vm, ASEBA_MESSAGE_RUN, data, 1);
+    AsebaVMRun(&vm, 1000);
+    printf("[Aseba node] loaded script to node\n");
+  }
+
+  bool load_script_from_text(const std::string & text) {
+    printf("[Aseba node] Try to load Aseba script:\n\n%s\n\n", text.c_str());
+    auto script = AsebaScript::from_code_string(text, name, vm.nodeId);
+    if (!script) {
+      printf("[Aseba node] Failed to load script\n");
+      return false;
+    }
+    return load_script(script);
+  }
+
+  bool load_script_from_file(const std::string & path) {
+    printf("[Aseba node] Try to load Aseba script from %s\n", path.c_str());
+    auto script = AsebaScript::from_file(path);
+    if (!script) {
+      printf("[Aseba node] Failed to load script\n");
+      return false;
+    }
+    return load_script(script);
+  }
 };
 
 

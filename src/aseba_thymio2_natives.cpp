@@ -137,7 +137,7 @@ extern "C" void PlaygroundThymio2Native_leds_top(AsebaVMState *vm) {
   const int16_t b(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
   // const int16_t a(std::max(std::max(r, g), b));
   // const double param(1./std::max(std::max(r, g), std::max((int16_t)1, b)));
-  printf("PlaygroundThymio2Native_leds_top\n");
+  // printf("PlaygroundThymio2Native_leds_top\n");
   AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
   if (node) {
     node->robot->set_led_color(CS::LED::TOP,

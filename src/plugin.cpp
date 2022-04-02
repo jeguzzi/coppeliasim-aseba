@@ -91,6 +91,7 @@ class Plugin : public sim::Plugin {
         destroy_node_with_uid(it->first);
       }
       Aseba::destroy_all_nodes();
+      Aseba::remove_all_networks();
     }
 
     void onModuleHandle(char *customData) {
@@ -312,6 +313,16 @@ class Plugin : public sim::Plugin {
 
     void list_nodes(list_nodes_in *in, list_nodes_out *out) {
       out->nodes = Aseba::node_list(in->port);
+    }
+
+    void load_script(load_script_in *in, load_script_out *out) {
+      DynamicAsebaNode *node = Aseba::node_with_handle(in->id);
+      if (node) {
+        if (in->text.size())
+          out->result = node->load_script_from_text(in->text);
+        else
+          out->result = node->load_script_from_file(in->path);
+      }
     }
 
     void _thymio2_enable_accelerometer(_thymio2_enable_accelerometer_in *in,
