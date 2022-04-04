@@ -22,6 +22,12 @@ char * dydata(std::string value) {
   return c;
 }
 
+// From Asabe v2
+#define ASEBA_MESSAGE_DEVICE_INFO 0x900D
+#define DEVICE_INFO_UUID 1
+#define DEVICE_INFO_NAME 2
+
+
 void DynamicAsebaNode::send_uuid(const std::array<uint8_t, 16> & uuid) {
   printf("Send device uuid\n");
   uint8_t size = uuid.size();

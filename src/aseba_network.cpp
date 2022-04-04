@@ -208,10 +208,7 @@ class AsebaDashel : public Dashel::Hub {
     printf("[DASHEL] incomingData (%d bytes) of type %d from %d\n", len, type, lastMessageSource);
     std::vector<DynamicAsebaNode *> dest_nodes;
     /* from IDE to a specific node */
-    if ((type >= ASEBA_MESSAGE_SET_BYTECODE &&
-         type <= ASEBA_MESSAGE_GET_NODE_DESCRIPTION) ||
-        (type >= ASEBA_MESSAGE_GET_DEVICE_INFO &&
-         type <= ASEBA_MESSAGE_GET_NODE_DESCRIPTION_FRAGMENT)) {
+    if (type >= ASEBA_MESSAGE_SET_BYTECODE && type <= ASEBA_MESSAGE_GET_NODE_DESCRIPTION) {
       uint16_t dest;
       memcpy(&dest, &lastMessageData[2], 2);
       dest = bswap16(dest);
