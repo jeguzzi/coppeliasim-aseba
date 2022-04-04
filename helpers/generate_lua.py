@@ -54,7 +54,7 @@ wrapFunc('{cmd_name}',function()
             return _G['sim{plugin.name}']['{cmd.name}']({paramList})
         end
     end)
-sim.registerScriptFunction("sim{name}.{cmd_name}@{plugin.name}", "{cmd.help_out_args_text}sim{name}.{cmd_name}({cmd.help_in_args_text}){escape(cmd.documentation)}")
+sim.registerScriptFunction('sim{name}.{cmd_name}@{plugin.name}', '{cmd.help_out_args_text}sim{name}.{cmd_name}({cmd.help_in_args_text}){escape(cmd.documentation)}')
 """)
 
         f.write(f"""
