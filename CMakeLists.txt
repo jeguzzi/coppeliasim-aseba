@@ -169,6 +169,7 @@ if(DEFINED MODEL_DIR)
   install(
     FILES
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio.ttm
+      ${CMAKE_CURRENT_SOURCE_DIR}/models/mighty_thymio.ttm
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-diffusionMap0.png
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-diffusionMap1.png
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-diffusionMap2.png
