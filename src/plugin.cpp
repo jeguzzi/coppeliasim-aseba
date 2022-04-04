@@ -151,10 +151,14 @@ class Plugin : public sim::Plugin {
       uids.insert(uid);
       simInt script_handle = simGetScriptHandleEx(sim_scripttype_childscript, in->handle, nullptr);
       thymios.emplace(uid, in->handle);
+      std::array<uint8_t, 16> uuid;
+      char s[17];
+      snprintf(s, sizeof(s), "coppeliasim %04d", uid);
+      std::copy(s, s+16, uuid.data());
       CS::Thymio2 & thymio = thymios.at(uid);
       if (in->with_aseba) {
         AsebaThymio2 * node = Aseba::create_node<AsebaThymio2>(
-            uid, in->port, "thymio-II", script_handle);
+            uid, in->port, "thymio-II", script_handle, uuid, in->friendly_name);
         node->robot = &thymio;
       } else {
         standalone_thymios.insert(uid);
@@ -168,10 +172,25 @@ class Plugin : public sim::Plugin {
     }
 
     void create_node(create_node_in *in, create_node_out *out) {
-      simInt uid = free_uid();
+      simInt uid = free_uid(in->id);
       uids.insert(uid);
       simInt script_handle = simGetScriptHandleEx(sim_scripttype_childscript, in->handle, nullptr);
-      Aseba::create_node<DynamicAsebaNode>(uid, in->port, in->name, script_handle);
+      std::array<uint8_t, 16> uuid;
+      std::string friendly_name;
+      if (!in->friendly_name.empty()) {
+        friendly_name = in->name;
+      } else {
+        friendly_name = friendly_name;
+      }
+      if (in->uuid.size() == 16) {
+        std::move(in->uuid.begin(), in->uuid.end(), uuid.begin());
+      } else {
+        char s[17];
+        snprintf(s, sizeof(s), "coppeliasim %04d", uid);
+        std::copy(s, s+16, uuid.data());
+      }
+      Aseba::create_node<DynamicAsebaNode>(uid, in->port, in->name, script_handle, uuid,
+                                           in->friendly_name);
       out->id = uid;
     }
 
@@ -409,6 +428,21 @@ class Plugin : public sim::Plugin {
           out->messages.push_back(omsg);
         }
       }
+    }
+
+    void set_uuid(set_uuid_in *in, set_uuid_out *out) {
+      DynamicAsebaNode *node = Aseba::node_with_handle(in->id);
+      if (node && in->uuid.size() == 16) {
+          std::array<uint8_t, 16> uuid;
+          std::move(in->uuid.begin(), in->uuid.end(), uuid.begin());
+          node->set_uuid(uuid);
+      }
+    }
+
+    void set_friendly_name(set_friendly_name_in *in, set_friendly_name_out *out) {
+      DynamicAsebaNode *node = Aseba::node_with_handle(in->id);
+      if (node)
+          node->set_friendly_name(in->name);
     }
 
  private:

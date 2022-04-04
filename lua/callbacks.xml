@@ -3,6 +3,32 @@
 
 <plugin name="Aseba" author="jerome.guzzi@idsia.ch">
     <description>A plugin to emulate Aseba nodes in CoppeliaSim</description>
+    <command name="set_uuid">
+        <description>Set the uuid</description>
+        <params>
+          <param name="id" type="int">
+              <description>The Aseba node ID</description>
+          </param>
+          <param name="uuid" type="table" item-type="int">
+            <description>A 16 byte long uuid</description>
+          </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="set_friendly_name">
+        <description>Set a friendly name</description>
+        <params>
+          <param name="id" type="int">
+              <description>The Aseba node ID</description>
+          </param>
+          <param name="name" type="string" >
+            <description>The name</description>
+          </param>
+        </params>
+        <return>
+        </return>
+    </command>
     <command name="_thymio2_create">
         <description>Instantiate a Thymio2 controller</description>
         <params>
@@ -11,6 +37,9 @@
           </param>
           <param name="with_aseba" type="bool" default="true">
             <description>Start emulating the Aseba firmware</description>
+          </param>
+          <param name="friendly_name" type="string" default='"Thymio II"'>
+            <description>A friendlier name used in Thymio Suite to label nodes. Must not be unique. If left empty, it is set to "Thymio II".</description>
           </param>
           <param name="port" type="int" default="33333">
             <description>The Aseba port number</description>
@@ -38,7 +67,13 @@
             <description>The Aseba node ID. Two nodes in the same Aseba network cannot have the same id. Set to -1 to choose the lowest available id.</description>
           </param>
           <param name="name" type="string" default='"node"'>
-            <description>The Aseba node name. This identify the type of devices. Two nodes in the same Aseba network can have the same name.</description>
+            <description>The Aseba node name, which identifies the type of devices. Two nodes in the same Aseba network can have the same name.</description>
+          </param>
+          <param name="friendly_name" type="string" default='""'>
+            <description>A friendlier name used in Thymio Suite to label nodes. Must not be unique. If left empty, it is set to "{name}".</description>
+          </param>
+          <param name="uuid" type="table" item-type="int" default="{}">
+            <description>An 16-byte long uuid to uniquely identify nodes in Thymio Suite: each node should have a different uuid. If left empty, the uuid is set to "coppeliasim {id}".</description>
           </param>
         </params>
         <return>

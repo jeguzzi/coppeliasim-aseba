@@ -13,7 +13,9 @@ void spin(float dt);
 
 template<typename T>
 T * create_node(unsigned uid, unsigned port = 33333,
-                std::string prefix = "node", int script_handle = -1);
+                const std::string & prefix = "node", int script_handle = -1,
+                const std::array<uint8_t, 16> & uuid_ = {0},
+                const std::string & friendly_name_ = "");
 
 void destroy_node(unsigned uid);
 void destroy_all_nodes();

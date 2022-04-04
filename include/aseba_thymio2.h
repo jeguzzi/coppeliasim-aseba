@@ -143,11 +143,16 @@ class AsebaThymio2 : public DynamicAsebaNode {
   Aseba::SoftTimer timer100Hz;
   unsigned counter100Hz;
  public:
-  AsebaThymio2(int node_id, std::string _name, int script_id);
+  AsebaThymio2(int node_id, std::string _name, int script_id, std::array<uint8_t, 16> uuid_,
+               std::string friendly_name_ = "");
   void notify_missing_feature() {};
   CS::Thymio2 * robot;
   virtual void step(float dt) override;
   // bool openSDCardFile(int number);
+  //
+  virtual std::string advertized_name() const override {
+    return "Thymio II";
+  }
 
 protected:
   thymio_variables_t * thymio_variables;
@@ -155,6 +160,7 @@ protected:
   void timer1Timeout();
   void timer100HzTimeout();
   bool first;
+
 };
 
 

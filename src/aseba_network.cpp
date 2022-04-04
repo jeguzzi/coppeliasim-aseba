@@ -38,7 +38,7 @@ class AsebaDashel : public Dashel::Hub {
 #endif
       {
     // advertised_target = std::string("Not A Thymio 3: CoppeliaSim ") + std::to_string(port);
-    advertised_target = std::string("CoppeliaSim@:") + std::to_string(port);
+    advertised_target = std::string("CoppeliaSim ") + std::to_string(port);
     listenStream = listen();
     printf("Created Aseba network listening on tcp:port=%s\n",
            listenStream->getTargetParameter("port").c_str());
@@ -73,15 +73,24 @@ class AsebaDashel : public Dashel::Hub {
     printf("advertise network\n");
     std::vector<unsigned int> ids;
     std::vector<unsigned int> pids;
-    std::string names = "";
-    unsigned protocolVersion{99};
+    std::string name = "";
+    unsigned protocolVersion{9};
     for (auto const & [id, node] : nodes) {
+      std::string n_name = node->advertized_name();
+      if (name.empty()) {
+        name = n_name;
+      } else if (name != n_name) {
+        name = "Group";
+      }
       ids.push_back(id);
-      names += node->name + " ";
+      // names += node->name + " ";
       pids.push_back(8);  // product id
     }
+    if (name.empty()) {
+      name = "Empty Group";
+    }
     // Aseba::Zeroconf::TxtRecord txt{protocolVersion, names, false, ids, pids};
-    Aseba::Zeroconf::TxtRecord txt{protocolVersion, "Thymio II", false, ids, pids};
+    Aseba::Zeroconf::TxtRecord txt{protocolVersion, name, false, ids, pids};
     try {
       printf("Will advertise %s with %s\n", advertised_target.c_str(), txt.record().c_str());
       zeroconf.advertise(advertised_target, listenStream, txt);
@@ -179,43 +188,49 @@ class AsebaDashel : public Dashel::Hub {
       // printf("[DASHEL] incomingData from %p (%p) -> ignore\n", stream, this->stream);
       return;
     }
-
-
     uint16_t temp;
     uint16_t len;
-
     stream->read(&temp, 2);
     len = bswap16(temp);
     stream->read(&temp, 2);
-
     uint16_t lastMessageSource;
     std::valarray<uint8_t> lastMessageData;
-
     lastMessageSource = bswap16(temp);
     lastMessageData.resize(len + 2);
     stream->read(&lastMessageData[0], lastMessageData.size());
+    // uint16_t type = bswap16(lastMessageData[0]);
+    uint16_t type;
+    memcpy(&type, &lastMessageData[0], 2);
+    type = bswap16(type);
+    // memcpy(data, &node->lastMessageData[0], node->lastMessageData.size());
 
-    uint16_t type = bswap16(lastMessageData[0]);
-    printf("[DASHEL] incomingData from %p (%d bytes) of type %d from %d\n",
-           stream, len, type, lastMessageSource);
+    // printf("[DASHEL] incomingData %d %d => %d\n", lastMessageData[0], lastMessageData[1], type);
+    printf("[DASHEL] incomingData (%d bytes) of type %d from %d\n", len, type, lastMessageSource);
     std::vector<DynamicAsebaNode *> dest_nodes;
     /* from IDE to a specific node */
-    if (type >= ASEBA_MESSAGE_SET_BYTECODE &&
-        type <= ASEBA_MESSAGE_GET_NODE_DESCRIPTION) {
-      uint16_t dest = bswap16(lastMessageData[1]);
-      printf("[DASHEL] for %d\n", dest);
+    if ((type >= ASEBA_MESSAGE_SET_BYTECODE &&
+         type <= ASEBA_MESSAGE_GET_NODE_DESCRIPTION) ||
+        (type >= ASEBA_MESSAGE_GET_DEVICE_INFO &&
+         type <= ASEBA_MESSAGE_GET_NODE_DESCRIPTION_FRAGMENT)) {
+      uint16_t dest;
+      memcpy(&dest, &lastMessageData[2], 2);
+      dest = bswap16(dest);
       // printf("Got message of type %d from IDE (%d) for node %d\n",
       //         type, lastMessageSource, dest);
       if (nodes.count(dest)) {
-        DynamicAsebaNode *node = nodes[dest];
+        DynamicAsebaNode *node = nodes.at(dest);
         if (node->finalized) {
+          if (type == ASEBA_MESSAGE_GET_EXECUTION_STATE) {
+            node->send_device_info((void *) stream);
+          }
+
           node->lastMessageSource = lastMessageSource;
           node->lastMessageData = lastMessageData;
           AsebaProcessIncomingEvents(&(node->vm));
           AsebaVMRun(&(node->vm), 1000);
         }
-        return;
       }
+      return;
     }
     // printf("Got message of type %d from node %d\n", type, lastMessageSource);
     for (auto kv : nodes) {
@@ -330,13 +345,14 @@ void remove_node(DynamicAsebaNode *node, AsebaDashel *network, int handle) {
 }
 
 template<typename T>
-T * create_node(unsigned uid, unsigned port, std::string prefix, int scriptID) {
+T * create_node(unsigned uid, unsigned port, const std::string & prefix, int scriptID,
+                const std::array<uint8_t, 16> & uuid_, const std::string & friendly_name_) {
   AsebaDashel *network = network_with_port(port, true);
   printf("Will create aseba node\n");
   // std::string name = prefix + "-" + std::to_string(uid);
   std::string name = prefix;
   printf("with name %s\n", name.c_str());
-  T *node = new T(uid, name, scriptID);
+  T *node = new T(uid, name, scriptID, uuid_, friendly_name_);
   node->init_descriptions();
   printf("Add it to the network\n");
   add_node(node, network, uid);
@@ -344,8 +360,12 @@ T * create_node(unsigned uid, unsigned port, std::string prefix, int scriptID) {
   return node;
 }
 
-template DynamicAsebaNode * create_node<DynamicAsebaNode>(unsigned, unsigned, std::string, int);
-template AsebaThymio2 * create_node<AsebaThymio2>(unsigned, unsigned, std::string, int);
+template DynamicAsebaNode * create_node<DynamicAsebaNode>(
+    unsigned, unsigned, const std::string &, int, const std::array<uint8_t, 16> &,
+    const std::string &);
+template AsebaThymio2 * create_node<AsebaThymio2>(
+    unsigned, unsigned, const std::string &, int, const std::array<uint8_t, 16> &,
+    const std::string &);
 
 
 void destroy_node(unsigned uid) {

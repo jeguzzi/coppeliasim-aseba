@@ -24,43 +24,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "common/productids.h"
 #include "common/utils/utils.h"
 
-// AsebaNativeFunctionDescription* AsebaThymio2::default_functions_description[] = {
-//   ASEBA_NATIVES_STD_DESCRIPTIONS,
-//   PLAYGROUND_THYMIO2_NATIVES_DESCRIPTIONS,
-//   0
-// };
-//
-// AsebaLocalEventDescription AsebaThymio2::default_events_description[] = {
-//   { "button.backward", "Backward button status changed"},
-//   { "button.left", "Left button status changed"},
-//   { "button.center", "Center button status changed"},
-//   { "button.forward", "Forward button status changed"},
-//   { "button.right", "Right button status changed"},
-//   { "buttons", "Buttons values updated"},
-//   { "prox", "Proximity values updated"},
-//   { "prox.comm", "Data received on the proximity communication"},
-//   { "tap", "A tap is detected"},
-//   { "acc", "Accelerometer values updated"},
-//   { "mic", "Fired when microphone intensity is above threshold"},
-//   { "sound.finished", "Fired when the playback of a user initiated sound is finished"},
-//   { "temperature", "Temperature value updated"},
-//   { "rc5", "RC5 message received"},
-//   { "motor", "Motor timer"},
-//   { "timer0", "Timer 0"},
-//   { "timer1", "Timer 1"},
-//   { nullptr, nullptr }
-// };
-//
-// AsebaVMDescription AsebaThymio2::default_variables_description = PlaygroundThymio2VMDescription;
-//
-// AsebaNativeFunctionPointer AsebaThymio2::default_functions[] = {
-//   ASEBA_NATIVES_STD_FUNCTIONS,
-//   PLAYGROUND_THYMIO2_NATIVES_FUNCTIONS
-// };
-
-
-AsebaThymio2::AsebaThymio2(int node_id, std::string _name, int script_id):
-  DynamicAsebaNode(node_id, _name, script_id),
+AsebaThymio2::AsebaThymio2(int node_id, std::string _name, int script_id,
+                           std::array<uint8_t, 16> uuid_, std::string friendly_name_):
+  DynamicAsebaNode(node_id, _name, script_id, uuid_, friendly_name_),
   // SingleVMNodeGlue(std::move(robotName), nodeId),
   // sdCardFileNumber(-1),
   timer0(std::bind(&AsebaThymio2::timer0Timeout, this), 0),
@@ -75,6 +41,8 @@ AsebaThymio2::AsebaThymio2(int node_id, std::string _name, int script_id):
   thymio_variables->fwversion[1] = 0;
   thymio_variables->productId = ASEBA_PID_THYMIO2;
   thymio_variables->temperature = 220;
+  thymio_variables->timerPeriod[0] = 0;
+  thymio_variables->timerPeriod[1] = 0;
 
   // variables.sdPresent = openSDCardFile(0) ? 1 : 0;
   // if (variables.sdPresent)

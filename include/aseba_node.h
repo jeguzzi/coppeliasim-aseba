@@ -50,6 +50,9 @@ public:
 
 protected:
   int16_t variables[VARIABLES_TOTAL_SIZE];
+  std::array<uint8_t, 16> uuid;
+  std::string friendly_name;
+  std::set<void *>sent_device_info;
 
 public:
   bool finalized;
@@ -141,11 +144,10 @@ public:
   }
 
 public:
-  DynamicAsebaNode(int node_id, std::string _name, int script_id):
-  script_id(script_id),
-  finalized(false),
-  name(_name)
-  {
+  DynamicAsebaNode(int node_id, std::string _name, int script_id, std::array<uint8_t, 16> uuid_,
+                   std::string friendly_name_ = ""):
+    script_id(script_id), finalized(false), name(_name),
+    friendly_name(friendly_name_), uuid(uuid_), sent_device_info() {
     // setup variables
     vm.nodeId = (int32_t) node_id;
     bytecode.resize(BYTECODE_SIZE);
@@ -157,6 +159,7 @@ public:
     vm.variables = reinterpret_cast<int16_t *>(&variables);
     vm.variablesSize = sizeof(variables) / sizeof(int16_t);
     AsebaVMInit(&vm);
+    vm.flags = ASEBA_VM_STEP_BY_STEP_MASK;
     variables[ID] = vm.nodeId;
     next_variable = variables;
     // init_descriptions();
@@ -343,7 +346,7 @@ public:
       printf("[Aseba node] Failed to compile script\n");
       return false;
     }
-    printf("[Aseba node] compiled script to %d bytecodes\n", bytecode.size());
+    printf("[Aseba node] compiled script to %lu bytecodes\n", bytecode.size());
     // mgs = {destination, start_index, bytecodes...}
     std::vector<uint16_t> set_bytecode_data = {vm.nodeId, 0};
     std::copy(bytecode.begin(), bytecode.end(), std::back_inserter(set_bytecode_data));
@@ -359,6 +362,7 @@ public:
     AsebaVMDebugMessage(&vm, ASEBA_MESSAGE_RUN, data, 1);
     AsebaVMRun(&vm, 1000);
     printf("[Aseba node] loaded script to node\n");
+    return true;
   }
 
   bool load_script_from_text(const std::string & text) {
@@ -380,6 +384,33 @@ public:
     }
     return load_script(script);
   }
+
+  void set_uuid(const std::array<uint8_t, 16> & uuid_) {
+    uuid = uuid_;
+    send_uuid(uuid_);
+  }
+
+  void set_friendly_name(const std::string & name_) {
+    friendly_name = name_;
+    send_friendly_name(name_);
+  }
+
+  void send_device_info(void * stream) {
+    if(sent_device_info.count(stream)) return;
+    send_uuid(uuid);
+    if (!friendly_name.empty()) {
+      send_friendly_name(friendly_name);
+    }
+    sent_device_info.insert(stream);
+  }
+
+  virtual std::string advertized_name() const {
+    return "Dummy Node";
+  }
+
+ protected:
+  void send_uuid(const std::array<uint8_t, 16> & uuid) ;
+  void send_friendly_name(const std::string & name);
 };
 
 
