@@ -19,16 +19,19 @@ You can control the robots/nodes
 - [optional, to parse aseba scripts] [libxml2](https://gitlab.gnome.org/GNOME/libxml2/-/wikis/home)
 - [optional, for autodiscovery] avahi or bonjour
 - a C++17 compiler
+- Jinjia2 (to autogenerate the docs)
 
 #### Linux
 
 ```console
 sudo apt install cmake [libxml2-dev] [libavahi-compat-libdnssd-dev]
+python3 -m pip install Jinja2
 ```
 
 #### MacOs
 ```console
 brew install cmake [libxml2]
+python3 -m pip install Jinja2
 ```
 
 ### CoppeliaSim
