@@ -16,22 +16,22 @@ You can control the robots/nodes
 - [dashel](https://github.com/aseba-community/dashel) (available as submodule)
 - [coppeliaSim >= v4.3](https://coppeliarobotics.com)
 - cmake >= 3.5
+- a C++17 compiler
 - [optional, to parse aseba scripts] [libxml2](https://gitlab.gnome.org/GNOME/libxml2/-/wikis/home)
 - [optional, for autodiscovery] avahi or bonjour
-- a C++17 compiler
-- Jinjia2 (to autogenerate the docs)
+- [optional, to autogenerate the docs] [Jinjia2](https://jinja.palletsprojects.com)
 
 #### Linux
 
 ```console
 sudo apt install cmake [libxml2-dev] [libavahi-compat-libdnssd-dev]
-python3 -m pip install Jinja2
+[python3 -m pip install Jinja2]
 ```
 
 #### MacOs
 ```console
 brew install cmake [libxml2]
-python3 -m pip install Jinja2
+[python3 -m pip install Jinja2]
 ```
 
 ### CoppeliaSim

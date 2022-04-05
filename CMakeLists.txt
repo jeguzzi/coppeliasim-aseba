@@ -153,14 +153,22 @@ add_custom_target(
     &&
     ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_split_reference.py --directory ${CMAKE_CURRENT_BINARY_DIR}/generated
     &&
-    ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_markdown_api.py --directory ${CMAKE_CURRENT_BINARY_DIR}/generated --file reference_Aseba.xml
-    &&
-    ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_markdown_api.py --directory ${CMAKE_CURRENT_BINARY_DIR}/generated --file reference_Thymio.xml
-    &&
     ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_lua.py --directory ${CMAKE_CURRENT_BINARY_DIR}/generated
   BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/generated/simThymio-typecheck.lua
   DEPENDS simExtAseba
-  COMMENT "Generating docs and Thymio lua script"
+  COMMENT "Generating Thymio lua script"
+)
+
+add_custom_target(
+  docs
+  COMMAND
+    export PYTHONPATH=$PYTHONPATH:${LIBPLUGIN_DIR}/simStubsGen
+    &&
+    ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_markdown_api.py --directory ${CMAKE_CURRENT_BINARY_DIR}/generated --file reference_Aseba.xml
+    &&
+    ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_markdown_api.py --directory ${CMAKE_CURRENT_BINARY_DIR}/generated --file reference_Thymio.xml
+  DEPENDS generate_thymio_lua
+  COMMENT "Generating docs"
 )
 
 target_link_libraries(simExtAseba
