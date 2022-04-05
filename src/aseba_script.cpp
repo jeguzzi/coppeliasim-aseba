@@ -1,13 +1,16 @@
 #include "common/consts.h"
 
 #include "aseba_script.h"
+#include "logging.h"
 // #include "asebaros/utils.h"
 
+#ifdef COMPILE_XML
 #include "libxml/parser.h"
 #include "libxml/tree.h"
+#endif
 
-#define LOG_ERROR printf
-#define LOG_WARN printf
+#define LOG_ERROR log_error
+#define LOG_WARN log_warn
 
 static bool compile_script(const Aseba::TargetDescription *description,
                            const Aseba::CommonDefinitions *common_definitions,
@@ -30,14 +33,15 @@ static bool compile_script(const Aseba::TargetDescription *description,
   return true;
 }
 
+#ifdef COMPILE_XML
 static std::shared_ptr<AsebaScript> load_xml(const xmlDoc *doc,
                                              const std::string source) {
-  std::shared_ptr<AsebaScript> script = std::make_shared<AsebaScript>();
   xmlNode *domRoot = xmlDocGetRootElement(doc);
   if (!xmlStrEqual(domRoot->name, BAD_CAST("network"))) {
     LOG_ERROR("root node is not \"network\", XML considered as invalid");
     return nullptr;
   }
+  std::shared_ptr<AsebaScript> script = std::make_shared<AsebaScript>();
   for (xmlNode *domNode = xmlFirstElementChild(domRoot); domNode;
        domNode = domNode->next) {
     if (domNode->type == XML_ELEMENT_NODE) {
@@ -120,17 +124,18 @@ static std::shared_ptr<AsebaScript> load_xml(const xmlDoc *doc,
   script->source = source;
   return script;
 }
+#endif  // COMPILE_XML
 
-std::shared_ptr<AsebaScript>
-AsebaScript::from_string(const std::string &value) {
-  const unsigned char *text = (const unsigned char *)value.c_str();
-  xmlDoc *doc = xmlReadDoc(text, NULL, NULL, 0);
-  if (!doc) {
-    LOG_ERROR("Cannot read XML from string");
-    return nullptr;
-  }
-  return load_xml(doc, "from string");
-}
+// std::shared_ptr<AsebaScript>
+// AsebaScript::from_string(const std::string &value) {
+//   const unsigned char *text = (const unsigned char *)value.c_str();
+//   xmlDoc *doc = xmlReadDoc(text, NULL, NULL, 0);
+//   if (!doc) {
+//     LOG_ERROR("Cannot read XML from string");
+//     return nullptr;
+//   }
+//   return load_xml(doc, "from string");
+// }
 
 std::shared_ptr<AsebaScript> AsebaScript::from_code_string(
     const std::string &value, std::string & name, unsigned id) {
@@ -145,6 +150,7 @@ std::shared_ptr<AsebaScript> AsebaScript::from_file(const std::string &path) {
     LOG_ERROR("Script path %s is unvalid", path.c_str());
     return nullptr;
   }
+#ifdef COMPILE_XML
   // addLOG_INFO("Will read script in %s", path.c_str());
   xmlDoc *doc = xmlReadFile(path.c_str(), NULL, 0);
   if (!doc) {
@@ -152,6 +158,10 @@ std::shared_ptr<AsebaScript> AsebaScript::from_file(const std::string &path) {
     return nullptr;
   }
   return load_xml(doc, path);
+#else
+  LOG_WARN("Cannot read XML from file without libxml");
+  return nullptr;
+#endif
 }
 
 bool AsebaScript::compile(unsigned node_id,

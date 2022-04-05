@@ -15,7 +15,7 @@ endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_MACOSX_RPATH 1)
-option(ZEROCONF "" OFF)
+# option(ZEROCONF "" OFF)
 list(APPEND CMAKE_MODULE_PATH
   ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules
 )
@@ -67,11 +67,10 @@ include_directories(
   ${ASEBA_DIR}/aseba
 )
 
-if(ZEROCONF)
+include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/zeroconf.cmake)
+if (HAS_ZEROCONF_SUPPORT)
   message("With support for Zeroconf")
   add_compile_definitions(ZEROCONF=1)
-  include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/zeroconf.cmake)
-  set(HAS_ZEROCONF_SUPPORT true)
   add_subdirectory(${ASEBA_DIR}/aseba/transport/dashel_plugins dashel_plugins EXCLUDE_FROM_ALL)
   set(EXTRA_LIBS
     asebazeroconf
@@ -80,6 +79,11 @@ if(ZEROCONF)
 endif()
 
 find_package(LibXml2 REQUIRED)
+if(LibXml2_FOUND)
+  # add_compile_definitions(COMPILE_XML=1)
+else()
+  message("LibXml2 not found: won't be able to load aseba scripts from files")
+endif()
 
 add_subdirectory(${ASEBA_DIR}/aseba/common asebacommon EXCLUDE_FROM_ALL)
 add_subdirectory(${ASEBA_DIR}/aseba/transport/buffer asebavmbuffer EXCLUDE_FROM_ALL)
