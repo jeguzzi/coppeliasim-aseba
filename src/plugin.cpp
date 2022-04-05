@@ -38,7 +38,7 @@
 #include "aseba_network.h"
 #include "coppeliasim_thymio2.h"
 #include "aseba_thymio2.h"
-
+#include "logging.h"
 
 std::set<unsigned> uids = {};
 
@@ -214,59 +214,59 @@ class Plugin : public sim::Plugin {
     }
 
     void _thymio2_set_led(_thymio2_set_led_in *in, _thymio2_set_led_out *out) {
-      if (in->handle == -1) {
+      if (in->id == -1) {
         for (auto & [_, thymio] : thymios) {
           thymio.set_led_color(in->index, false, in->r, in->g, in->b);
         }
-      } else if (thymios.count(in->handle)) {
-        thymios.at(in->handle).set_led_color(in->index, false, in->r, in->g, in->b);
+      } else if (thymios.count(in->id)) {
+        thymios.at(in->id).set_led_color(in->index, false, in->r, in->g, in->b);
       }
     }
 
     void _thymio2_set_led_intensity(_thymio2_set_led_intensity_in *in,
                                     _thymio2_set_led_intensity_out *out) {
-      if (in->handle == -1) {
+      if (in->id == -1) {
         for (auto & [_, thymio] : thymios) {
           thymio.set_led_intensity(in->index, in->a);
         }
-      } else if (thymios.count(in->handle)) {
-        thymios.at(in->handle).set_led_intensity(in->index, in->a);
+      } else if (thymios.count(in->id)) {
+        thymios.at(in->id).set_led_intensity(in->index, in->a);
       }
     }
 
     void _thymio2_set_target_speed(_thymio2_set_target_speed_in *in,
                                    _thymio2_set_target_speed_out *out) {
-      if (in->handle == -1) {
+      if (in->id == -1) {
          for (auto & [_, thymio] : thymios) {
            thymio.set_target_speed(in->index, in->speed);
          }
-      } else if (thymios.count(in->handle)) {
-        thymios.at(in->handle).set_target_speed(in->index, in->speed);
+      } else if (thymios.count(in->id)) {
+        thymios.at(in->id).set_target_speed(in->index, in->speed);
       }
     }
 
     void _thymio2_get_speed(_thymio2_get_speed_in *in, _thymio2_get_speed_out *out) {
-      if (thymios.count(in->handle)) {
-        out->speed = thymios.at(in->handle).get_speed(in->index);
+      if (thymios.count(in->id)) {
+        out->speed = thymios.at(in->id).get_speed(in->index);
       }
     }
 
     void _thymio2_get_proximity(_thymio2_get_proximity_in *in, _thymio2_get_proximity_out *out) {
-      if (thymios.count(in->handle)) {
-        out->reading = thymios.at(in->handle).get_proximity_value(in->index);
+      if (thymios.count(in->id)) {
+        out->reading = thymios.at(in->id).get_proximity_value(in->index);
       }
     }
 
     void _thymio2_get_ground(_thymio2_get_ground_in *in, _thymio2_get_ground_out *out) {
-      if (thymios.count(in->handle)) {
-        out->reflected = thymios.at(in->handle).get_ground_reflected(in->index);
+      if (thymios.count(in->id)) {
+        out->reflected = thymios.at(in->id).get_ground_reflected(in->index);
       }
     }
 
     void _thymio2_get_acceleration(_thymio2_get_acceleration_in *in,
                                    _thymio2_get_acceleration_out *out) {
-      if (thymios.count(in->handle)) {
-        const auto & thymio = thymios.at(in->handle);
+      if (thymios.count(in->id)) {
+        const auto & thymio = thymios.at(in->id);
         out->x = thymio.get_acceleration(0);
         out->y = thymio.get_acceleration(1);
         out->z = thymio.get_acceleration(2);
@@ -274,7 +274,7 @@ class Plugin : public sim::Plugin {
     }
 
     // void connect_node(connect_node_in *in, connect_node_out *out) {
-    //   DynamicAsebaNode * node = Aseba::node_with_handle(in->handle);
+    //   DynamicAsebaNode * node = Aseba::node_with_handle(in->id);
     //   if (node)
     //     node->connect();
     // }
@@ -337,70 +337,73 @@ class Plugin : public sim::Plugin {
     void load_script(load_script_in *in, load_script_out *out) {
       DynamicAsebaNode *node = Aseba::node_with_handle(in->id);
       if (node) {
-        if (in->text.size())
-          out->result = node->load_script_from_text(in->text);
-        else
-          out->result = node->load_script_from_file(in->path);
+        out->result = node->load_script_from_file(in->path);
+      }
+    }
+    void set_script(set_script_in *in, set_script_out *out) {
+      DynamicAsebaNode *node = Aseba::node_with_handle(in->id);
+      if (node) {
+        out->result = node->load_script_from_text(in->code);
       }
     }
 
     void _thymio2_enable_accelerometer(_thymio2_enable_accelerometer_in *in,
                                        _thymio2_enable_accelerometer_out *out) {
-      if (in->handle == -1) {
+      if (in->id == -1) {
         for (auto & [_, thymio] : thymios) {
           thymio.enable_accelerometer(in->state);
         }
-      } else if (thymios.count(in->handle)) {
-        auto & thymio = thymios.at(in->handle);
+      } else if (thymios.count(in->id)) {
+        auto & thymio = thymios.at(in->id);
         thymio.enable_accelerometer(in->state);
       }
     }
 
     void _thymio2_enable_ground(_thymio2_enable_ground_in *in, _thymio2_enable_ground_out *out) {
-      if (in->handle == -1) {
+      if (in->id == -1) {
         for (auto & [_, thymio] : thymios) {
           thymio.enable_ground(in->state, in->red, in->vision);
         }
-      } else if (thymios.count(in->handle)) {
-        auto & thymio = thymios.at(in->handle);
+      } else if (thymios.count(in->id)) {
+        auto & thymio = thymios.at(in->id);
         thymio.enable_ground(in->state, in->red, in->vision);
       }
     }
 
     void _thymio2_enable_proximity(_thymio2_enable_proximity_in *in,
                                    _thymio2_enable_proximity_out *out) {
-    if (in->handle == -1) {
+    if (in->id == -1) {
        for (auto & [_, thymio] : thymios) {
          thymio.enable_proximity(in->state, in->red);
        }
-    } else if (thymios.count(in->handle)) {
-        auto & thymio = thymios.at(in->handle);
+    } else if (thymios.count(in->id)) {
+        auto & thymio = thymios.at(in->id);
         thymio.enable_proximity(in->state, in->red);
       }
     }
 
     void _thymio2_get_button(_thymio2_get_button_in *in, _thymio2_get_button_out *out) {
-      if (thymios.count(in->handle)) {
-        auto & thymio = thymios.at(in->handle);
+      if (thymios.count(in->id)) {
+        auto & thymio = thymios.at(in->id);
         out->value = thymio.get_button(in->index);
       }
     }
 
     void _thymio2_set_button(_thymio2_set_button_in *in, _thymio2_set_button_out *out) {
-      if (thymios.count(in->handle)) {
-        auto & thymio = thymios.at(in->handle);
+      if (thymios.count(in->id)) {
+        auto & thymio = thymios.at(in->id);
         thymio.set_button(in->index, in->value);
       }
     }
 
     void _thymio2_enable_prox_comm(_thymio2_enable_prox_comm_in *in,
                                    _thymio2_enable_prox_comm_out *out) {
-    if (in->handle == -1) {
+    if (in->id == -1) {
         for (auto & [_, thymio] : thymios) {
           thymio.enable_prox_comm(in->state);
         }
-    } else if (thymios.count(in->handle)) {
-        auto & thymio = thymios.at(in->handle);
+    } else if (thymios.count(in->id)) {
+        auto & thymio = thymios.at(in->id);
         thymio.enable_prox_comm(in->state);
       }
     }
@@ -408,8 +411,8 @@ class Plugin : public sim::Plugin {
     void _thymio2_set_prox_comm_tx(
         _thymio2_set_prox_comm_tx_in *in,
         _thymio2_set_prox_comm_tx_out *out) {
-      if (thymios.count(in->handle)) {
-        auto & thymio = thymios.at(in->handle);
+      if (thymios.count(in->id)) {
+        auto & thymio = thymios.at(in->id);
         // printf("set_prox_comm_tx %d\n", in->tx);
         thymio.set_prox_comm_tx(in->tx);
       }
@@ -418,8 +421,8 @@ class Plugin : public sim::Plugin {
     void _thymio2_get_prox_comm_rx(
       _thymio2_get_prox_comm_rx_in *in,
       _thymio2_get_prox_comm_rx_out *out) {
-      if (thymios.count(in->handle)) {
-        auto & thymio = thymios.at(in->handle);
+      if (thymios.count(in->id)) {
+        auto & thymio = thymios.at(in->id);
         for (const auto & msg : thymio.prox_comm_rx()) {
           prox_comm_message_t omsg;
           omsg.rx = msg.rx;

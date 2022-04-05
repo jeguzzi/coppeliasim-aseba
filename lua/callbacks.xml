@@ -3,57 +3,6 @@
 
 <plugin name="Aseba" author="jerome.guzzi@idsia.ch">
     <description>A plugin to emulate Aseba nodes in CoppeliaSim</description>
-    <command name="set_uuid">
-        <description>Set the uuid</description>
-        <params>
-          <param name="id" type="int">
-              <description>The Aseba node ID</description>
-          </param>
-          <param name="uuid" type="table" item-type="int">
-            <description>A 16 byte long uuid</description>
-          </param>
-        </params>
-        <return>
-        </return>
-    </command>
-    <command name="set_friendly_name">
-        <description>Set a friendly name</description>
-        <params>
-          <param name="id" type="int">
-              <description>The Aseba node ID</description>
-          </param>
-          <param name="name" type="string" >
-            <description>The name</description>
-          </param>
-        </params>
-        <return>
-        </return>
-    </command>
-    <command name="_thymio2_create">
-        <description>Instantiate a Thymio2 controller</description>
-        <params>
-          <param name="handle" type="int">
-              <description>Handle of the Tymio2 model in CoppeliaSim</description>
-          </param>
-          <param name="with_aseba" type="bool" default="true">
-            <description>Start emulating the Aseba firmware</description>
-          </param>
-          <param name="friendly_name" type="string" default='"Thymio II"'>
-            <description>A friendlier name used in Thymio Suite to label nodes. Must not be unique. If left empty, it is set to "Thymio II".</description>
-          </param>
-          <param name="port" type="int" default="33333">
-            <description>The Aseba port number</description>
-          </param>
-          <param name="id" type="int" default="-1">
-            <description>The Aseba node ID. Two nodes in the same Aseba network cannot have the same id. Set to -1 to choose the lowest available id.</description>
-          </param>
-        </params>
-        <return>
-            <param name="id" type="int">
-                <description>Handle of the Thymio2 controller, which would be also its assigned Aseba node id.</description>
-            </param>
-        </return>
-    </command>
     <command name="create_node">
         <description>Create an Aseba node and connect it to an Aseba network. Until the first simulation step is completed, the node can be edited, adding variables, events and functions. After the first pass, its Aseba description will be freezed.</description>
         <params>
@@ -78,7 +27,7 @@
         </params>
         <return>
             <param name="id" type="int">
-                <description>ID assigned to the Aseba node</description>
+                <description>The ID assigned to the Aseba node</description>
             </param>
         </return>
     </command>
@@ -95,13 +44,39 @@
     <!-- <command name="connect_node">
         <description>Connect a node to the aseba network</description>
         <params>
-            <param name="handle" type="int">
-              <description>The node handle</description>
+            <param name="id" type="int">
+              <description>The Aseba node id</description>
             </param>
         </params>
         <return>
         </return>
     </command> -->
+    <command name="set_uuid">
+        <description>Set the indentifier of an Aseba node in Thymio Suite from Mobsya. Has no effect when using older clients from the Aseba community.</description>
+        <params>
+          <param name="id" type="int">
+              <description>The Aseba node ID</description>
+          </param>
+          <param name="uuid" type="table" item-type="int">
+            <description>An array of 16 bytes</description>
+          </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="set_friendly_name">
+        <description>Set the friendly name for an Aseba node in Thymio Suite from Mobsya. Has no effect when using older clients from the Aseba community.</description>
+        <params>
+          <param name="id" type="int">
+              <description>The Aseba node ID</description>
+          </param>
+          <param name="name" type="string" >
+            <description>An string shorter than 56 characters.</description>
+          </param>
+        </params>
+        <return>
+        </return>
+    </command>
     <command name="add_variable">
         <description>Add an Aseba variable to a node. This is only possible after node creation, before the first simulation step. All Aseba variables are named array of a fixed number of 16-bit integers.</description>
         <params>
@@ -122,7 +97,7 @@
         <description>Set an Aseba variable. The value array should have same size of the variable and be limited to the 16-bit integers range, i.e., [-32768, 32767]. Higher bits are ignored.</description>
         <params>
             <param name="id" type="int">
-                <description>The node ID</description>
+                <description>The Aseba node ID</description>
             </param>
             <param name="name" type="string">
                 <description>The variable name</description>
@@ -138,7 +113,7 @@
         <description>Get an Aseba variable</description>
         <params>
             <param name="id" type="int">
-                <description>The node ID</description>
+                <description>The Aseba node ID</description>
             </param>
             <param name="name" type="string">
                 <description>The varible name</description>
@@ -154,7 +129,7 @@
         <description>Add an Aseba event to a node. This is only possible after node creation, before the first simulation step.</description>
         <params>
             <param name="id" type="int">
-                <description>The node ID</description>
+                <description>The Aseba node ID</description>
             </param>
             <param name="name" type="string">
                 <description>The event name</description>
@@ -170,7 +145,7 @@
         <description>Emit an Aseba event.</description>
         <params>
             <param name="id" type="int">
-                <description>The node ID</description>
+                <description>The Aseba node ID</description>
             </param>
             <param name="name" type="string">
                 <description>The event name</description>
@@ -183,7 +158,7 @@
         <description>Add an Aseba function to a node. This is only possible after node creation, before the first simulation step. When the Aseba function get called, it triggers a callback in this lua script with the same arguments.</description>
         <params>
             <param name="id" type="int">
-                <description>The node ID</description>
+                <description>The Aseba node ID</description>
             </param>
             <param name="name" type="string">
                 <description>The function name</description>
@@ -225,16 +200,13 @@
         </return>
     </command>
     <command name="load_script">
-        <description>Load an Aseba script into a node.</description>
+        <description>Load an Aseba script into a node from a file.</description>
         <params>
             <param name="id" type="int">
-              <description>The node ID</description>
+              <description>The Aseba node ID</description>
             </param>
-            <param name="text" type="string" default='""'>
-                <description>The text of a script. Leave empty to load from a file.</description>
-            </param>
-            <param name="path" type="string" default='""'>
-                <description>The path to the script file. Will be ignored if `text` is specified.</description>
+            <param name="path" type="string">
+                <description>The path to the script file.</description>
             </param>
         </params>
         <return>
@@ -243,11 +215,113 @@
           </param>
         </return>
     </command>
+    <command name="set_script">
+        <description>Load an Aseba script into a node from text code. The code cannot define or use user events or constants. If you need them, please use `load_script` instead.</description>
+        <params>
+            <param name="id" type="int">
+              <description>The Aseba node ID</description>
+            </param>
+            <param name="code" type="string">
+                <description>The text code with the Aseba script.</description>
+            </param>
+        </params>
+        <return>
+          <param name="result" type="bool">
+              <description>Whether script loading was successfull.</description>
+          </param>
+        </return>
+    </command>
+    <command name="_thymio2_create">
+        <description>Instantiate a Thymio2 controller</description>
+        <params>
+          <param name="handle" type="int">
+              <description>Handle of the Thymio2 model in CoppeliaSim</description>
+          </param>
+          <param name="with_aseba" type="bool" default="true">
+            <description>Start emulating the Aseba firmware</description>
+          </param>
+          <param name="friendly_name" type="string" default='"Thymio II"'>
+            <description>A friendlier name used in Thymio Suite to label nodes. Must not be unique. If left empty, it is set to "Thymio II".</description>
+          </param>
+          <param name="port" type="int" default="33333">
+            <description>The Aseba port number</description>
+          </param>
+          <param name="id" type="int" default="-1">
+            <description>The Aseba node ID. Two nodes in the same Aseba network cannot have the same id. Set to -1 to choose the lowest available id.</description>
+          </param>
+        </params>
+        <return>
+            <param name="id" type="int">
+                <description>The ID assigned to the Thymio2 controller and its potential Aseba node.</description>
+            </param>
+        </return>
+    </command>
+    <command name="_thymio2_enable_accelerometer">
+        <description>Enable or disable the accelerometer</description>
+        <params>
+          <param name="id" type="int">
+            <description>The ID of the Thymio2 controller</description>
+          </param>
+          <param name="state" type="bool">
+              <description>The state (enabled: true, disabled: false)</description>
+          </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="_thymio2_enable_ground">
+        <description>Enable, disable and configure the ground sensors</description>
+        <params>
+            <param name="id" type="int">
+              <description>The ID of the Thymio2 controller</description>
+            </param>
+            <param name="state" type="bool">
+                <description>The state (enabled: true, disabled: false)</description>
+            </param>
+            <param name="red" type="bool" default="false">
+                <description>Configure the sensors to respond only to the red-compoment of the reflecting material.</description>
+            </param>
+            <param name="vision" type="bool" default="false">
+                <description>Configure the sensors to use vision to get the color of the reflecting material.</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="_thymio2_enable_proximity">
+          <description>Enable, disable and configure the proximity sensors</description>
+        <params>
+          <param name="id" type="int">
+            <description>The ID of the Thymio2 controller</description>
+          </param>
+          <param name="state" type="bool">
+              <description>The state (enabled: true, disabled: false)</description>
+          </param>
+          <param name="red" type="bool" default="false">
+              <description>Configure the sensors to respond only to the red-compoment of the reflecting material.</description>
+          </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="_thymio2_enable_prox_comm">
+        <description>Enable or disable the proximity communication</description>
+        <params>
+          <param name="id" type="int">
+            <description>The ID of the Thymio2 controller</description>
+          </param>
+            <param name="state" type="bool">
+                <description>The state (enabled: true, disabled: false)</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
     <command name="_thymio2_set_led">
         <description>Set the color of a LED</description>
         <params>
-            <param name="handle" type="int">
-                <description>Handle of the Thymio2 controller</description>
+            <param name="id" type="int">
+                <description>The ID of the Thymio2 controller</description>
             </param>
             <param name="index" type="int">
                 <description>The index of the LED</description>
@@ -268,8 +342,8 @@
     <command name="_thymio2_set_led_intensity">
         <description>Set the color intentity of a LED</description>
         <params>
-            <param name="handle" type="int">
-                <description>Handle of the Thymio2 controller</description>
+            <param name="id" type="int">
+              <description>The ID of the Thymio2 controller</description>
             </param>
             <param name="index" type="int">
                 <description>The index of the LED</description>
@@ -281,27 +355,11 @@
         <return>
         </return>
     </command>
-    <command name="_thymio2_set_target_speed">
-        <description>Set the target angular speed of a motor</description>
-        <params>
-            <param name="handle" type="int">
-                <description>Handle of the Thymio2 controller</description>
-            </param>
-            <param name="index" type="int">
-                <description>The index of the motor (left: 0, right: 0)</description>
-            </param>
-            <param name="speed" type="float">
-                <description>The angular speed in rad/s</description>
-            </param>
-        </params>
-        <return>
-        </return>
-    </command>
     <command name="_thymio2_get_speed">
         <description>Get the currrent angular speed of a motor</description>
         <params>
-            <param name="handle" type="int">
-                <description>Handle of the Thymio2 controller</description>
+            <param name="id" type="int">
+              <description>The ID of the Thymio2 controller</description>
             </param>
             <param name="index" type="int">
                 <description>The index of the motor (left: 0, right: 0)</description>
@@ -313,43 +371,27 @@
           </param>
         </return>
     </command>
-    <command name="_thymio2_get_proximity">
-        <description>Get the current reading of a proximity sensor</description>
+    <command name="_thymio2_set_target_speed">
+        <description>Set the target angular speed of a motor</description>
         <params>
-            <param name="handle" type="int">
-                <description>Handle of the Thymio2 controller</description>
+            <param name="id" type="int">
+              <description>The ID of the Thymio2 controller</description>
             </param>
             <param name="index" type="int">
-                <description>The index of the sensor</description>
+                <description>The index of the motor (left: 0, right: 0)</description>
+            </param>
+            <param name="speed" type="float">
+                <description>The angular speed in rad/s</description>
             </param>
         </params>
         <return>
-          <param name="reading" type="float">
-              <description>The current sensor reading</description>
-          </param>
-        </return>
-    </command>
-    <command name="_thymio2_get_ground">
-        <description>Get the current reading of a ground sensor</description>
-        <params>
-            <param name="handle" type="int">
-                <description>Handle of the Thymio2 controller</description>
-            </param>
-            <param name="index" type="int">
-                <description>The index of the sensor (left: 0, right: 0)</description>
-            </param>
-        </params>
-        <return>
-          <param name="reflected" type="float">
-              <description>The current sensor reading</description>
-          </param>
         </return>
     </command>
     <command name="_thymio2_get_acceleration">
         <description>Get the current reading the accelerometer</description>
         <params>
-            <param name="handle" type="int">
-                <description>Handle of the Thymio2 controller</description>
+            <param name="id" type="int">
+              <description>The ID of the Thymio2 controller</description>
             </param>
         </params>
         <return>
@@ -364,85 +406,43 @@
           </param>
         </return>
     </command>
-    <command name="_thymio2_enable_ground">
-        <description>Enable, disable and configure the ground sensors</description>
+    <command name="_thymio2_get_ground">
+        <description>Get the current reading of a ground sensor</description>
         <params>
-            <param name="handle" type="int">
-                <description>Handle of the Thymio2 controller. Set it to -1 to target all robots.</description>
+            <param name="id" type="int">
+              <description>The ID of the Thymio2 controller</description>
             </param>
-            <param name="state" type="bool">
-                <description>The state (enabled: true, disabled: false)</description>
-            </param>
-            <param name="red" type="bool" default="false">
-                <description>Configure the sensors to respond only to the red-compoment of the reflecting material.</description>
-            </param>
-            <param name="vision" type="bool" default="false">
-                <description>Configure the sensors to use vision to get the color of the reflecting material.</description>
+            <param name="index" type="int">
+                <description>The index of the sensor (left: 0, right: 0)</description>
             </param>
         </params>
         <return>
+          <param name="reflected" type="float">
+              <description>The current sensor reading</description>
+          </param>
         </return>
     </command>
-    <command name="_thymio2_enable_proximity">
-          <description>Enable, disable and configure the proximity sensors</description>
+    <command name="_thymio2_get_proximity">
+        <description>Get the current reading of a proximity sensor</description>
         <params>
-          <param name="handle" type="int">
-              <description>Handle of the Thymio2 controller. Set it to -1 to target all robots.</description>
-          </param>
-          <param name="state" type="bool">
-              <description>The state (enabled: true, disabled: false)</description>
-          </param>
-          <param name="red" type="bool" default="false">
-              <description>Configure the sensors to respond only to the red-compoment of the reflecting material.</description>
-          </param>
-        </params>
-        <return>
-        </return>
-    </command>
-    <command name="_thymio2_enable_accelerometer">
-        <description>Enable or disable the accelerometer</description>
-        <params>
-          <param name="handle" type="int">
-              <description>Handle of the Thymio2 controller. Set it to -1 to target all robots.</description>
-          </param>
-          <param name="state" type="bool">
-              <description>The state (enabled: true, disabled: false)</description>
-          </param>
-        </params>
-        <return>
-        </return>
-    </command>
-    <command name="_thymio2_enable_prox_comm">
-        <description>Enable or disable the proximity communication</description>
-        <params>
-          <param name="handle" type="int">
-              <description>Handle of the Thymio2 controller. Set it to -1 to target all robots.</description>
-          </param>
-            <param name="state" type="bool">
-                <description>The state (enabled: true, disabled: false)</description>
+            <param name="id" type="int">
+              <description>The ID of the Thymio2 controller</description>
+            </param>
+            <param name="index" type="int">
+                <description>The index of the sensor</description>
             </param>
         </params>
         <return>
-        </return>
-    </command>
-    <command name="_thymio2_set_prox_comm_tx">
-        <description>Set the integer value to be transmitted at each step if the communication is enabled. The real robot is limited to 11 bits. The simulated robot can send 32-bit integers.</description>
-        <params>
-            <param name="handle" type="int">
-                <description>Handle of the Thymio2 controller</description>
-            </param>
-            <param name="tx" type="int">
-                <description>The integer value to send.</description>
-            </param>
-        </params>
-        <return>
+          <param name="reading" type="float">
+              <description>The current sensor reading</description>
+          </param>
         </return>
     </command>
     <command name="_thymio2_get_prox_comm_rx">
         <description>Get the last messages received by the proximity communication</description>
         <params>
-            <param name="handle" type="int">
-                <description>Handle of the Thymio2 controller</description>
+            <param name="id" type="int">
+              <description>The ID of the Thymio2 controller</description>
             </param>
         </params>
         <return>
@@ -451,11 +451,24 @@
           </param>
         </return>
     </command>
+    <command name="_thymio2_set_prox_comm_tx">
+        <description>Set the integer value to be transmitted at each step if the communication is enabled. The real robot is limited to 11 bits. The simulated robot can send 32-bit integers.</description>
+        <params>
+            <param name="id" type="int">
+              <description>The ID of the Thymio2 controller</description>
+            </param>
+            <param name="tx" type="int">
+                <description>The integer value to send.</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
     <command name="_thymio2_get_button">
         <description>Get the current state of a button sensor</description>
         <params>
-            <param name="handle" type="int">
-                <description>Handle of the Thymio2 controller</description>
+            <param name="id" type="int">
+              <description>The ID of the Thymio2 controller</description>
             </param>
             <param name="index" type="int">
                 <description>The index of the button.</description>
@@ -470,8 +483,8 @@
     <command name="_thymio2_set_button">
         <description>Overwrite the current state of a button sensor</description>
         <params>
-            <param name="handle" type="int">
-                <description>Handle of the Thymio2 controller</description>
+            <param name="id" type="int">
+              <description>The ID of the Thymio2 controller</description>
             </param>
             <param name="index" type="int">
                 <description>The index of the button.</description>
@@ -519,5 +532,4 @@
             <description>The light intensity read by each sensor; set to 0 if the message was not recevied. </description>
         </param>
     </struct>
-
 </plugin>

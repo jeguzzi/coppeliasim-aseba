@@ -10,6 +10,8 @@
 |----|
 | [simAseba.create_node](#create_node) |
 | [simAseba.destroy_node](#destroy_node) |
+| [simAseba.set_uuid](#set_uuid) |
+| [simAseba.set_friendly_name](#set_friendly_name) |
 | [simAseba.add_variable](#add_variable) |
 | [simAseba.set_variable](#set_variable) |
 | [simAseba.get_variable](#get_variable) |
@@ -18,6 +20,8 @@
 | [simAseba.add_function](#add_function) |
 | [simAseba.list_nodes](#list_nodes) |
 | [simAseba.destroy_network](#destroy_network) |
+| [simAseba.load_script](#load_script) |
+| [simAseba.set_script](#set_script) |
 
 
 
@@ -58,7 +62,7 @@ node_t = {int port , string name , int id }
 
 Create an Aseba node and connect it to an Aseba network. Until the first simulation step is completed, the node can be edited, adding variables, events and functions. After the first pass, its Aseba description will be freezed.
 ```C++
-int id=simAseba.create_node(int handle,int port=33333,int id=-1,string name="node")
+int id=simAseba.create_node(int handle,int port=33333,int id=-1,string name="node",string friendly_name="",int[] uuid={})
 ```
 *parameters*
 
@@ -68,11 +72,15 @@ int id=simAseba.create_node(int handle,int port=33333,int id=-1,string name="nod
 
   - **id** The Aseba node ID. Two nodes in the same Aseba network cannot have the same id. Set to -1 to choose the lowest available id.
 
-  - **name** The Aseba node name. This identify the type of devices. Two nodes in the same Aseba network can have the same name.
+  - **name** The Aseba node name, which identifies the type of devices. Two nodes in the same Aseba network can have the same name.
+
+  - **friendly_name** A friendlier name used in Thymio Suite to label nodes. Must not be unique. If left empty, it is set to "{name}".
+
+  - **uuid** An 16-byte long uuid to uniquely identify nodes in Thymio Suite: each node should have a different uuid. If left empty, the uuid is set to "coppeliasim {id}".
 
 *return*
 
-  - **id** ID assigned to the Aseba node
+  - **id** The ID assigned to the Aseba node
 
 
 
@@ -87,6 +95,42 @@ simAseba.destroy_node(int id)
 *parameters*
 
   - **id** The Aseba node ID.
+
+
+
+
+
+
+#### set_uuid
+
+
+Set the indentifier of an Aseba node in Thymio Suite from Mobsya. Has no effect when using older clients from the Aseba community.
+```C++
+simAseba.set_uuid(int id,int[] uuid)
+```
+*parameters*
+
+  - **id** The Aseba node ID
+
+  - **uuid** An array of 16 bytes
+
+
+
+
+
+
+#### set_friendly_name
+
+
+Set the friendly name for an Aseba node in Thymio Suite from Mobsya. Has no effect when using older clients from the Aseba community.
+```C++
+simAseba.set_friendly_name(int id,string name)
+```
+*parameters*
+
+  - **id** The Aseba node ID
+
+  - **name** An string shorter than 56 characters.
 
 
 
@@ -122,7 +166,7 @@ simAseba.set_variable(int id,string name,int[] value)
 ```
 *parameters*
 
-  - **id** The node ID
+  - **id** The Aseba node ID
 
   - **name** The variable name
 
@@ -142,7 +186,7 @@ int[] value=simAseba.get_variable(int id,string name)
 ```
 *parameters*
 
-  - **id** The node ID
+  - **id** The Aseba node ID
 
   - **name** The varible name
 
@@ -162,7 +206,7 @@ simAseba.add_event(int id,string name,string description)
 ```
 *parameters*
 
-  - **id** The node ID
+  - **id** The Aseba node ID
 
   - **name** The event name
 
@@ -182,7 +226,7 @@ simAseba.emit_event(int id,string name)
 ```
 *parameters*
 
-  - **id** The node ID
+  - **id** The Aseba node ID
 
   - **name** The event name
 
@@ -200,7 +244,7 @@ simAseba.add_function(int id,string name,string description,argument_t[] argumen
 ```
 *parameters*
 
-  - **id** The node ID
+  - **id** The Aseba node ID
 
   - **name** The function name
 
@@ -245,5 +289,45 @@ simAseba.destroy_network(int port=-1)
   - **port** The Aseba network port. Use -1 to destroy all networks.
 
 
+
+
+
+
+#### load_script
+
+
+Load an Aseba script into a node from a file.
+```C++
+bool result=simAseba.load_script(int id,string path)
+```
+*parameters*
+
+  - **id** The Aseba node ID
+
+  - **path** The path to the script file.
+
+*return*
+
+  - **result** Whether script loading was successfull.
+
+
+
+
+#### set_script
+
+
+Load an Aseba script into a node from text code. The code cannot define or use user events or constants. If you need them, please use `load_script` instead.
+```C++
+bool result=simAseba.set_script(int id,string code)
+```
+*parameters*
+
+  - **id** The Aseba node ID
+
+  - **code** The text code with the Aseba script.
+
+*return*
+
+  - **result** Whether script loading was successfull.
 
 

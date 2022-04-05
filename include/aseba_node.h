@@ -15,6 +15,7 @@
 #include "transport/buffer/vm-buffer.h"
 #include "stubs.h"
 #include "aseba_script.h"
+#include "logging.h"
 
 #define VARIABLES_TOTAL_SIZE 1024
 #define ID 0
@@ -88,7 +89,7 @@ public:
     {
       add_variable(std::string(desc->name), desc->size);
     }
-    printf("num of variables: %lu\n", named_variable.size());
+    log_debug("Added %lu variables", named_variable.size());
     // init event description
     events_description = (AsebaLocalEventDescription *) malloc(sizeof(AsebaLocalEventDescription));
     events_description[0] = AsebaLocalEventDescription{NULL, NULL};
@@ -97,7 +98,7 @@ public:
     {
       add_event(std::string(event_desc->name), std::string(event_desc->doc));
     }
-    printf("num of events: %lu\n", named_event.size());
+    log_debug("Added %lu events", named_event.size());
     // init function description
     const AsebaNativeFunctionDescription **fun_desc = native_functions_description();
     number_of_native_function = 0;
@@ -105,7 +106,7 @@ public:
     fun_desc = native_functions_description();
     functions_description = (AsebaNativeFunctionDescription **) calloc(number_of_native_function + 1, sizeof(AsebaNativeFunctionDescription));
     std::copy((AsebaNativeFunctionDescription **)fun_desc, (AsebaNativeFunctionDescription **)(fun_desc + number_of_native_function + 1), functions_description);
-    printf("num of functions: %lu\n", number_of_native_function);
+    log_debug("Added %lu functions", number_of_native_function);
   }
 
  private:
@@ -114,7 +115,6 @@ public:
   {
     // TODO (J): check and see if I cannot avoid some of these dynamic allocations, especially for strings.
     // e.g. I could use a a pointer to a key stored in my variables (like `named_variable` or `node.name` ...)
-    printf("B free_descriptions\n");
     size_t number = named_variable.size();
     for (size_t i = 0; i < number; i++) {
       free((void *)variables_description->variables[i].name);
@@ -140,7 +140,6 @@ public:
       free(function);
     }
     free(functions_description);
-    printf("E free_descriptions\n");
   }
 
 public:
@@ -168,7 +167,7 @@ public:
   ~DynamicAsebaNode()
   {
     free_descriptions();
-    printf("Deleted node %s\n", name.c_str());
+    log_info("Deleted node %s", name.c_str());
   }
 
   virtual void step(float dt)
@@ -178,22 +177,22 @@ public:
 
   void add_variable(std::string name, unsigned int size)
   {
-    printf("add_variable %s of size %d\n", name.c_str(), size);
+    log_debug("Try to add variable %s of size %d", name.c_str(), size);
     if(named_variable.count(name))
     {
-      printf("Variable %s cannot be added: already defined\n", name.c_str());
+      log_warn("Variable %s cannot be added: already defined", name.c_str());
       return;
     }
     size_t number = named_variable.size();
     if(next_variable + size > variables + VARIABLES_TOTAL_SIZE)
     {
-      printf("Variable %s cannot be added: not enough free space\n", name.c_str());
+      log_warn("Variable %s cannot be added: not enough free space", name.c_str());
       return;
     }
     AsebaVMDescription * tmp = (AsebaVMDescription *) realloc(variables_description, sizeof(AsebaVMDescription) + (number + 2) * sizeof(AsebaVariableDescription));
     if(!tmp)
     {
-      printf("Failed to realloc variables_description!\n");
+      log_warn("Failed to realloc variables_description!");
       return;
     }
     variables_description = tmp;
@@ -201,7 +200,7 @@ public:
     variables_description->variables[number] = AsebaVariableDescription{(uint16_t) size, dydata(name)};
     variables_description->variables[number+1] = AsebaVariableDescription{0, NULL};
     next_variable += size;
-    printf("added variable\n");
+    log_debug("Added variable");
   }
 
   std::vector<int> get_variable(std::string name)
@@ -228,14 +227,14 @@ public:
   {
     if(named_event.count(name))
     {
-      printf("Event %s cannot be added: already defined\n", name.c_str());
+      log_warn("Event %s cannot be added: already defined", name.c_str());
       return;
     }
     size_t number = named_event.size();
     events_description = (AsebaLocalEventDescription *) realloc(events_description, (number + 2) * sizeof(AsebaLocalEventDescription));
     if(!events_description)
     {
-      printf("Failed to realloc events_description!\n");
+      log_warn("Failed to realloc events_description!");
       return;
     }
     named_event[name] = number;
@@ -263,11 +262,12 @@ public:
 
   void add_function(std::string name, std::string description, std::vector<argument_t> arguments, std::string callback_name)
   {
+    log_debug("Try to add function %s", name.c_str());
     for(auto &f : lua_functions)
     {
       if(f.first == name)
       {
-        printf("Function %s cannot be added: already defined\n", name.c_str());
+        log_warn("Function %s cannot be added: already defined", name.c_str());
         return;
       }
     }
@@ -276,13 +276,13 @@ public:
     functions_description = (AsebaNativeFunctionDescription **) realloc(functions_description, (number + 2) * sizeof(AsebaNativeFunctionDescription*));
     if(!functions_description)
     {
-      printf("Failed to realloc functions_description!\n");
+      log_warn("Failed to realloc functions_description!");
       return;
     }
     AsebaNativeFunctionDescription * desc = (AsebaNativeFunctionDescription *) malloc(sizeof(AsebaNativeFunctionDescription) + (1 + arguments.size()) * sizeof(AsebaNativeFunctionArgumentDescription));
     if(!desc)
     {
-        printf("Failed to malloc AsebaNativeFunctionDescription!\n");
+        log_warn("Failed to malloc AsebaNativeFunctionDescription!");
         return;
     }
     desc->name = dydata(name);
@@ -300,6 +300,7 @@ public:
     functions_description[number] = desc;
     functions_description[number+1] = NULL;
     lua_functions.push_back(make_pair(callback_name, sizes));
+    log_debug("Added function");
   }
 
   void connect()
@@ -343,10 +344,10 @@ public:
     const Aseba::TargetDescription desc = get_description();
     success = script->compile(vm.nodeId, &desc, user_variables, bytecode);
     if (!success) {
-      printf("[Aseba node] Failed to compile script\n");
+      log_warn("Failed to compile script");
       return false;
     }
-    printf("[Aseba node] compiled script to %lu bytecodes\n", bytecode.size());
+    log_info("Compiled script to %lu bytecodes", bytecode.size());
     // mgs = {destination, start_index, bytecodes...}
     std::vector<uint16_t> set_bytecode_data = {vm.nodeId, 0};
     std::copy(bytecode.begin(), bytecode.end(), std::back_inserter(set_bytecode_data));
@@ -361,25 +362,25 @@ public:
     uint16_t data[1] = {vm.nodeId};
     AsebaVMDebugMessage(&vm, ASEBA_MESSAGE_RUN, data, 1);
     AsebaVMRun(&vm, 1000);
-    printf("[Aseba node] loaded script to node\n");
+    log_info("Loaded script to node");
     return true;
   }
 
   bool load_script_from_text(const std::string & text) {
-    printf("[Aseba node] Try to load Aseba script:\n\n%s\n\n", text.c_str());
+    log_info("Try to load Aseba script:\n\n%s\n\n", text.c_str());
     auto script = AsebaScript::from_code_string(text, name, vm.nodeId);
     if (!script) {
-      printf("[Aseba node] Failed to load script\n");
+      log_warn("Failed to load script");
       return false;
     }
     return load_script(script);
   }
 
   bool load_script_from_file(const std::string & path) {
-    printf("[Aseba node] Try to load Aseba script from %s\n", path.c_str());
+    log_info("Try to load Aseba script from %s", path.c_str());
     auto script = AsebaScript::from_file(path);
     if (!script) {
-      printf("[Aseba node] Failed to load script\n");
+      log_warn("Failed to load script");
       return false;
     }
     return load_script(script);

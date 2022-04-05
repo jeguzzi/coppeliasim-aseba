@@ -1,4 +1,5 @@
 #include "coppeliasim_thymio2.h"
+#include "logging.h"
 
 #define TEXTURE_SIZE 1024
 
@@ -184,7 +185,7 @@ Thymio2::Thymio2(simInt handle_) : handle(handle_) {
   std::string body_path = std::string(alias)+"/Body";
   body_handle = simGetObject(body_path.c_str(), -1, -1, 0);
   texture_id = simGetShapeTextureId(body_handle);
-  printf("init: handle %d has texture_id %d\n", handle, texture_id);
+  log_info("Initializing Thymio2 with handle %d and texture_id %d", handle, texture_id);
   for (size_t i = 0; i < wheels.size(); i++) {
     std::string wheel_path = std::string(alias) + wheel_prefixes[i] + "Motor";
     simInt wheel_handle = simGetObject(wheel_path.c_str(), -1, -1, 0);
@@ -242,7 +243,7 @@ void Thymio2::reset_texture(bool reload) {
   // HACK(Jerome): One pixel should be specific to each robot,
   // else coppeliaSim will link them when it save the scene
   // But this hack isnot working for image loaded textures
-  printf("hack: add pixel with uid %lld\n", uid);
+  // log_debug("hack: add pixel with uid %lld\n", uid);
   m.data[0] = (uint8_t) (uid & 0xFF);
   m.data[1] = (uint8_t) ((uid >> 8) & 0xFF);
   m.data[2] = (uint8_t) ((uid >> 16) & 0xFF);
@@ -256,7 +257,7 @@ void Thymio2::reset_texture(bool reload) {
         (const simUChar *)m.ptr(), info.textureRes, 1);
     // bottom-left corner is not mapped on the shape (i.e., the pixel is not visible)
 
-    printf("reset_texture: handle %d has texture_id %d\n", handle, texture_id);
+    log_debug("Reset texture for handle %d -> texture_id %d", handle, texture_id);
     simReleaseBuffer((const char *)info.indices);
     simReleaseBuffer((const char *)info.normals);
     simReleaseBuffer((const char *)info.texture);
@@ -542,7 +543,7 @@ Accelerometer::Accelerometer(int handle_) : handle(handle_), active(true) {
     sensor = simGetObject((path + "/forceSensor").c_str(), -1, -1, 0);
     simInt r = simGetObjectFloatParam(massObject, sim_shapefloatparam_mass, &mass);
     if (r != 1) {
-      printf("Error getting object %d mass\n", massObject);
+      log_error("Error %d getting mass of object %d", r, massObject);
     }
   }
 }

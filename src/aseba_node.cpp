@@ -22,14 +22,15 @@ char * dydata(std::string value) {
   return c;
 }
 
+#if ASEBA_PROTOCOL_VERSION < 9
 // From Asabe v2
 #define ASEBA_MESSAGE_DEVICE_INFO 0x900D
 #define DEVICE_INFO_UUID 1
 #define DEVICE_INFO_NAME 2
-
+#endif  // ASEBA_PROTOCOL_VERSION < 9
 
 void DynamicAsebaNode::send_uuid(const std::array<uint8_t, 16> & uuid) {
-  printf("Send device uuid\n");
+  log_info("Send device uuid");
   uint8_t size = uuid.size();
   std::vector<uint8_t> payload = {DEVICE_INFO_UUID, size};
   std::copy(uuid.begin(), uuid.end(), std::back_inserter(payload));
@@ -37,7 +38,7 @@ void DynamicAsebaNode::send_uuid(const std::array<uint8_t, 16> & uuid) {
 }
 
 void DynamicAsebaNode::send_friendly_name(const std::string & name) {
-  printf("Send device name %s\n", name.c_str());
+  log_info("Send device name %s", name.c_str());
   uint8_t size = name.length() + 1;
   std::vector<uint8_t> payload = {DEVICE_INFO_NAME, size};
   std::copy(name.c_str(), name.c_str() + name.length() + 1, std::back_inserter(payload));

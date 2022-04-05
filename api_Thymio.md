@@ -8,19 +8,19 @@
 | function |
 |----|
 | [simThymio.create](#create) |
-| [simThymio.set_led](#set_led) |
-| [simThymio.set_led_intensity](#set_led_intensity) |
-| [simThymio.set_target_speed](#set_target_speed) |
-| [simThymio.get_speed](#get_speed) |
-| [simThymio.get_proximity](#get_proximity) |
-| [simThymio.get_ground](#get_ground) |
-| [simThymio.get_acceleration](#get_acceleration) |
+| [simThymio.enable_accelerometer](#enable_accelerometer) |
 | [simThymio.enable_ground](#enable_ground) |
 | [simThymio.enable_proximity](#enable_proximity) |
-| [simThymio.enable_accelerometer](#enable_accelerometer) |
 | [simThymio.enable_prox_comm](#enable_prox_comm) |
-| [simThymio.set_prox_comm_tx](#set_prox_comm_tx) |
+| [simThymio.set_led](#set_led) |
+| [simThymio.set_led_intensity](#set_led_intensity) |
+| [simThymio.get_speed](#get_speed) |
+| [simThymio.set_target_speed](#set_target_speed) |
+| [simThymio.get_acceleration](#get_acceleration) |
+| [simThymio.get_ground](#get_ground) |
+| [simThymio.get_proximity](#get_proximity) |
 | [simThymio.get_prox_comm_rx](#get_prox_comm_rx) |
+| [simThymio.set_prox_comm_tx](#set_prox_comm_tx) |
 | [simThymio.get_button](#get_button) |
 | [simThymio.set_button](#set_button) |
 
@@ -50,13 +50,15 @@ prox_comm_message_t = {int rx , int[] payloads , float[] intensities }
 
 Instantiate a Thymio2 controller
 ```C++
-int id=simThymio.create(int handle,bool with_aseba=true,int port=33333,int id=-1)
+int id=simThymio.create(int handle,bool with_aseba=true,string friendly_name="Thymio II",int port=33333,int id=-1)
 ```
 *parameters*
 
-  - **handle** Handle of the Tymio2 model in CoppeliaSim
+  - **handle** Handle of the Thymio2 model in CoppeliaSim
 
   - **with_aseba** Start emulating the Aseba firmware
+
+  - **friendly_name** A friendlier name used in Thymio Suite to label nodes. Must not be unique. If left empty, it is set to "Thymio II".
 
   - **port** The Aseba port number
 
@@ -64,7 +66,85 @@ int id=simThymio.create(int handle,bool with_aseba=true,int port=33333,int id=-1
 
 *return*
 
-  - **id** Handle of the Thymio2 controller, which would be also its assigned Aseba node id.
+  - **id** The ID assigned to the Thymio2 controller and its potential Aseba node.
+
+
+
+
+#### enable_accelerometer
+
+
+Enable or disable the accelerometer
+```C++
+simThymio.enable_accelerometer(int id,bool state)
+```
+*parameters*
+
+  - **id** The ID of the Thymio2 controller
+
+  - **state** The state (enabled: true, disabled: false)
+
+
+
+
+
+
+#### enable_ground
+
+
+Enable, disable and configure the ground sensors
+```C++
+simThymio.enable_ground(int id,bool state,bool red=false,bool vision=false)
+```
+*parameters*
+
+  - **id** The ID of the Thymio2 controller
+
+  - **state** The state (enabled: true, disabled: false)
+
+  - **red** Configure the sensors to respond only to the red-compoment of the reflecting material.
+
+  - **vision** Configure the sensors to use vision to get the color of the reflecting material.
+
+
+
+
+
+
+#### enable_proximity
+
+
+Enable, disable and configure the proximity sensors
+```C++
+simThymio.enable_proximity(int id,bool state,bool red=false)
+```
+*parameters*
+
+  - **id** The ID of the Thymio2 controller
+
+  - **state** The state (enabled: true, disabled: false)
+
+  - **red** Configure the sensors to respond only to the red-compoment of the reflecting material.
+
+
+
+
+
+
+#### enable_prox_comm
+
+
+Enable or disable the proximity communication
+```C++
+simThymio.enable_prox_comm(int id,bool state)
+```
+*parameters*
+
+  - **id** The ID of the Thymio2 controller
+
+  - **state** The state (enabled: true, disabled: false)
+
+
 
 
 
@@ -74,11 +154,11 @@ int id=simThymio.create(int handle,bool with_aseba=true,int port=33333,int id=-1
 
 Set the color of a LED
 ```C++
-simThymio.set_led(int handle,int index,float r,float g,float b)
+simThymio.set_led(int id,int index,float r,float g,float b)
 ```
 *parameters*
 
-  - **handle** Handle of the Thymio2 controller
+  - **id** The ID of the Thymio2 controller
 
   - **index** The index of the LED
 
@@ -98,35 +178,15 @@ simThymio.set_led(int handle,int index,float r,float g,float b)
 
 Set the color intentity of a LED
 ```C++
-simThymio.set_led_intensity(int handle,int index,float a)
+simThymio.set_led_intensity(int id,int index,float a)
 ```
 *parameters*
 
-  - **handle** Handle of the Thymio2 controller
+  - **id** The ID of the Thymio2 controller
 
   - **index** The index of the LED
 
   - **a** The color intensity in [0, 1]
-
-
-
-
-
-
-#### set_target_speed
-
-
-Set the target angular speed of a motor
-```C++
-simThymio.set_target_speed(int handle,int index,float speed)
-```
-*parameters*
-
-  - **handle** Handle of the Thymio2 controller
-
-  - **index** The index of the motor (left: 0, right: 0)
-
-  - **speed** The angular speed in rad/s
 
 
 
@@ -138,11 +198,11 @@ simThymio.set_target_speed(int handle,int index,float speed)
 
 Get the currrent angular speed of a motor
 ```C++
-float speed=simThymio.get_speed(int handle,int index)
+float speed=simThymio.get_speed(int id,int index)
 ```
 *parameters*
 
-  - **handle** Handle of the Thymio2 controller
+  - **id** The ID of the Thymio2 controller
 
   - **index** The index of the motor (left: 0, right: 0)
 
@@ -153,42 +213,22 @@ float speed=simThymio.get_speed(int handle,int index)
 
 
 
-#### get_proximity
+#### set_target_speed
 
 
-Get the current reading of a proximity sensor
+Set the target angular speed of a motor
 ```C++
-float reading=simThymio.get_proximity(int handle,int index)
+simThymio.set_target_speed(int id,int index,float speed)
 ```
 *parameters*
 
-  - **handle** Handle of the Thymio2 controller
+  - **id** The ID of the Thymio2 controller
 
-  - **index** The index of the sensor
+  - **index** The index of the motor (left: 0, right: 0)
 
-*return*
-
-  - **reading** The current sensor reading
+  - **speed** The angular speed in rad/s
 
 
-
-
-#### get_ground
-
-
-Get the current reading of a ground sensor
-```C++
-float reflected=simThymio.get_ground(int handle,int index)
-```
-*parameters*
-
-  - **handle** Handle of the Thymio2 controller
-
-  - **index** The index of the sensor (left: 0, right: 0)
-
-*return*
-
-  - **reflected** The current sensor reading
 
 
 
@@ -198,11 +238,11 @@ float reflected=simThymio.get_ground(int handle,int index)
 
 Get the current reading the accelerometer
 ```C++
-float x,float y,float z=simThymio.get_acceleration(int handle)
+float x,float y,float z=simThymio.get_acceleration(int id)
 ```
 *parameters*
 
-  - **handle** Handle of the Thymio2 controller
+  - **id** The ID of the Thymio2 controller
 
 *return*
 
@@ -215,98 +255,42 @@ float x,float y,float z=simThymio.get_acceleration(int handle)
 
 
 
-#### enable_ground
+#### get_ground
 
 
-Enable, disable and configure the ground sensors
+Get the current reading of a ground sensor
 ```C++
-simThymio.enable_ground(int handle,bool state,bool red=false,bool vision=false)
+float reflected=simThymio.get_ground(int id,int index)
 ```
 *parameters*
 
-  - **handle** Handle of the Thymio2 controller. Set it to -1 to target all robots.
+  - **id** The ID of the Thymio2 controller
 
-  - **state** The state (enabled: true, disabled: false)
+  - **index** The index of the sensor (left: 0, right: 0)
 
-  - **red** Configure the sensors to respond only to the red-compoment of the reflecting material.
+*return*
 
-  - **vision** Configure the sensors to use vision to get the color of the reflecting material.
-
-
+  - **reflected** The current sensor reading
 
 
 
 
-#### enable_proximity
+#### get_proximity
 
 
-Enable, disable and configure the proximity sensors
+Get the current reading of a proximity sensor
 ```C++
-simThymio.enable_proximity(int handle,bool state,bool red=false)
+float reading=simThymio.get_proximity(int id,int index)
 ```
 *parameters*
 
-  - **handle** Handle of the Thymio2 controller. Set it to -1 to target all robots.
+  - **id** The ID of the Thymio2 controller
 
-  - **state** The state (enabled: true, disabled: false)
+  - **index** The index of the sensor
 
-  - **red** Configure the sensors to respond only to the red-compoment of the reflecting material.
+*return*
 
-
-
-
-
-
-#### enable_accelerometer
-
-
-Enable or disable the accelerometer
-```C++
-simThymio.enable_accelerometer(int handle,bool state)
-```
-*parameters*
-
-  - **handle** Handle of the Thymio2 controller. Set it to -1 to target all robots.
-
-  - **state** The state (enabled: true, disabled: false)
-
-
-
-
-
-
-#### enable_prox_comm
-
-
-Enable or disable the proximity communication
-```C++
-simThymio.enable_prox_comm(int handle,bool state)
-```
-*parameters*
-
-  - **handle** Handle of the Thymio2 controller. Set it to -1 to target all robots.
-
-  - **state** The state (enabled: true, disabled: false)
-
-
-
-
-
-
-#### set_prox_comm_tx
-
-
-Set the integer value to be transmitted at each step if the communication is enabled. The real robot is limited to 11 bits. The simulated robot can send 32-bit integers.
-```C++
-simThymio.set_prox_comm_tx(int handle,int tx)
-```
-*parameters*
-
-  - **handle** Handle of the Thymio2 controller
-
-  - **tx** The integer value to send.
-
-
+  - **reading** The current sensor reading
 
 
 
@@ -316,15 +300,33 @@ simThymio.set_prox_comm_tx(int handle,int tx)
 
 Get the last messages received by the proximity communication
 ```C++
-prox_comm_message_t[] messages=simThymio.get_prox_comm_rx(int handle)
+prox_comm_message_t[] messages=simThymio.get_prox_comm_rx(int id)
 ```
 *parameters*
 
-  - **handle** Handle of the Thymio2 controller
+  - **id** The ID of the Thymio2 controller
 
 *return*
 
   - **messages** A table of messages, one for each sender.
+
+
+
+
+#### set_prox_comm_tx
+
+
+Set the integer value to be transmitted at each step if the communication is enabled. The real robot is limited to 11 bits. The simulated robot can send 32-bit integers.
+```C++
+simThymio.set_prox_comm_tx(int id,int tx)
+```
+*parameters*
+
+  - **id** The ID of the Thymio2 controller
+
+  - **tx** The integer value to send.
+
+
 
 
 
@@ -334,11 +336,11 @@ prox_comm_message_t[] messages=simThymio.get_prox_comm_rx(int handle)
 
 Get the current state of a button sensor
 ```C++
-bool value=simThymio.get_button(int handle,int index)
+bool value=simThymio.get_button(int id,int index)
 ```
 *parameters*
 
-  - **handle** Handle of the Thymio2 controller
+  - **id** The ID of the Thymio2 controller
 
   - **index** The index of the button.
 
@@ -354,11 +356,11 @@ bool value=simThymio.get_button(int handle,int index)
 
 Overwrite the current state of a button sensor
 ```C++
-simThymio.set_button(int handle,int index,bool value)
+simThymio.set_button(int id,int index,bool value)
 ```
 *parameters*
 
-  - **handle** Handle of the Thymio2 controller
+  - **id** The ID of the Thymio2 controller
 
   - **index** The index of the button.
 

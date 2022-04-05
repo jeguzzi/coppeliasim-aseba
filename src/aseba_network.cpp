@@ -3,14 +3,17 @@ TODO: preamble
 */
 
 #include "aseba_network.h"
-#include "aseba_thymio2.h"
-#include <dashel/dashel.h>
-#include "common/zeroconf/zeroconf-dashelhub.h"
+
 #include <cassert>
 #include <cstring>
 #include <iostream>
 #include <sstream>
 #include <stack>
+
+#include "dashel/dashel.h"
+#include "aseba_thymio2.h"
+#include "logging.h"
+#include "common/zeroconf/zeroconf-dashelhub.h"
 
 
 class AsebaDashel : public Dashel::Hub {
@@ -40,15 +43,15 @@ class AsebaDashel : public Dashel::Hub {
     // advertised_target = std::string("Not A Thymio 3: CoppeliaSim ") + std::to_string(port);
     advertised_target = std::string("CoppeliaSim ") + std::to_string(port);
     listenStream = listen();
-    printf("Created Aseba network listening on tcp:port=%s\n",
-           listenStream->getTargetParameter("port").c_str());
+    log_info("Created Aseba network listening on tcp:port=%s",
+             listenStream->getTargetParameter("port").c_str());
   }
 
   ~AsebaDashel() {
     for (auto kv : nodes) {
       delete kv.second;
     }
-    printf("Deleted network on tcp:port=%d\n", port);
+    log_info("Deleted network on tcp:port=%d", port);
   }
 
   void add_node(DynamicAsebaNode *node) {
@@ -70,7 +73,6 @@ class AsebaDashel : public Dashel::Hub {
 
 #ifdef ZEROCONF
   void advertise() {
-    printf("advertise network\n");
     std::vector<unsigned int> ids;
     std::vector<unsigned int> pids;
     std::string name = "";
@@ -92,16 +94,16 @@ class AsebaDashel : public Dashel::Hub {
     // Aseba::Zeroconf::TxtRecord txt{protocolVersion, names, false, ids, pids};
     Aseba::Zeroconf::TxtRecord txt{protocolVersion, name, false, ids, pids};
     try {
-      printf("Will advertise %s with %s\n", advertised_target.c_str(), txt.record().c_str());
       zeroconf.advertise(advertised_target, listenStream, txt);
-      printf("Has advertised\n");
+      log_debug("Advertise Aseba network %s with %s",
+                advertised_target.c_str(), txt.record().c_str());
     } catch (const std::runtime_error& e) {
-      printf("Could not advertise: %s\n", e.what());
+      log_warn("Could not advertise: %s", e.what());
     }
   }
 
   void deadvertise() {
-    printf("deadvertise network\n");
+    log_debug("Deadvertise Aseba Network");
     zeroconf.forget(advertised_target, listenStream);
   }
 #endif
@@ -113,23 +115,22 @@ class AsebaDashel : public Dashel::Hub {
       oss << "tcpin:port=" << port;
       listenStream = Dashel::Hub::connect(oss.str());
     } catch (Dashel::DashelException e) {
-      printf("Cannot create listening port %d: %s\n", port, e.what());
+      log_warn("Cannot create listening port %d: %s", port, e.what());
       abort();
     }
     return listenStream;
   }
 
-#if 1
   virtual void connectionCreated(Dashel::Stream *stream) {
     std::string targetName = stream->getTargetName();
-    printf("[DASHEL] connectionCreated %s, %p (%p)\n", targetName.c_str(), stream, this->stream);
+    log_info("Incoming Dashel connection from %s", targetName.c_str());
     if (targetName.substr(0, targetName.find_first_of(':')) == "tcp") {
       // schedule current stream for disconnection
       if (!this->stream) {
         this->stream = stream;
-        printf("New client connected with %p\n", stream);
+        log_info("Connection accepted");
       } else {
-        printf("Refuse connection\n");
+        log_info("Connection refused: we are already connected to a client stream");
         // ??? Dashel say not to call closeStream in connectionCreated ???
         closeStream(stream);
         // but this (proper way) makes us crash (why?)
@@ -141,7 +142,6 @@ class AsebaDashel : public Dashel::Hub {
       // printf("New client connected.\n");
     }
   }
-#endif
 #if 0
   virtual void connectionCreated(Dashel::Stream *stream) {
     std::string targetName = stream->getTargetName();
@@ -157,7 +157,7 @@ class AsebaDashel : public Dashel::Hub {
   }
 #endif
   virtual void connectionClosed(Dashel::Stream *stream, bool abnormal) {
-    printf("[DASHEL] connectionClosed %p (%p)\n", stream, this->stream);
+    log_info("Dashel connection closed");
 #ifdef ZEROCONF_SUPPORT
     zeroconf.dashelConnectionClosed(stream);
 #endif  // ZEROCONF_SUPPORT
@@ -169,15 +169,15 @@ class AsebaDashel : public Dashel::Hub {
       }
     }
     if (abnormal)
-      printf("Client has disconnected unexpectedly.\n");
-    else
-      printf("Client has disconnected properly.\n");
+      log_warn("Client has disconnected unexpectedly.");
+    // else
+      // printf("Client has disconnected properly.\n");
   }
 
   virtual void incomingData(Dashel::Stream *stream) {
 #ifdef ZEROCONF_SUPPORT
   if (zeroconf.isStreamHandled(stream)) {
-      printf("[ZEROCONF] incomingData from %p\n", stream);
+      log_debug("Incoming data for zeroconf");
       zeroconf.dashelIncomingData(stream);
       return;
   }
@@ -205,7 +205,7 @@ class AsebaDashel : public Dashel::Hub {
     // memcpy(data, &node->lastMessageData[0], node->lastMessageData.size());
 
     // printf("[DASHEL] incomingData %d %d => %d\n", lastMessageData[0], lastMessageData[1], type);
-    printf("[DASHEL] incomingData (%d bytes) of type %d from %d\n", len, type, lastMessageSource);
+    log_debug("Incoming data (%d bytes) of type %d from %d", len, type, lastMessageSource);
     std::vector<DynamicAsebaNode *> dest_nodes;
     /* from IDE to a specific node */
     if (type >= ASEBA_MESSAGE_SET_BYTECODE && type <= ASEBA_MESSAGE_GET_NODE_DESCRIPTION) {
@@ -259,7 +259,7 @@ class AsebaDashel : public Dashel::Hub {
     // disconnect old streams
     for (size_t i = 0; i < toDisconnect.size(); ++i) {
       closeStream(toDisconnect[i]);
-      printf("Old client disconnected by new client.\n");
+      log_info("Old client disconnected by new client.");
     }
     toDisconnect.clear();
     return true;
@@ -281,24 +281,24 @@ AsebaDashel *network_with_port(int port, bool create = false) {
   if (networks.count(port))
     return networks[port];
   if (create) {
-    printf("Add network with port %d\n", port);
     networks[port] = new AsebaDashel(port);
+    log_info("Added network with port %d", port);
     return networks[port];
   }
   return NULL;
 }
 
 void remove_network_with_port(int port) {
-  printf("Remove Network with port %d\n", port);
   if (!networks.count(port))
     return;
   AsebaDashel *network = networks[port];
   networks.erase(port);
+  log_info("Removed network with port %d", port);
   delete network;
 }
 
 void remove_all_networks() {
-  printf("Remove all networks\n");
+  log_info("Will remove all networks");
   for (auto kv : networks) {
     delete kv.second;
   }
@@ -345,15 +345,17 @@ template<typename T>
 T * create_node(unsigned uid, unsigned port, const std::string & prefix, int scriptID,
                 const std::array<uint8_t, 16> & uuid_, const std::string & friendly_name_) {
   AsebaDashel *network = network_with_port(port, true);
-  printf("Will create aseba node\n");
   // std::string name = prefix + "-" + std::to_string(uid);
   std::string name = prefix;
-  printf("with name %s\n", name.c_str());
+  log_info("Will create a node with id %d (%x%x%x%x-%x%x-%x%x-%x%x-%x%x%x%x%x%x) and name %s (%s) "
+           "and add it to the network with port %d",
+           uid, uuid_[0], uuid_[1], uuid_[2], uuid_[3], uuid_[4], uuid_[5], uuid_[6], uuid_[7],
+           uuid_[8], uuid_[9], uuid_[10], uuid_[11], uuid_[12], uuid_[13], uuid_[14], uuid_[15],
+           name.c_str(), friendly_name_.c_str(), port);
   T *node = new T(uid, name, scriptID, uuid_, friendly_name_);
   node->init_descriptions();
-  printf("Add it to the network\n");
   add_node(node, network, uid);
-  printf("Created aseba node with id %d (%d)\n", uid, node->vm.nodeId);
+  log_info("Created aseba node with id %d", node->vm.nodeId);
   return node;
 }
 
@@ -367,10 +369,10 @@ template AsebaThymio2 * create_node<AsebaThymio2>(
 
 void destroy_node(unsigned uid) {
   DynamicAsebaNode *node = node_with_handle(uid);
-  printf("destroy_node # %d\n", uid);
   if (node) {
     AsebaDashel *network = network_for_vm(&(node->vm));
     remove_node(node, network, uid);
+    log_info("destroyed node %d", uid);
     delete node;
   }
 }
@@ -420,7 +422,7 @@ std::vector<node_t> node_list(unsigned port) {
 // -------------- Implementation of aseba glue code
 
 extern "C" void AsebaPutVmToSleep(AsebaVMState *vm) {
-  printf("Received request to go into sleep\n");
+  log_info("Received request to go into sleep");
 }
 
 extern "C" void AsebaSendBuffer(AsebaVMState *vm, const uint8_t *data,
@@ -436,7 +438,7 @@ extern "C" void AsebaSendBuffer(AsebaVMState *vm, const uint8_t *data,
       stream->write(data, length);
       stream->flush();
     } catch (Dashel::DashelException e) {
-      printf("Cannot write to socket: %s", stream->getFailReason().c_str());
+      log_warn("Cannot write to socket: %s", stream->getFailReason().c_str());
     }
   }
 }
@@ -505,18 +507,18 @@ extern "C" void AsebaNativeFunction(AsebaVMState *vm, uint16_t id) {
         values[i] = (int32_t)vm->variables[address + i];
       }
       simPushInt32TableOntoStack(stack_id, values.data(), size);
-      printf("IN [%d] = [%d, ...]\n", address, values[0]);
+      // printf("IN [%d] = [%d, ...]\n", address, values[0]);
     }
 
-    printf("IN stack size %d\n", simGetStackSize(stack_id));
+    // printf("IN stack size %d\n", simGetStackSize(stack_id));
 
-    printf("Will call LUA function %s for script %d with %d arguments\n",
-           pair.first.c_str(), node->script_id, number_of_arguments);
+    log_debug("Will call lua function %s for script %d with %d arguments",
+              pair.first.c_str(), node->script_id, number_of_arguments);
     int res =
         simCallScriptFunctionEx(node->script_id, pair.first.c_str(), stack_id);
-    printf("Has called LUA function -> %d\n", res);
+    log_debug("Has called lua function -> %d", res);
     int number_of_results = simGetStackSize(stack_id);
-    printf("OUT stack size %d\n", number_of_results);
+    // printf("OUT stack size %d\n", number_of_results);
     int num = std::min(number_of_arguments, number_of_results);
     for (int i = 0; i < num; i++) {
       int size = sizes[number_of_arguments - i - 1];
@@ -525,7 +527,7 @@ extern "C" void AsebaNativeFunction(AsebaVMState *vm, uint16_t id) {
       // TODO(Jerome): check that it works!!!
       std::vector<int32_t> values(size);
       simGetStackInt32Table(stack_id, values.data(), size);
-      printf("OUT [%d] = [%d, ...]\n", address, values[0]);
+      // printf("OUT [%d] = [%d, ...]\n", address, values[0]);
       for (size_t i = 0; i < size; i++) {
         // TODO(Jerome): check that the casting is correct
         vm->variables[address + i] = (uint16_t)values[i];
@@ -539,50 +541,50 @@ extern "C" void AsebaNativeFunction(AsebaVMState *vm, uint16_t id) {
 }
 
 extern "C" void AsebaWriteBytecode(AsebaVMState *vm) {
-  printf("Received request to write bytecode into flash\n");
+  log_info("Received request to write bytecode into flash");
 }
 
 extern "C" void AsebaResetIntoBootloader(AsebaVMState *vm) {
-  printf("Received request to reset into bootloader\n");
+  log_info("Received request to reset into bootloader");
 }
 
 extern "C" void AsebaAssert(AsebaVMState *vm, AsebaAssertReason reason) {
-  printf("\nFatal error; exception: ");
+  const char * e;
   switch (reason) {
   case ASEBA_ASSERT_UNKNOWN:
-    printf("undefined");
+    e = "undefined";
     break;
   case ASEBA_ASSERT_UNKNOWN_BINARY_OPERATOR:
-    printf("unknown binary operator");
+    e = "unknown binary operator";
     break;
   case ASEBA_ASSERT_UNKNOWN_BYTECODE:
-    printf("unknown bytecode");
+    e = "unknown bytecode";
     break;
   case ASEBA_ASSERT_STACK_OVERFLOW:
-    printf("stack overflow");
+    e = "stack overflow";
     break;
   case ASEBA_ASSERT_STACK_UNDERFLOW:
-    printf("stack underflow");
+    e = "stack underflow";
     break;
   case ASEBA_ASSERT_OUT_OF_VARIABLES_BOUNDS:
-    printf("out of variables bounds");
+    e = "out of variables bounds";
     break;
   case ASEBA_ASSERT_OUT_OF_BYTECODE_BOUNDS:
-    printf("out of bytecode bounds");
+    e = "out of bytecode bounds";
     break;
   case ASEBA_ASSERT_STEP_OUT_OF_RUN:
-    printf("step out of run");
+    e = "step out of run";
     break;
   case ASEBA_ASSERT_BREAKPOINT_OUT_OF_BYTECODE_BOUNDS:
-    printf("breakpoint out of bytecode bounds");
+    e = "breakpoint out of bytecode bounds";
     break;
   default:
-    printf("unknown exception");
+    e = "unknown exception";
     break;
   }
-  printf(".\npc = %d, sp = %d\n", vm->pc, vm->sp);
+  log_error("Fatal error; exception: %s; pc = %d, sp = %d", e, vm->pc, vm->sp);
   abort();
-  printf("\nResetting VM\n");
+  log_info("Resetting VM");
   AsebaVMInit(vm);
 }
 

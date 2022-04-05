@@ -5,7 +5,7 @@ This repository contain code to simulate specific robots ([Thymio2](http://www.t
 
 You can control the robots/nodes
 - in lua, using the interpreter embedded in CoppeliaSim
-- in Aseba using [Aseba Studio](http://wiki.thymio.org/en:asebastudio)
+- in Aseba using [Aseba Studio](http://wiki.thymio.org/en:asebastudio), [ThymioSuite](https://www.thymio.org/products/programming-with-thymio-suite/), or event within CoppeliaSim (with a more limited support).
 - in ROS, using my own [Aseba-ROS bridge](http://jeguzzi.github.io/ros-aseba/).
 
 ## Installation
@@ -16,7 +16,20 @@ You can control the robots/nodes
 - [dashel](https://github.com/aseba-community/dashel) (available as submodule)
 - [coppeliaSim >= v4.3](https://coppeliarobotics.com)
 - cmake >= 3.5
+- [optional, to parse aseba scripts] [libxml2](https://gitlab.gnome.org/GNOME/libxml2/-/wikis/home)
+- [optional, for autodiscovery] avahi or bonjour
 - a C++17 compiler
+
+#### Linux
+
+```console
+sudo apt install cmake [libxml2-dev] [libavahi-compat-libdnssd-dev]
+```
+
+#### MacOs
+```console
+brew install cmake [libxml2]
+```
 
 ### CoppeliaSim
 
@@ -62,7 +75,7 @@ call leds.top(32, 0, 0)
 ```
 while inside CoppeliaSim, you can send the same command like this
 ```lua
-  simThymio.set_led(0, 0, 1.0, 0.0, 0.0)
+simThymio.set_led(0, 0, 1.0, 0.0, 0.0)
 ```
 where the first to arguments identifies robot and LED and colors are encoded in float instead.
 
@@ -97,12 +110,12 @@ The implementation is heavily inspired by the excellent 2D simulator [Enki](http
 Enki provides the core functionality of [Aseba playground](http://wiki.thymio.org/en:asebaplayground), which is the simulator mostly commonly used with Thymios and Aseba.
 
 With respect to Enki/Aseba playground, coppeliaSim together with this plugin, share this features:
-
   - simulate one or more Thymio, emulating the Aseba-based firmware (and are therefore compatible with Aseba Studio and/or VPL).
   - motors, LEDs, proximity sensors, buttons, ground sensors.
+  - compatible with the new autodiscovery of Thymio Suite.
 
 CoppeliaSim together with this plugin, adds:
-  - Fully featured 3D robotics simulation (this from CoppeliaSim alone :-))
+  - fully featured 3D robotics simulation (this from CoppeliaSim alone :-))
   - ground sensors detects steps/holes/ too
   - proximity sensors responds to material color too
   - accelerometer
@@ -111,3 +124,4 @@ CoppeliaSim together with this plugin, adds:
   - multiple robots on the same Aseba network (without the need of asebaswitch)
   - customizable Thymio aseba node
   - custom Aseba nodes implemented in lua
+  - loading aseba scripts from lua

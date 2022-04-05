@@ -32,7 +32,7 @@ class AsebaScript {
   typedef std::map<std::string, std::map<unsigned, std::string>> CodeMap;
 
 public:
-  static std::shared_ptr<AsebaScript> from_string(const std::string &value);
+  // static std::shared_ptr<AsebaScript> from_string(const std::string &value);
   static std::shared_ptr<AsebaScript> from_file(const std::string &path);
   static std::shared_ptr<AsebaScript> from_code_string(
       const std::string &value, std::string & name, unsigned id);
