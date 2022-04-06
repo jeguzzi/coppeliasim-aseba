@@ -9,6 +9,7 @@ TODO: preamble
 #include <iostream>
 #include <sstream>
 #include <stack>
+#include <set>
 
 #include "dashel/dashel.h"
 #include "aseba_thymio2.h"
@@ -23,7 +24,7 @@ class AsebaDashel : public Dashel::Hub {
   int timeout;
   int port;
   int next_id;
-  std::vector<Dashel::Stream *> toDisconnect;
+  std::set<Dashel::Stream *> toDisconnect;
   std::string advertised_target;
 
  public:
@@ -132,9 +133,9 @@ class AsebaDashel : public Dashel::Hub {
       } else {
         log_info("Connection refused: we are already connected to a client stream");
         // ??? Dashel say not to call closeStream in connectionCreated ???
-        closeStream(stream);
+        // closeStream(stream);
         // but this (proper way) makes us crash (why?)
-        // toDisconnect.push_back(stream);
+        toDisconnect.insert(stream);
       }
         // toDisconnect.push_back(this->stream);
       // set new stream as current stream
@@ -168,6 +169,7 @@ class AsebaDashel : public Dashel::Hub {
         (kv.second)->vm.breakpointsCount = 0;
       }
     }
+    toDisconnect.erase(stream);
     if (abnormal)
       log_warn("Client has disconnected unexpectedly.");
     // else
@@ -257,11 +259,13 @@ class AsebaDashel : public Dashel::Hub {
       node->step(dt);
     }
     // disconnect old streams
-    for (size_t i = 0; i < toDisconnect.size(); ++i) {
-      closeStream(toDisconnect[i]);
-      log_info("Old client disconnected by new client.");
+    lock();
+    for (auto stream : toDisconnect) {
+      closeStream(stream);
+      log_info("Stream closed in spin");
     }
     toDisconnect.clear();
+    unlock();
     return true;
   }
   //
