@@ -68,7 +68,7 @@ class Plugin : public sim::Plugin {
     void onStart() {
         if (!registerScriptStuff())
             throw std::runtime_error("script stuff initialization failed");
-        setExtVersion("ASEBA HERE");
+        setExtVersion("ASEBA");
         setBuildDate(BUILD_DATE);
         sim::registerScriptVariable("simThymio", "require('simThymio-typecheck')", 0);
     }
