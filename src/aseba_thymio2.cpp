@@ -24,9 +24,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "common/productids.h"
 #include "common/utils/utils.h"
 
-AsebaThymio2::AsebaThymio2(int node_id, std::string _name, int script_id,
+AsebaThymio2::AsebaThymio2(int node_id, std::string _name,
                            std::array<uint8_t, 16> uuid_, std::string friendly_name_):
-  DynamicAsebaNode(node_id, _name, script_id, uuid_, friendly_name_),
+  CoppeliaSimAsebaNode(node_id, _name, uuid_, friendly_name_),
   // SingleVMNodeGlue(std::move(robotName), nodeId),
   // sdCardFileNumber(-1),
   timer0(std::bind(&AsebaThymio2::timer0Timeout, this), 0),

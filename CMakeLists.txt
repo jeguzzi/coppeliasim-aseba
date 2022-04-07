@@ -132,6 +132,21 @@ configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/config.h
 ESCAPE_QUOTES)
 
+
+add_executable(test
+  src/test.cpp
+  src/aseba_node.cpp
+  src/aseba_default_description.c
+  src/aseba_network.cpp
+  src/aseba_script.cpp
+)
+target_compile_definitions(test PUBLIC -DLOG_PRINT)
+target_link_libraries(test
+  ${LIBXML2_LIBRARIES}
+  dashel asebacommon asebavmbuffer asebavm asebacompiler
+  ${EXTRA_LIBS}
+)
+
 coppeliasim_add_plugin(simExtAseba
   SOURCES
   src/plugin.cpp

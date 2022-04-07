@@ -12,12 +12,19 @@ TODO: preamble
 #include <set>
 
 #include "dashel/dashel.h"
-#include "aseba_thymio2.h"
 #include "logging.h"
 #include "common/zeroconf/zeroconf-dashelhub.h"
 
 
 class AsebaDashel : public Dashel::Hub {
+ private:
+  inline static std::string address = "0.0.0.0";
+
+ public:
+  static void set_address(const std::string & a) {
+    address = a;
+  }
+
  private:
   // stream for listening to incoming connections
   Dashel::Stream *listenStream;
@@ -113,7 +120,7 @@ class AsebaDashel : public Dashel::Hub {
     // connect network
     try {
       std::ostringstream oss;
-      oss << "tcpin:port=" << port;
+      oss << "tcpin:port=" << port << "address=" << address;
       listenStream = Dashel::Hub::connect(oss.str());
     } catch (Dashel::DashelException e) {
       log_warn("Cannot create listening port %d: %s", port, e.what());
@@ -278,6 +285,12 @@ class AsebaDashel : public Dashel::Hub {
 
 namespace Aseba {
 
+
+void set_address(const std::string & a) {
+  AsebaDashel::set_address(a);
+}
+
+
 // port -> network
 static std::map<int, AsebaDashel *> networks;
 
@@ -345,31 +358,32 @@ void remove_node(DynamicAsebaNode *node, AsebaDashel *network, int handle) {
   network->remove_node(node);
 }
 
-template<typename T>
-T * create_node(unsigned uid, unsigned port, const std::string & prefix, int scriptID,
-                const std::array<uint8_t, 16> & uuid_, const std::string & friendly_name_) {
+
+void add_node(DynamicAsebaNode * node, unsigned port, unsigned uid) {
   AsebaDashel *network = network_with_port(port, true);
-  // std::string name = prefix + "-" + std::to_string(uid);
-  std::string name = prefix;
-  log_info("Will create a node with id %d (%x%x%x%x-%x%x-%x%x-%x%x-%x%x%x%x%x%x) and name %s (%s) "
-           "and add it to the network with port %d",
-           uid, uuid_[0], uuid_[1], uuid_[2], uuid_[3], uuid_[4], uuid_[5], uuid_[6], uuid_[7],
-           uuid_[8], uuid_[9], uuid_[10], uuid_[11], uuid_[12], uuid_[13], uuid_[14], uuid_[15],
-           name.c_str(), friendly_name_.c_str(), port);
-  T *node = new T(uid, name, scriptID, uuid_, friendly_name_);
-  node->init_descriptions();
   add_node(node, network, uid);
-  log_info("Created aseba node with id %d", node->vm.nodeId);
-  return node;
 }
 
-template DynamicAsebaNode * create_node<DynamicAsebaNode>(
-    unsigned, unsigned, const std::string &, int, const std::array<uint8_t, 16> &,
-    const std::string &);
-template AsebaThymio2 * create_node<AsebaThymio2>(
-    unsigned, unsigned, const std::string &, int, const std::array<uint8_t, 16> &,
-    const std::string &);
+// template<typename T>
+// T * create_node(unsigned uid, unsigned port, const std::string & prefix,
+//                 const std::array<uint8_t, 16> & uuid_, const std::string & friendly_name_) {
+//   AsebaDashel *network = network_with_port(port, true);
+//   // std::string name = prefix + "-" + std::to_string(uid);
+//   std::string name = prefix;
+//   log_info("Will create a node with id %d (%x%x%x%x-%x%x-%x%x-%x%x-%x%x%x%x%x%x) and name %s (%s) "
+//            "and add it to the network with port %d",
+//            uid, uuid_[0], uuid_[1], uuid_[2], uuid_[3], uuid_[4], uuid_[5], uuid_[6], uuid_[7],
+//            uuid_[8], uuid_[9], uuid_[10], uuid_[11], uuid_[12], uuid_[13], uuid_[14], uuid_[15],
+//            name.c_str(), friendly_name_.c_str(), port);
+//   T *node = new T(uid, name, uuid_, friendly_name_);
+//   add_node(node, network, uid);
+//   log_info("Created aseba node with id %d", node->vm.nodeId);
+//   return node;
+// }
 
+// template DynamicAsebaNode * create_node<DynamicAsebaNode>(
+//     unsigned, unsigned, const std::string &, const std::array<uint8_t, 16> &,
+//     const std::string &);
 
 void destroy_node(unsigned uid) {
   DynamicAsebaNode *node = node_with_handle(uid);
@@ -390,31 +404,19 @@ void destroy_all_nodes() {
   }
 }
 
-std::vector<node_t> node_list(unsigned port) {
-  std::vector<node_t> nodes;
+std::map<unsigned, std::vector<DynamicAsebaNode *>> node_list(unsigned port) {
+  std::map<unsigned, std::vector<DynamicAsebaNode *>> nodes;
   if (port < 0) {
     for (auto i : networks) {
       for (auto j : i.second->nodes) {
-        auto node = j.second;
-        node_t z;
-        z.name = node->name;
-        z.id = node->vm.nodeId;
-        // z.handle = node->handle;
-        z.port = i.first;
-        nodes.push_back(z);
+        nodes[i.first].push_back(j.second);
       }
     }
   } else {
     auto network = network_with_port(port);
     if (network) {
       for (auto j : network->nodes) {
-        auto node = j.second;
-        node_t z;
-        z.name = node->name;
-        z.id = node->vm.nodeId;
-        // z.handle = node->handle;
-        z.port = port;
-        nodes.push_back(z);
+        nodes[port].push_back(j.second);
       }
     }
   }
@@ -482,66 +484,7 @@ extern "C" void AsebaNativeFunction(AsebaVMState *vm, uint16_t id) {
     return;
   }
   id -= node->number_of_native_function;
-  if (id < node->lua_functions.size()) {
-    int stack_id = simCreateStack();
-    // write__`info.typespec.normalized()`Request(req, stack, &(proxy->wr_opt));
-    // simCallScriptFunctionExE(proxy->serviceCallback.scriptId,
-    // proxy->serviceCallback.name.c_str(), stack);
-    // read__`info.typespec.normalized()`Response(stack, &res,
-    // &(proxy->rd_opt));
-    //
-    // stack = -1;
-    // return true;
-
-    // How many arguments?
-    auto pair = node->lua_functions[id];
-    std::vector<int> sizes = pair.second;
-    int number_of_arguments = sizes.size();
-    std::stack<uint16_t> addresses;
-    // TODO(Jerome): take into account dynamic lengths (i.e. size = -1, -2 , ...)
-    for (auto size : sizes) {
-      uint16_t address = AsebaNativePopArg(vm);
-      addresses.push(address);
-      // TODO(Jerome): variable length arrays are not part of any C++ standart!
-      // Replace witha a vector -> vector.data ~(or array) no, it only accept
-      // const expr as sizes~ int32_t values[size];
-      std::vector<int32_t> values(size);
-
-      for (size_t i = 0; i < size; i++) {
-        values[i] = (int32_t)vm->variables[address + i];
-      }
-      simPushInt32TableOntoStack(stack_id, values.data(), size);
-      // printf("IN [%d] = [%d, ...]\n", address, values[0]);
-    }
-
-    // printf("IN stack size %d\n", simGetStackSize(stack_id));
-
-    log_debug("Will call lua function %s for script %d with %d arguments",
-              pair.first.c_str(), node->script_id, number_of_arguments);
-    int res =
-        simCallScriptFunctionEx(node->script_id, pair.first.c_str(), stack_id);
-    log_debug("Has called lua function -> %d", res);
-    int number_of_results = simGetStackSize(stack_id);
-    // printf("OUT stack size %d\n", number_of_results);
-    int num = std::min(number_of_arguments, number_of_results);
-    for (int i = 0; i < num; i++) {
-      int size = sizes[number_of_arguments - i - 1];
-      uint16_t address = addresses.top();
-      // int32_t values[size];
-      // TODO(Jerome): check that it works!!!
-      std::vector<int32_t> values(size);
-      simGetStackInt32Table(stack_id, values.data(), size);
-      // printf("OUT [%d] = [%d, ...]\n", address, values[0]);
-      for (size_t i = 0; i < size; i++) {
-        // TODO(Jerome): check that the casting is correct
-        vm->variables[address + i] = (uint16_t)values[i];
-      }
-      simPopStackItem(stack_id, 1);
-      addresses.pop();
-    }
-    simReleaseStack(stack_id);
-    return;
-  }
+  node->call_function(vm, id);
 }
 
 extern "C" void AsebaWriteBytecode(AsebaVMState *vm) {

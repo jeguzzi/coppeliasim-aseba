@@ -29,7 +29,7 @@ Adapted by JG from https://github.com/aseba-community/aseba/blob/master/aseba/ta
 
 #include "common/utils/utils.h"
 #include "coppeliasim_thymio2.h"
-#include "aseba_node.h"
+#include "coppeliasim_aseba_node.h"
 #include "aseba_thymio2_natives.h"
 #include <utility>
 
@@ -82,7 +82,7 @@ typedef struct {
  int16_t freeSpace[512];
 } thymio_variables_t;
 
-class AsebaThymio2 : public DynamicAsebaNode {
+class AsebaThymio2 : public CoppeliaSimAsebaNode {
 
  public:
   enum Thymio2Events {
@@ -143,7 +143,7 @@ class AsebaThymio2 : public DynamicAsebaNode {
   Aseba::SoftTimer timer100Hz;
   unsigned counter100Hz;
  public:
-  AsebaThymio2(int node_id, std::string _name, int script_id, std::array<uint8_t, 16> uuid_,
+  AsebaThymio2(int node_id, std::string _name, std::array<uint8_t, 16> uuid_,
                std::string friendly_name_ = "");
   void notify_missing_feature() {};
   CS::Thymio2 * robot;

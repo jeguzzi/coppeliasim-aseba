@@ -36,8 +36,9 @@
 #include "simPlusPlus/Handle.h"
 #include "stubs.h"
 #include "aseba_network.h"
-#include "coppeliasim_thymio2.h"
+#include "coppeliasim_aseba_node.h"
 #include "aseba_thymio2.h"
+#include "coppeliasim_thymio2.h"
 #include "logging.h"
 
 std::set<unsigned> uids = {};
@@ -61,7 +62,6 @@ uint64_t micros() {
 }
 
 // See interface at https://github.com/CoppeliaRobotics/libPlugin/blob/c5054ae5290abecec486652e546372ae2019d9ee/simPlusPlus/Plugin.h
-
 
 class Plugin : public sim::Plugin {
  public:
@@ -149,7 +149,6 @@ class Plugin : public sim::Plugin {
     void _thymio2_create(_thymio2_create_in *in, _thymio2_create_out *out) {
       simInt uid = free_uid();
       uids.insert(uid);
-      simInt script_handle = simGetScriptHandleEx(sim_scripttype_childscript, in->handle, nullptr);
       thymios.emplace(uid, in->handle);
       std::array<uint8_t, 16> uuid;
       char s[17];
@@ -158,7 +157,8 @@ class Plugin : public sim::Plugin {
       CS::Thymio2 & thymio = thymios.at(uid);
       if (in->with_aseba) {
         AsebaThymio2 * node = Aseba::create_node<AsebaThymio2>(
-            uid, in->port, "thymio-II", script_handle, uuid, in->friendly_name);
+            uid, in->port, "thymio-II", uuid, in->friendly_name);
+        node->set_script_id(simGetScriptHandleEx(sim_scripttype_childscript, in->handle, nullptr));
         node->robot = &thymio;
       } else {
         standalone_thymios.insert(uid);
@@ -174,7 +174,6 @@ class Plugin : public sim::Plugin {
     void create_node(create_node_in *in, create_node_out *out) {
       simInt uid = free_uid(in->id);
       uids.insert(uid);
-      simInt script_handle = simGetScriptHandleEx(sim_scripttype_childscript, in->handle, nullptr);
       std::array<uint8_t, 16> uuid;
       std::string friendly_name;
       if (!in->friendly_name.empty()) {
@@ -189,8 +188,9 @@ class Plugin : public sim::Plugin {
         snprintf(s, sizeof(s), "coppeliasim %04d", uid);
         std::copy(s, s+16, uuid.data());
       }
-      Aseba::create_node<DynamicAsebaNode>(uid, in->port, in->name, script_handle, uuid,
-                                           in->friendly_name);
+      CoppeliaSimAsebaNode * node = Aseba::create_node<CoppeliaSimAsebaNode>(
+          uid, in->port, in->name, uuid, in->friendly_name);
+      node->set_script_id(simGetScriptHandleEx(sim_scripttype_childscript, in->handle, nullptr));
       out->id = uid;
     }
 
@@ -317,8 +317,13 @@ class Plugin : public sim::Plugin {
       //   printf("\t %s %d\n", arg.name.data(), arg.size);
       // }
       DynamicAsebaNode *node = Aseba::node_with_handle(in->id);
-      if (node)
-        node->add_function(in->name, in->description, in->arguments, in->callback);
+      if (node) {
+        std::vector<std::tuple<int, std::string>> arguments;
+        for (const auto & a : in->arguments) {
+          arguments.push_back({a.size, a.name});
+        }
+        node->add_function(in->name, in->description, arguments, in->callback);
+      }
     }
 
     void destroy_network(destroy_network_in *in, destroy_network_out *out) {
@@ -331,7 +336,15 @@ class Plugin : public sim::Plugin {
     }
 
     void list_nodes(list_nodes_in *in, list_nodes_out *out) {
-      out->nodes = Aseba::node_list(in->port);
+      for (const auto & [port, aseba_nodes] : Aseba::node_list(in->port)) {
+        for (const auto & aseba_node : aseba_nodes) {
+          node_t z;
+          z.name = aseba_node->name;
+          z.id = aseba_node->vm.nodeId;
+          z.port = port;
+          out->nodes.push_back(z);
+        }
+      }
     }
 
     void load_script(load_script_in *in, load_script_out *out) {

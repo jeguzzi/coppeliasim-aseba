@@ -1,10 +1,13 @@
 #ifndef ASEBA_NODE_H_INCLUDED
 #define ASEBA_NODE_H_INCLUDED
 
+#include <array>
 #include <map>
 #include <vector>
+#include <tuple>
 #include <valarray>
 #include <cstdlib>
+#include <cstdint>
 
 #include "vm/vm.h"
 #include "vm/natives.h"
@@ -13,7 +16,6 @@
 #include "common/utils/utils.h"
 #include "common/utils/FormatableString.h"
 #include "transport/buffer/vm-buffer.h"
-#include "stubs.h"
 #include "aseba_script.h"
 #include "logging.h"
 
@@ -57,7 +59,6 @@ protected:
 
 public:
   bool finalized;
-  int script_id;
   std::string name;
   AsebaVMState vm;
   AsebaNativeFunctionDescription** functions_description;
@@ -109,7 +110,7 @@ public:
     log_debug("Added %lu functions", number_of_native_function);
   }
 
- private:
+ protected:
 
   void free_descriptions()
   {
@@ -143,10 +144,10 @@ public:
   }
 
 public:
-  DynamicAsebaNode(int node_id, std::string _name, int script_id, std::array<uint8_t, 16> uuid_,
+  DynamicAsebaNode(int node_id, std::string _name, std::array<uint8_t, 16> uuid_,
                    std::string friendly_name_ = ""):
-    script_id(script_id), finalized(false), name(_name),
-    friendly_name(friendly_name_), uuid(uuid_), sent_device_info() {
+    finalized(false), name(_name), friendly_name(friendly_name_), uuid(uuid_),
+    sent_device_info() {
     // setup variables
     vm.nodeId = (int32_t) node_id;
     bytecode.resize(BYTECODE_SIZE);
@@ -259,8 +260,9 @@ public:
   AsebaVMRun(&vm, 1000);
 }
 
-
-  void add_function(std::string name, std::string description, std::vector<argument_t> arguments, std::string callback_name)
+  void add_function(const std::string & name, const std::string & description,
+                    const std::vector<std::tuple<int, std::string>> & arguments,
+                    const std::string & callback_name)
   {
     log_debug("Try to add function %s", name.c_str());
     for(auto &f : lua_functions)
@@ -290,10 +292,10 @@ public:
     AsebaNativeFunctionArgumentDescription* arg = desc->arguments;
     for(auto &v : arguments)
     {
-      arg->name = dydata(v.name);
-      arg->size = v.size;
+      arg->name = dydata(std::get<1>(v));
+      arg->size = std::get<0>(v);
+      sizes.push_back(arg->size);
       arg++;
-      sizes.push_back(v.size);
     }
     arg->name = NULL;
     arg->size = 0;
@@ -408,6 +410,8 @@ public:
   virtual std::string advertized_name() const {
     return "Dummy Node";
   }
+
+  virtual void call_function(AsebaVMState *vm, unsigned id) {};
 
  protected:
   void send_uuid(const std::array<uint8_t, 16> & uuid) ;
