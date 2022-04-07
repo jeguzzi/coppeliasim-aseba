@@ -4,6 +4,10 @@
 #include <map>
 #include <memory>
 
+#if defined(_WIN32)
+#undef ERROR_STACK_OVERFLOW
+#endif
+
 #include "compiler/compiler.h"
 
 

@@ -12,7 +12,6 @@ if(WIN32)
   # force it to build .lib
   option(BUILD_SHARED_LIBS "" OFF)
   add_definitions(-DDISABLE_WEAK_CALLBACKS)
-  add_definitions(/FI"macros_win.h")
 endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
