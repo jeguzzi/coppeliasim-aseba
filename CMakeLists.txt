@@ -15,6 +15,8 @@ if(WIN32)
   add_definitions(/FI"macros_win.h")
 endif()
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_MACOSX_RPATH 1)
 # option(ZEROCONF "" OFF)
@@ -112,7 +114,6 @@ include_directories(${OpenCV_INCLUDE_DIRS} )
 include_directories(${LIBXML2_INCLUDE_DIR} )
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 coppeliasim_generate_stubs(
   ${CMAKE_CURRENT_BINARY_DIR}/generated
