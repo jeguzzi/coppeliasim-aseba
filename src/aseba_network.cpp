@@ -50,9 +50,9 @@ class AsebaDashel : public Dashel::Hub {
       {
     // advertised_target = std::string("Not A Thymio 3: CoppeliaSim ") + std::to_string(port);
     advertised_target = std::string("CoppeliaSim ") + std::to_string(port);
-    listenStream = listen();
-    log_info("Created Aseba network listening on tcp:port=%s",
-             listenStream->getTargetParameter("port").c_str());
+    if (listen())
+      log_info("Created Aseba network listening on tcp:port=%s",
+               listenStream->getTargetParameter("port").c_str());
   }
 
   ~AsebaDashel() {
@@ -81,6 +81,7 @@ class AsebaDashel : public Dashel::Hub {
 
 #ifdef ZEROCONF
   void advertise() {
+    if(!listenStream) return;
     std::vector<unsigned int> ids;
     std::vector<unsigned int> pids;
     std::string name = "";
@@ -111,6 +112,7 @@ class AsebaDashel : public Dashel::Hub {
   }
 
   void deadvertise() {
+    if(!listenStream) return;
     log_debug("Deadvertise Aseba Network");
     zeroconf.forget(advertised_target, listenStream);
   }
@@ -124,7 +126,7 @@ class AsebaDashel : public Dashel::Hub {
       listenStream = Dashel::Hub::connect(oss.str());
     } catch (Dashel::DashelException e) {
       log_warn("Cannot create listening port %d: %s", port, e.what());
-      abort();
+      listenStream = nullptr;
     }
     return listenStream;
   }
@@ -288,8 +290,8 @@ namespace Aseba {
 
 void set_address(const std::string & a) {
   AsebaDashel::set_address(a);
+  log_info("Dashel IPv4 address set to %s", a.c_str());
 }
-
 
 // port -> network
 static std::map<int, AsebaDashel *> networks;

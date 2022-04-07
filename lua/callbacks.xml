@@ -3,6 +3,14 @@
 
 <plugin name="Aseba" author="jerome.guzzi@idsia.ch">
     <description>A plugin to emulate Aseba nodes in CoppeliaSim</description>
+    <command name="set_address">
+        <description>Set the IP address on which Dashel listen for connection (by default 0.0.0.0). Should be called before creating nodes.</description>
+        <params>
+          <param name="address" type="string">
+            <description>A valid IPv4 address</description>
+          </param>
+        </params>
+    </command>
     <command name="create_node">
         <description>Create an Aseba node and connect it to an Aseba network. Until the first simulation step is completed, the node can be edited, adding variables, events and functions. After the first pass, its Aseba description will be freezed.</description>
         <params>
