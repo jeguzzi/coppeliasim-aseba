@@ -120,7 +120,7 @@ class AsebaDashel : public Dashel::Hub {
     // connect network
     try {
       std::ostringstream oss;
-      oss << "tcpin:port=" << port << "address=" << address;
+      oss << "tcpin:port=" << port << ";address=" << address;
       listenStream = Dashel::Hub::connect(oss.str());
     } catch (Dashel::DashelException e) {
       log_warn("Cannot create listening port %d: %s", port, e.what());
