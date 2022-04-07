@@ -11,6 +11,8 @@ if(WIN32)
   add_compile_definitions(NOMINMAX)
   # force it to build .lib
   option(BUILD_SHARED_LIBS "" OFF)
+  add_definitions(-DDISABLE_WEAK_CALLBACKS)
+  add_definitions(/FI"macros_win.h")
 endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -160,11 +162,17 @@ coppeliasim_add_plugin(simExtAseba
   src/aseba_script.cpp
 )
 
+if(WIN32)
+  set(EXPORT_ set)
+else()
+  set(EXPORT_ export)
+endif()
+
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 add_custom_target(
   generate_thymio_lua ALL
   COMMAND
-    export PYTHONPATH=$PYTHONPATH:${LIBPLUGIN_DIR}/simStubsGen
+    ${EXPORT_} "PYTHONPATH=${LIBPLUGIN_DIR}/simStubsGen"
     &&
     ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_split_reference.py --directory ${CMAKE_CURRENT_BINARY_DIR}/generated
     &&
@@ -177,7 +185,7 @@ add_custom_target(
 add_custom_target(
   docs
   COMMAND
-    export PYTHONPATH=$PYTHONPATH:${LIBPLUGIN_DIR}/simStubsGen
+    ${EXPORT_} "PYTHONPATH=${LIBPLUGIN_DIR}/simStubsGen"
     &&
     ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_markdown_api.py --directory ${CMAKE_CURRENT_BINARY_DIR}/generated --file reference_Aseba.xml
     &&
