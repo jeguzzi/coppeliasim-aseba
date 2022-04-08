@@ -465,6 +465,54 @@ class Plugin : public sim::Plugin {
       Aseba::set_address(in->address);
     }
 
+    void _thymio2_set_battery_voltage(_thymio2_set_battery_voltage_in *in,
+                                      _thymio2_set_battery_voltage_out *out) {
+      if (thymios.count(in->id)) {
+        auto & thymio = thymios.at(in->id);
+        thymio.set_battery_voltage(in->value);
+      }
+    }
+
+    void _thymio2_enable_behavior(_thymio2_enable_behavior_in *in,
+                                  _thymio2_enable_behavior_out *out) {
+      if (thymios.count(in->id)) {
+        auto & thymio = thymios.at(in->id);
+        thymio.enable_behavior(in->value, in->mask);
+      }
+    }
+
+    void _thymio2_set_temperature(_thymio2_set_temperature_in *in,
+                                  _thymio2_set_temperature_out *out) {
+      if (thymios.count(in->id)) {
+        auto & thymio = thymios.at(in->id);
+        thymio.set_temperature(in->temperature);
+      }
+    }
+
+    void _thymio2_set_mic_intensity(_thymio2_set_mic_intensity_in *in,
+                                    _thymio2_set_mic_intensity_out *out) {
+      if (thymios.count(in->id)) {
+        auto & thymio = thymios.at(in->id);
+        thymio.set_mic_intensity(in->intensity);
+      }
+    }
+
+    void _thymio2_set_mic_threshold(_thymio2_set_mic_threshold_in *in,
+                                    _thymio2_set_mic_threshold_out *out) {
+      if (thymios.count(in->id)) {
+        auto & thymio = thymios.at(in->id);
+        thymio.set_mic_threshold(in->threshold);
+      }
+    }
+
+    void _thymio2_receive_rc_message(_thymio2_receive_rc_message_in *in,
+                                     _thymio2_receive_rc_message_out *out) {
+      if (thymios.count(in->id)) {
+        auto & thymio = thymios.at(in->id);
+        thymio.receive_rc_message(in->address, in->command);
+      }
+    }
+
  private:
   std::map<simInt, CS::Thymio2> thymios;
   std::set<int> standalone_thymios;

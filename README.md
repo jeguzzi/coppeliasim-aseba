@@ -101,12 +101,16 @@ The simulated Thymio implements most of the features of the real robot:
   - [x] tap detection
   - [x] proximity communication
 
+Partial (programmatic read/write access from coppeliaSim):
+  - [x] battery
+  - [x] temperature sensor
+  - [x] RC sensor
+  - [x] Microphone
+
 Missing:
   - [ ] speaker
   - [ ] SD card
-  - [ ] temperature sensor
-  - [ ] RC sensor
-  - [ ] battery
+
 
 The implementation is heavily inspired by the excellent 2D simulator [Enki](https://github.com/enki-community/enki). In particular, the LEDs and the object model are taken directly from Enki.
 

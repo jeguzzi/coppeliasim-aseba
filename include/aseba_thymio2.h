@@ -69,7 +69,7 @@ typedef struct {
 
  int16_t temperature;
 
- int16_t rc5adress;
+ int16_t rc5address;
  int16_t rc5command;
 
  int16_t micIntensity;
@@ -140,6 +140,7 @@ class AsebaThymio2 : public CoppeliaSimAsebaNode {
   int16_t oldProxCommTx;
   int16_t oldMotorLeftTarget;
   int16_t oldMotorRightTarget;
+  int16_t oldMicThreshold;
   Aseba::SoftTimer timer100Hz;
   unsigned counter100Hz;
  public:

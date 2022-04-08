@@ -504,6 +504,90 @@
         <return>
         </return>
     </command>
+    <command name="_thymio2_set_battery_voltage">
+        <description>Set the current battery voltage, which is not simulated.</description>
+        <params>
+            <param name="id" type="int">
+              <description>The ID of the Thymio2 controller</description>
+            </param>
+            <param name="value" type="float">
+                <description>The voltage between 3.0 and 4.2 V</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="_thymio2_enable_behavior">
+        <description>Enable or disable one of the default behaviors</description>
+        <params>
+            <param name="id" type="int">
+              <description>The ID of the Thymio2 controller</description>
+            </param>
+            <param name="value" type="bool">
+                <description>Enabled: true, Disabled: false</description>
+            </param>
+            <param name="mask" type="int" default="255">
+                <description>An 8 bit-mask to specify the behavior. Set it to 255 to set all behaviors</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="_thymio2_set_temperature">
+        <description>Set the current temperature read by the sensor.</description>
+        <params>
+            <param name="id" type="int">
+              <description>The ID of the Thymio2 controller</description>
+            </param>
+            <param name="temperature" type="float">
+                <description>A temperature in Celsius</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="_thymio2_set_mic_intensity">
+        <description>Set the current sound intensity read by the microphone.</description>
+        <params>
+            <param name="id" type="int">
+              <description>The ID of the Thymio2 controller</description>
+            </param>
+            <param name="intensity" type="float">
+                <description>A relative sound intensity in [0, 1].</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="_thymio2_set_mic_threshold">
+        <description>Set the microphone threshold the trigger the mic event.</description>
+        <params>
+            <param name="id" type="int">
+              <description>The ID of the Thymio2 controller</description>
+            </param>
+            <param name="threshold" type="float">
+                <description>A relative sound intensity in [0, 1].</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="_thymio2_receive_rc_message">
+        <description>Notify the rc receiver of a new message.</description>
+        <params>
+            <param name="id" type="int">
+              <description>The ID of the Thymio2 controller</description>
+            </param>
+            <param name="address" type="int">
+                <description>The 5-bit address between 0 and 31</description>
+            </param>
+            <param name="command" type="int">
+                <description>The 6-bit command between 0 and 63</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
     <struct name="argument_t">
         <description>Description of an argument of an Aseba function used in <command-ref name="add_function"/>.</description>
         <param name="size" type="int" default="1">

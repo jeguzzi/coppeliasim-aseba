@@ -40,7 +40,6 @@ AsebaThymio2::AsebaThymio2(int node_id, std::string _name,
   thymio_variables->fwversion[0] = 11;
   thymio_variables->fwversion[1] = 0;
   thymio_variables->productId = ASEBA_PID_THYMIO2;
-  thymio_variables->temperature = 220;
   thymio_variables->timerPeriod[0] = 0;
   thymio_variables->timerPeriod[1] = 0;
 
@@ -65,7 +64,8 @@ inline uint16_t aseba_acc(float a) {
 void AsebaThymio2::step(float dt) {
   // get physical variables
   //
-  robot->do_step(dt);
+  robot->update_sensing(dt);
+
   for (size_t i = 0; i < 7; i++) {
     thymio_variables->proxHorizontal[i] = robot->get_proximity_value(i);
   }
@@ -121,6 +121,23 @@ void AsebaThymio2::step(float dt) {
     emit(EVENT_PROX_COMM);
   }
 
+  if (robot->received_rc_message(thymio_variables->rc5address, thymio_variables->rc5command)) {
+    emit(EVENT_RC5);
+  }
+
+  thymio_variables->micIntensity = (int16_t) (255 * robot->get_mic_intensity());
+
+  int16_t micThreshold = thymio_variables->micThreshold;
+  if (micThreshold != oldMicThreshold) {
+    robot->set_mic_threshold((float) micThreshold / 255.0);
+  } else {
+    thymio_variables->micThreshold = (int16_t) (255 * robot->get_mic_threshold());
+  }
+  oldMicThreshold = thymio_variables->micThreshold;
+  if (oldMicThreshold > 0 && (thymio_variables->micIntensity > oldMicThreshold)) {
+    emit(EVENT_MIC);
+  }
+
   // run timers
   timer0.step(dt);
   timer1.step(dt);
@@ -166,6 +183,8 @@ void AsebaThymio2::step(float dt) {
   // robot->set_target_speed(1, double(thymio_variables->motorRightTarget) * 0.166 / 500.);
 
   first = false;
+
+  robot->update_actuation(dt);
 }
 
 
@@ -227,6 +246,8 @@ void AsebaThymio2::timer100HzTimeout() {
     emit(EVENT_PROX);
   if (counter100Hz % 6 == 0)
     emit(EVENT_ACC);
-  if (counter100Hz % 100 == 0)
+  if (counter100Hz % 100 == 0) {
+    thymio_variables->temperature = (int16_t) (10 * robot->get_temperature());
     emit(EVENT_TEMPERATURE);
+  }
 }

@@ -2,6 +2,7 @@
 #define COPPELIASIM_THYMIO2_H
 
 #include <array>
+#include <memory>
 #include <simPlusPlus/Lib.h>
 #include <opencv2/opencv.hpp>
 
@@ -175,7 +176,19 @@ struct LED {
 };
 
 
+enum BEHAVIOR {
+  LEDS_BATTERY = 1,
+  LEDS_BUTTON = 2,
+  LEDS_PROX = 4,
+  LEDS_ACC = 8,
+  LEDS_NTC = 16,
+  LEDS_RC5 = 32,
+  LEDS_MIC = 64
+};
+
 class Thymio2 {
+
+ class Behavior;
 
  private:
   std::array<Wheel, 2> wheels;
@@ -190,6 +203,18 @@ class Thymio2 {
   simInt handle;
   simInt body_handle;
 
+  std::unique_ptr<Behavior> behavior;
+  float battery_voltage;
+  float temperature;
+  float mic_intesity;
+  float mic_threshold;
+  uint8_t r5_address;
+  uint8_t r5_command;
+  bool r5;
+
+  static constexpr float min_temperature = 0.0;
+  static constexpr float max_temperature = 100.0;
+
  public:
   Thymio2(simInt handle);
   ~Thymio2();
@@ -198,6 +223,23 @@ class Thymio2 {
   virtual void update_sensing(float dt);
   virtual void update_actuation(float dt);
   virtual void do_step(float dt);
+
+  static constexpr float min_battery_voltage = 3.0;
+  static constexpr float max_battery_voltage = 4.2;
+
+  void enable_behavior(bool value, uint8_t mask=0xFF);
+
+  float get_battery_voltage() const {
+    return battery_voltage;
+  }
+
+  void set_battery_voltage(float value) {
+    battery_voltage = std::clamp(value, min_battery_voltage, max_battery_voltage);
+  }
+
+  const float * get_acceleration_values() const {
+    return accelerometer.values;
+  }
 
   float get_speed(size_t index) const {
     if(index < wheels.size()) return wheels[index].speed();
@@ -297,6 +339,50 @@ class Thymio2 {
   void reset_texture(bool reload = false);
   void reset();
   bool had_collision() const {return false;}
+
+  void set_temperature(float value) {
+    temperature = std::clamp(value, min_temperature, max_temperature);
+  }
+
+  float get_temperature() const {
+    return temperature;
+  }
+
+  void set_mic_intensity(float intensity) {
+    mic_intesity = std::clamp(intensity, 0.0f, 1.0f);
+  }
+
+  float get_mic_intensity() const {
+    return mic_intesity;
+  }
+
+  void set_mic_threshold(float threshold) {
+    mic_threshold = std::clamp(threshold, 0.0f, 1.0f);
+  }
+
+  float get_mic_threshold() const {
+    return mic_threshold;
+  }
+
+  void receive_rc_message(uint8_t address, uint8_t command) {
+    // R5 protocol (https://en.wikipedia.org/wiki/RC-5): 5-bit address, 6-bit command
+    r5_address = address & 0x1F;
+    r5_command = command & 0x3F;
+    r5 = true;
+  }
+
+  bool received_rc_message(int16_t & address, int16_t & command) const {
+    if (r5) {
+      address = r5_address;
+      command = r5_command;
+    }
+    return r5;
+  }
+
+  bool received_rc_message() const {
+    return r5;
+  }
+
 };
 
 }

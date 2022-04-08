@@ -1,6 +1,10 @@
 #include "coppeliasim_thymio2.h"
 #include "logging.h"
 
+#include <math.h>
+
+#define G 9.81f
+
 #define TEXTURE_SIZE 1024
 
 static cv::Mat body_texture;
@@ -8,6 +12,188 @@ static std::array<cv::Mat, 3> led_texture_images;
 static bool loaded_textures = false;
 
 namespace CS {
+
+// Thymio behaviors runs at 50Hz in the firmware.
+
+class Thymio2::Behavior {
+ private:
+  Thymio2 & robot;
+  unsigned int behavior;
+  unsigned acc_previous_led;
+  float bat_counter;
+  float button_intensity[5];
+  float temp_counter;
+  float sound_led_intensity;
+  bool enabled(int b) { return behavior & b; }
+  static constexpr float bat_period = 0.12f;  // s
+  static constexpr float button_delta = 4.6875f;  // intensity/s
+  static constexpr float temp_hot = 28.0f;  // C
+  static constexpr float temp_cold = 15.0f;  // C
+  static constexpr float temp_period = 0.5f;  // s
+  static constexpr float bat_high = 3.9f;
+  static constexpr float bat_middle = 3.6f;
+  static constexpr float bat_low = 3.4f;
+
+  void battery(float time_step) {
+    float bat = robot.get_battery_voltage();
+    float intensity[3] = {1.0f, (bat > bat_middle) ? 1.0f : 0.0f, (bat > bat_high) ? 1.0f : 0.0f};
+    if (bat <= bat_low) {
+      // 60 ms on + 60 ms off
+      intensity[0] = (bat_counter <= bat_period / 2);
+      bat_counter += time_step;
+      if (bat_counter > bat_period) {
+        bat_counter = 0;
+      }
+    }
+    robot.set_led_intensity(LED::BATTERY_0, intensity[0]);
+    robot.set_led_intensity(LED::BATTERY_1, intensity[1]);
+    robot.set_led_intensity(LED::BATTERY_2, intensity[2]);
+  }
+
+  void sound_mic(float time_step) {
+    // In the real firmware, it runs at 60 Hz in the loop that computes the sound mean value,
+    // and possibly emit the event.
+    float t = robot.get_mic_threshold();
+    float p = sound_led_intensity;
+    if (t) {
+      float i = robot.get_mic_intensity();
+      if (i > t && i > sound_led_intensity) {
+        sound_led_intensity = i;
+      } else if (sound_led_intensity) {
+        sound_led_intensity = std::max(0.0, sound_led_intensity - time_step * 60.0 / 255.0);
+      }
+    } else {
+      sound_led_intensity = 0.0;
+    }
+    if (p != sound_led_intensity) {
+      robot.set_led_intensity(LED::RIGHT_BLUE, sound_led_intensity);
+    }
+  }
+
+  void leds_buttons(float time_step) {
+    for (int i = 0; i < 5; i++) {
+      if (robot.get_button(i)) {
+        // + 0.09375 after 20 ms
+        button_intensity[i] +=  button_delta * time_step;
+        if (button_intensity[i] > 1.0)
+          button_intensity[i] = 1.0;
+      } else {
+        button_intensity[i] = 0.0;
+      }
+    }
+    if (button_intensity[2]) {
+    for (int i = 0; i < 4; i++)
+      robot.set_led_intensity(LED::BUTTON_UP + i, button_intensity[2]);
+    } else {
+      robot.set_led_intensity(LED::BUTTON_DOWN, button_intensity[0]);
+      robot.set_led_intensity(LED::BUTTON_LEFT, button_intensity[1]);
+      robot.set_led_intensity(LED::BUTTON_UP, button_intensity[3]);
+      robot.set_led_intensity(LED::BUTTON_RIGHT, button_intensity[4]);
+    }
+  }
+
+  void leds_prox(float time_step) {
+    float h = CS::ProximitySensor::max_value - CS::ProximitySensor::min_value;
+    // Do a linear transformation from min-max to led 0-31!
+    for (int i = 0; i < 7; i++) {
+      float intensity = (robot.get_proximity_value(i) - CS::ProximitySensor::min_value) / h;
+      if (i < 2) {
+        robot.set_led_intensity(CS::LED::IR_FRONT_0 + i, intensity);
+      }
+      if (i >= 2) {
+        robot.set_led_intensity(CS::LED::IR_FRONT_0 + i + 1, intensity);
+      }
+    }
+    for (int i = 0; i < 2; i++) {
+      float intensity = robot.get_ground_delta(i) / CS::GroundSensor::max_value;
+      robot.set_led_intensity(CS::LED::IR_GROUND_0 + i, intensity);
+    }
+  }
+
+  void leds_acc(float time_step) {
+    // RING_0 is at the front, then clockwise.
+    float intensity = 0.0;
+    int index = -1;
+    const float * acc = robot.get_acceleration_values();
+    if (acc_previous_led >= 0) {
+      robot.set_led_intensity(LED::RING_0 + acc_previous_led, 0);
+      acc_previous_led = -1;
+    }
+    if (acc[2] < (G * 21.0f / 23.0f)) {
+      index = round(atan2(acc[1], acc[0]) / M_PI * 4);
+      if ((abs(acc[0])+ abs(acc[1])) <= 10.0 * G / 23.0) {
+        intensity = 0.0;
+      } else {
+        intensity = std::clamp(1.3125 - abs(acc[2] / G * 1.4375), 0.0, 1.0);
+      }
+      index = 4 - index;
+      if (index > 7) {
+        index -= 8;
+      } else if (index < 0) {
+        index += 8;
+      }
+      robot.set_led_intensity(LED::RING_0 + index, intensity);
+      acc_previous_led = index;
+    }
+  }
+
+  void leds_rc5(float time_step) {
+    robot.set_led_intensity(LED::RIGHT_RED, robot.received_rc_message() ? 1.0 : 0.0);
+  }
+
+  void leds_ntc(float time_step) {
+    temp_counter += time_step;
+    if (temp_counter > temp_period) {
+      float temperature = robot.get_temperature();
+      temp_counter = 0;
+      float r = std::clamp((temperature - temp_cold) / (temp_hot - temp_cold), 0.0f, 1.0f);
+      robot.set_led_color(LED::LEFT_BLUE, false, r, 0.0, 1.0 - r);
+    }
+  }
+
+ public:
+  explicit Behavior(Thymio2 & robot) :
+    robot(robot), behavior(0x00), acc_previous_led(-1),
+    sound_led_intensity(0) {}
+  void set_enable(bool value, uint8_t mask) {
+    if (value)
+      behavior |= mask;
+    else
+      behavior &= ~mask;
+  }
+  void do_step(float dt)  {
+    if (!behavior) return;
+
+    if (enabled(BEHAVIOR::LEDS_BATTERY))
+      battery(dt);
+
+    if (enabled(BEHAVIOR::LEDS_BUTTON))
+      leds_buttons(dt);
+
+    if (enabled(BEHAVIOR::LEDS_MIC))
+      sound_mic(dt);
+
+    if (enabled(BEHAVIOR::LEDS_PROX))
+      leds_prox(dt);
+
+    if (enabled(BEHAVIOR::LEDS_RC5))
+      leds_rc5(dt);
+
+    if (enabled(BEHAVIOR::LEDS_ACC))
+      leds_acc(dt);
+
+    if (enabled(BEHAVIOR::LEDS_NTC))
+      leds_ntc(dt);
+
+    // if(ENABLED(B_LEDS_SD))
+    //   behavior_sd();
+    // if(ENABLED(B_SOUND_BUTTON))
+    //   behavior_sound_buttons();
+    // if (ENABLED(B_MODE))
+    //   mode_tick();
+  }
+};
+
 
 enum {
   TOP_TEXTURE,
@@ -186,7 +372,9 @@ static std::array<std::string, 2> ground_names = {"Left", "Right"};
 static std::array<std::string, Button::COUNT> button_names = {
     "Backward", "Left", "Center", "Forward", "Right"};
 
-Thymio2::Thymio2(simInt handle_) : handle(handle_) {
+Thymio2::Thymio2(simInt handle_) :
+  handle(handle_), behavior(new Behavior(*this)), battery_voltage(3.6),
+  temperature(22.0), mic_intesity(0.0), mic_threshold(0.0), r5(false) {
   simChar * alias = simGetObjectAlias(handle, 2);
   std::string body_path = std::string(alias)+"/Body";
   body_handle = simGetObject(body_path.c_str(), -1, -1, 0);
@@ -243,6 +431,10 @@ Thymio2::Thymio2(simInt handle_) : handle(handle_) {
 
 Thymio2::~Thymio2() {
   reset_texture(false);
+}
+
+void Thymio2::enable_behavior(bool value, uint8_t mask) {
+  behavior->set_enable(value, mask);
 }
 
 void Thymio2::reset_texture(bool reload) {
@@ -351,15 +543,16 @@ void Thymio2::update_sensing(float dt) {
   if (accelerometer.active) accelerometer.update_sensing(dt);
 }
 
-void Thymio2::update_actuation(float dt) {}
+void Thymio2::update_actuation(float dt) {
+  behavior->do_step(dt);
+  // reset r5
+  r5 = false;
+}
 
-// TODO(Jerome): should be in two different callbacks/messages
 void Thymio2::do_step(float dt) {
   update_sensing(dt);
   update_actuation(dt);
 }
-
-
 
 void Wheel::set_target_speed(float speed) {
   float value = speed / radius;
