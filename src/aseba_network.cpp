@@ -545,6 +545,10 @@ extern "C" void AsebaVMResetCB(AsebaVMState *vm) {
   }
 }
 
+extern "C" void AsebaVMRunCB(AsebaVMState *vm) {}
+extern "C" void AsebaVMErrorCB(AsebaVMState* vm, const char* message) {
+  log_error("%s", message);
+}
 // Plugin class helpers
 
 void spin(float dt) {
