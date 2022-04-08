@@ -413,6 +413,10 @@ public:
 
   virtual void call_function(AsebaVMState *vm, unsigned id) {};
 
+  virtual void reset() {
+    memset(vm.variables, 0, vm.variablesSize * sizeof(int16_t));
+  }
+
  protected:
   void send_uuid(const std::array<uint8_t, 16> & uuid) ;
   void send_friendly_name(const std::string & name);

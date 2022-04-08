@@ -537,6 +537,14 @@ extern "C" void AsebaAssert(AsebaVMState *vm, AsebaAssertReason reason) {
   AsebaVMInit(vm);
 }
 
+extern "C" void AsebaVMResetCB(AsebaVMState *vm) {
+  log_info("Received request to reset");
+  DynamicAsebaNode *node = node_for_vm(vm);
+  if (node) {
+    node->reset();
+  }
+}
+
 // Plugin class helpers
 
 void spin(float dt) {

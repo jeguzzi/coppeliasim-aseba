@@ -248,6 +248,9 @@
           <param name="with_aseba" type="bool" default="true">
             <description>Start emulating the Aseba firmware</description>
           </param>
+          <param name="behavior_mask" type="int" default="0">
+            <description>The behaviors started at init and at reset</description>
+          </param>
           <param name="friendly_name" type="string" default='"Thymio II"'>
             <description>A friendlier name used in Thymio Suite to label nodes. Must not be unique. If left empty, it is set to "Thymio II".</description>
           </param>
@@ -624,4 +627,59 @@
             <description>The light intensity read by each sensor; set to 0 if the message was not recevied. </description>
         </param>
     </struct>
+    <enum name="LED" item-prefix="led_" base="0">
+        <item name="top" />
+        <item name="bottom_left" />
+        <item name="bottom_right" />
+        <item name="button_up" />
+        <item name="button_down" />
+        <item name="button_left" />
+        <item name="button_right" />
+        <item name="circle_0" />
+        <item name="circle_1" />
+        <item name="circle_2" />
+        <item name="circle_3" />
+        <item name="circle_4" />
+        <item name="circle_5" />
+        <item name="circle_6" />
+        <item name="circle_7" />
+        <item name="front_0" />
+        <item name="front_1" />
+        <item name="front_2" />
+        <item name="front_3" />
+        <item name="front_4" />
+        <item name="front_5" />
+        <item name="rear_0" />
+        <item name="rear_1" />
+        <item name="left_red" />
+        <item name="left_blue" />
+        <item name="right_red" />
+        <item name="right_blue" />
+        <item name="ground_0" />
+        <item name="ground_1" />
+        <item name="battery_0" />
+        <item name="battery_1" />
+        <item name="battery_2" />
+    </enum>
+    <enum name="Button" item-prefix="button_" base="0">
+        <item name="backward" />
+        <item name="left" />
+        <item name="center" />
+        <item name="forward" />
+        <item name="right" />
+    </enum>
+    <enum name="Motor" item-prefix="motor_" base="0">
+        <item name="left" />
+        <item name="right" />
+    </enum>
+    <enum name="Behaviors" item-prefix="behavior_" base="0">
+        <item name="battery" value="1"/>
+        <item name="buttons" value="2"/>
+        <item name="proximity" value="4"/>
+        <item name="accelerometer" value="8"/>
+        <item name="temperature" value="16"/>
+        <item name="rc" value="32"/>
+        <item name="mic" value="64"/>
+        <item name="all" value="255"/>
+    </enum>
 </plugin>

@@ -211,12 +211,13 @@ class Thymio2 {
   uint8_t r5_address;
   uint8_t r5_command;
   bool r5;
+  uint8_t default_behavior_mask;
 
   static constexpr float min_temperature = 0.0;
   static constexpr float max_temperature = 100.0;
 
  public:
-  Thymio2(simInt handle);
+  Thymio2(simInt handle, uint8_t default_behavior_mask = 0x0);
   ~Thymio2();
   void set_target_speed(size_t index, float speed);
   float get_target_speed(size_t index);

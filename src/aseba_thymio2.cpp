@@ -32,7 +32,7 @@ AsebaThymio2::AsebaThymio2(int node_id, std::string _name,
   timer0(std::bind(&AsebaThymio2::timer0Timeout, this), 0),
   timer1(std::bind(&AsebaThymio2::timer1Timeout, this), 0),
   timer100Hz(std::bind(&AsebaThymio2::timer100HzTimeout, this), 0.01),
-  counter100Hz(0), oldTimerPeriod{0, 0}, first(true) {
+  counter100Hz(0), oldTimerPeriod{0, 0}, oldMicThreshold(0), first(true) {
   thymio_variables = reinterpret_cast<thymio_variables_t *>(&variables);
 
   // this simulated Thymio complies with firmware 11 public API
@@ -250,4 +250,21 @@ void AsebaThymio2::timer100HzTimeout() {
     thymio_variables->temperature = (int16_t) (10 * robot->get_temperature());
     emit(EVENT_TEMPERATURE);
   }
+}
+
+void AsebaThymio2::reset() {
+  DynamicAsebaNode::reset();
+  thymio_variables->fwversion[0] = 11;
+  thymio_variables->fwversion[1] = 0;
+  thymio_variables->productId = ASEBA_PID_THYMIO2;
+  thymio_variables->timerPeriod[0] = 0;
+  thymio_variables->timerPeriod[1] = 0;
+  oldTimerPeriod[0] = 0;
+  oldTimerPeriod[1] = 0;
+  oldMicThreshold = 0;
+  first = true;
+
+  robot->reset();
+
+  log_info("Reset Thymio Aseba node");
 }

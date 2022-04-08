@@ -155,6 +155,8 @@ class AsebaThymio2 : public CoppeliaSimAsebaNode {
     return "Thymio II";
   }
 
+  virtual void reset() override;
+
 protected:
   thymio_variables_t * thymio_variables;
   void timer0Timeout();

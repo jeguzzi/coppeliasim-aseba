@@ -149,7 +149,8 @@ class Plugin : public sim::Plugin {
     void _thymio2_create(_thymio2_create_in *in, _thymio2_create_out *out) {
       simInt uid = free_uid();
       uids.insert(uid);
-      thymios.emplace(uid, in->handle);
+      thymios.emplace(std::piecewise_construct, std::forward_as_tuple(uid),
+                      std::forward_as_tuple(in->handle, in->behavior_mask));
       std::array<uint8_t, 16> uuid;
       char s[17];
       snprintf(s, sizeof(s), "coppeliasim %04d", uid);

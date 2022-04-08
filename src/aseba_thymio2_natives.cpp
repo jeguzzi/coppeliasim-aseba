@@ -128,6 +128,8 @@ extern "C" void PlaygroundThymio2Native_leds_circle(AsebaVMState *vm) {
     node->robot->set_led_intensity(CS::LED::RING_7, l7/32.);
 
     logNativeFromThymio2(*node, 4, { l0, l1, l2, l3, l4, l5, l6, l7 });
+
+    node->robot->enable_behavior(false, CS::BEHAVIOR::LEDS_ACC);
   }
 }
 
@@ -182,6 +184,7 @@ extern "C" void PlaygroundThymio2Native_leds_buttons(AsebaVMState *vm) {
     node->robot->set_led_intensity(CS::LED::BUTTON_LEFT,  l3 / 32.0);
 
     logNativeFromThymio2(*node, 9, { l0, l1, l2, l3 });
+    node->robot->enable_behavior(false, CS::BEHAVIOR::LEDS_BUTTON);
   }
 }
 
@@ -207,6 +210,8 @@ extern "C" void PlaygroundThymio2Native_leds_prox_h(AsebaVMState *vm) {
     node->robot->set_led_intensity(CS::LED::IR_BACK_1,  l7/32.);
 
     logNativeFromThymio2(*node, 10, { l0, l1, l2, l3, l4, l5, l6, l7 });
+
+    node->robot->enable_behavior(false, CS::BEHAVIOR::LEDS_PROX);
   }
 }
 
@@ -219,6 +224,7 @@ extern "C" void PlaygroundThymio2Native_leds_prox_v(AsebaVMState *vm) {
     node->robot->set_led_intensity(CS::LED::IR_GROUND_0, l0/32.);
     node->robot->set_led_intensity(CS::LED::IR_GROUND_1, l1/32.);
     logNativeFromThymio2(*node, 10, { l0, l1 });
+    node->robot->enable_behavior(false, CS::BEHAVIOR::LEDS_PROX);
   }
   // logNativeFromVM(vm, 11, { l0, l1 });
   // missing(vm);
@@ -231,6 +237,7 @@ extern "C" void PlaygroundThymio2Native_leds_rc(AsebaVMState *vm) {
   if (node) {
     node->robot->set_led_intensity(CS::LED::RIGHT_RED, l0 / 32.0);
     logNativeFromThymio2(*node, 12, { l0});
+    node->robot->enable_behavior(false, CS::BEHAVIOR::LEDS_RC5);
   }
 }
 
@@ -241,6 +248,7 @@ extern "C" void PlaygroundThymio2Native_leds_sound(AsebaVMState *vm) {
   if (node) {
     node->robot->set_led_intensity(CS::LED::RIGHT_BLUE, l0 / 32.0);
     logNativeFromThymio2(*node, 13, { l0});
+    node->robot->enable_behavior(false, CS::BEHAVIOR::LEDS_MIC);
   }
 }
 
@@ -253,6 +261,7 @@ extern "C" void PlaygroundThymio2Native_leds_temperature(AsebaVMState *vm) {
     // node->robot->set_led_intensity(CS::LED::LED_BLUE, b / 32.0);
     node->robot->set_led_color(CS::LED::LEFT_BLUE, false, r / 32.0, 0, b/32.0);
     logNativeFromVM(vm, 14, { r, b });
+    node->robot->enable_behavior(false, CS::BEHAVIOR::LEDS_NTC);
   }
 }
 

@@ -152,9 +152,14 @@ class Thymio2::Behavior {
   }
 
  public:
-  explicit Behavior(Thymio2 & robot) :
-    robot(robot), behavior(0x00), acc_previous_led(-1),
+  explicit Behavior(Thymio2 & robot, uint8_t mask = 0x0) :
+    robot(robot), behavior(mask), acc_previous_led(-1),
     sound_led_intensity(0) {}
+
+  void set(uint8_t value) {
+    behavior = value;
+  }
+
   void set_enable(bool value, uint8_t mask) {
     if (value)
       behavior |= mask;
@@ -372,9 +377,10 @@ static std::array<std::string, 2> ground_names = {"Left", "Right"};
 static std::array<std::string, Button::COUNT> button_names = {
     "Backward", "Left", "Center", "Forward", "Right"};
 
-Thymio2::Thymio2(simInt handle_) :
-  handle(handle_), behavior(new Behavior(*this)), battery_voltage(3.6),
-  temperature(22.0), mic_intesity(0.0), mic_threshold(0.0), r5(false) {
+Thymio2::Thymio2(simInt handle_, uint8_t default_behavior_mask_) :
+  handle(handle_), default_behavior_mask(default_behavior_mask_),
+  behavior(new Behavior(*this, default_behavior_mask_)),
+  battery_voltage(3.61), temperature(22.0), mic_intesity(0.0), mic_threshold(0.0), r5(false) {
   simChar * alias = simGetObjectAlias(handle, 2);
   std::string body_path = std::string(alias)+"/Body";
   body_handle = simGetObject(body_path.c_str(), -1, -1, 0);
@@ -478,6 +484,15 @@ void Thymio2::reset() {
   reset_texture(true);
   set_target_speed(Wheel::LEFT, 0.0);
   set_target_speed(Wheel::RIGHT, 0.0);
+  set_prox_comm_tx(0);
+  enable_prox_comm(false);
+  set_mic_threshold(0);
+  set_mic_intensity(0);
+  r5 = false;
+  temperature = 22.0;
+  battery_voltage = 3.61;
+  behavior->set(default_behavior_mask);
+  log_info("Reset Thymio");
 }
 
 void Thymio2::set_target_speed(size_t index, float speed) {
