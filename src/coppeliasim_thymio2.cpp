@@ -38,7 +38,8 @@ std::array<LEDTexture, LED::COUNT> led_textures = {
             {LED::BUTTON_DOWN, LED::BUTTON_LEFT, LED::BUTTON_RIGHT,
              LED::RING_2, LED::RING_3, LED::RING_4, LED::RING_5, LED::RING_6,
              LED::IR_BACK_0, LED::IR_BACK_1,
-             LED::LEFT_RED, LED::LEFT_BLUE, LED::RIGHT_BLUE, LED::RIGHT_RED}},
+             LED::LEFT_RED, LED::LEFT_BLUE, LED::RIGHT_BLUE, LED::RIGHT_RED,
+             LED::BATTERY_0, LED::BATTERY_1, LED::BATTERY_2}},
   LEDTexture{{{563, 38, 117, 301}, {651, 731, 210, 113}}, BOTTOM_TEXTURE,
              {LED::IR_FRONT_0, LED::IR_FRONT_1, LED::IR_FRONT_2, LED::IR_FRONT_3,
               LED::LEFT_RED, LED::LEFT_BLUE, LED::RIGHT_BLUE, LED::RIGHT_RED}},
@@ -68,7 +69,12 @@ std::array<LEDTexture, LED::COUNT> led_textures = {
   LEDTexture{{{694, 818, 79, 90}}, LED_TEXTURE},
   LEDTexture{{{694, 818, 79, 90}}, LED_TEXTURE},
   LEDTexture{{{769, 337, 70, 89}}, LED_TEXTURE},
-  LEDTexture{{{775, 426, 50, 50}}, LED_TEXTURE}
+  LEDTexture{{{775, 426, 50, 50}}, LED_TEXTURE},
+  LEDTexture{{{659, 167, 32, 36}}, LED_TEXTURE},
+  LEDTexture{{{659, 374, 32, 36}}, LED_TEXTURE},
+  LEDTexture{{{271, 762, 28, 13}}, LED_TEXTURE},
+  LEDTexture{{{271, 775, 28, 12}}, LED_TEXTURE},
+  LEDTexture{{{271, 787, 28, 12}}, LED_TEXTURE}
 };
 
 
@@ -218,6 +224,12 @@ Thymio2::Thymio2(simInt handle_) : handle(handle_) {
   leds[LED::RIGHT_RED].color = Color(1, 0, 0);
   leds[LED::LEFT_BLUE].color = Color(0, 1, 1);
   leds[LED::RIGHT_BLUE].color = Color(0, 1, 1);
+  for (size_t i = LED::IR_GROUND_0; i <= LED::IR_GROUND_1; i++) {
+    leds[i].color = Color(1, 0, 0);
+  }
+  for (size_t i = LED::BATTERY_0; i <= LED::BATTERY_2; i++) {
+    leds[i].color = Color(0.75, 1, 0);
+  }
 
   for (size_t i = 0; i < buttons.size(); i++) {
     std::string button_path = std::string(alias)+"/Button" + button_names[i];
