@@ -214,8 +214,14 @@ extern "C" void PlaygroundThymio2Native_leds_prox_v(AsebaVMState *vm) {
   const int16_t l0(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
   const int16_t l1(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
 
-  logNativeFromVM(vm, 11, { l0, l1 });
-  missing(vm);
+  AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
+  if (node) {
+    node->robot->set_led_intensity(CS::LED::IR_GROUND_0, l0/32.);
+    node->robot->set_led_intensity(CS::LED::IR_GROUND_1, l1/32.);
+    logNativeFromThymio2(*node, 10, { l0, l1 });
+  }
+  // logNativeFromVM(vm, 11, { l0, l1 });
+  // missing(vm);
 }
 
 extern "C" void PlaygroundThymio2Native_leds_rc(AsebaVMState *vm) {

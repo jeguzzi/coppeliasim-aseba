@@ -165,6 +165,10 @@ struct LED {
 
     LEFT_RED, LEFT_BLUE, RIGHT_BLUE, RIGHT_RED,
 
+    IR_GROUND_0, IR_GROUND_1,
+
+    BATTERY_0, BATTERY_1, BATTERY_2,
+
     COUNT
   };
   Color color;
