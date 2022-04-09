@@ -91,7 +91,9 @@ You can have as many robots/nodes as you like and expose them to the same or dif
 
 ## Thymio
 
-The simulated Thymio implements most of the features of the real robot:
+The simulated Thymio implements all features of the real robot (firmware v11).
+
+#### Full support
   - [x] motors
   - [x] LEDs
   - [x] proximity sensors
@@ -100,19 +102,17 @@ The simulated Thymio implements most of the features of the real robot:
   - [x] buttons
   - [x] tap detection
   - [x] proximity communication
+  - [x] SD card
 
-Partial (Aseba interface + programmatic read/write access from coppeliaSim):
+#### Partial support
+##### Aseba interface and programmatic read/write access from coppeliaSim
   - [x] battery
   - [x] temperature sensor
   - [x] RC sensor
   - [x] Microphone
 
-Partial (only Aseba interface):
+##### Only Aseba interface
   - [x] speaker (accept `sound.{play|replay|freq}` and trigger the event `sound.finished` after the sound duration, without actually playing a sound.)
-
-Missing:
-
-  - [ ] SD card
 
 
 The implementation is heavily inspired by the excellent 2D simulator [Enki](https://github.com/enki-community/enki). In particular, the LEDs and the object model are taken directly from Enki.
@@ -128,9 +128,11 @@ CoppeliaSim together with this plugin, adds:
   - fully featured 3D robotics simulation (this from CoppeliaSim alone :-))
   - ground sensors detects steps/holes/ too
   - proximity sensors responds to material color too
+  - some more LEDs (2 for ground sensors and 3 for the battery-level)
   - accelerometer
   - proximity communication
   - tap detection from acceletometer
+  - basic support for rc, microphone, speaker, battery, and temperature sensor.
   - multiple robots on the same Aseba network (without the need of asebaswitch)
   - customizable Thymio aseba node
   - custom Aseba nodes implemented in lua

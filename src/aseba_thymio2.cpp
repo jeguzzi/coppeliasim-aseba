@@ -24,8 +24,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "common/productids.h"
 #include "common/utils/utils.h"
 
-AsebaThymio2::AsebaThymio2(int node_id, std::string _name,
-                           std::array<uint8_t, 16> uuid_, std::string friendly_name_):
+AsebaThymio2::AsebaThymio2(int node_id, const std::string & _name,
+                           const std::array<uint8_t, 16> & uuid_,
+                           const std::string & friendly_name_):
   CoppeliaSimAsebaNode(node_id, _name, uuid_, friendly_name_),
   // SingleVMNodeGlue(std::move(robotName), nodeId),
   // sdCardFileNumber(-1),
@@ -33,7 +34,7 @@ AsebaThymio2::AsebaThymio2(int node_id, std::string _name,
   timer1(std::bind(&AsebaThymio2::timer1Timeout, this), 0),
   timer100Hz(std::bind(&AsebaThymio2::timer100HzTimeout, this), 0.01),
   counter100Hz(0), oldTimerPeriod{0, 0}, oldMicThreshold(0), first(true),
-  sound_duration(0), playing_sound(false) {
+  sound_duration(0), playing_sound(false), robot(nullptr) {
   thymio_variables = reinterpret_cast<thymio_variables_t *>(&variables);
 
   // this simulated Thymio complies with firmware 11 public API
@@ -43,8 +44,10 @@ AsebaThymio2::AsebaThymio2(int node_id, std::string _name,
   thymio_variables->productId = ASEBA_PID_THYMIO2;
   thymio_variables->timerPeriod[0] = 0;
   thymio_variables->timerPeriod[1] = 0;
+  thymio_variables->sdPresent = 0;
+  // Robot is not yet initiale
+  // thymio_variables->sdPresent = robot->sd_is_enabled() ? 1 : 0;
 
-  // variables.sdPresent = openSDCardFile(0) ? 1 : 0;
   // if (variables.sdPresent)
   // openSDCardFile(-1);
 }
@@ -147,6 +150,8 @@ void AsebaThymio2::step(float dt) {
     }
   }
 
+  thymio_variables->sdPresent = robot->sd_is_enabled() ? 1 : 0;
+
   // run timers
   timer0.step(dt);
   timer1.step(dt);
@@ -196,48 +201,6 @@ void AsebaThymio2::step(float dt) {
   robot->update_actuation(dt);
 }
 
-
-
-// // array of descriptions of native functions, static so only visible in this file
-//
-// static const AsebaNativeFunctionDescription* nativeFunctionsDescriptions[] = {
-//   ASEBA_NATIVES_STD_DESCRIPTIONS,
-//   PLAYGROUND_THYMIO2_NATIVES_DESCRIPTIONS,
-//   0
-// };
-
-
-//! Open the virtual SD card file number, if -1, close current one
-// bool AsebaThymio2::openSDCardFile(int number) {
-//   // close current file, ignore errors
-//   if (sdCardFile.is_open()) {
-//   sdCardFile.close();
-//   sdCardFileNumber = -1;
-//   }
-//
-//   // if we have to open another file
-//   if (number >= 0) {
-//   // path for the file
-//   if (!Enki::simulatorEnvironment)
-//     return false;
-//   const string fileName(Enki::simulatorEnvironment->getSDFilePath(robotName, unsigned(number)));
-//   // try to open file
-//   sdCardFile.open(fileName.c_str(), std::ios::in | std::ios::out | std::ios::binary);
-//   if (sdCardFile.fail()) {
-//     // failed... maybe the file does not exist, try with trunc
-//     sdCardFile.open(fileName.c_str(), std::ios::in | std::ios::out |
-//                     std::ios::binary | std::ios::trunc);
-//   }
-//   if (sdCardFile.fail()) {
-//     // still failed, then it is an error
-//     return false;
-//   } else {
-//     sdCardFileNumber = number;
-//   }
-//   }
-//   return true;
-// }
-
 void AsebaThymio2::timer0Timeout() {
   emit(EVENT_TIMER0);
 }
@@ -274,7 +237,7 @@ void AsebaThymio2::reset() {
   sound_duration = 0;
   playing_sound = false;
   first = true;
-
+  thymio_variables->sdPresent = robot->sd_is_enabled() ? 1 : 0;
   robot->reset();
 
   log_info("Reset Thymio Aseba node");

@@ -591,6 +591,38 @@
         <return>
         </return>
     </command>
+    <command name="_thymio2_enable_sd_card">
+        <description>Enable/disable the SD card, emulated as a rw directory</description>
+        <params>
+            <param name="id" type="int">
+              <description>The ID of the Thymio2 controller</description>
+            </param>
+            <param name="path" type="string">
+                <description>The path to the directory where to store files. Set to empty to disable.</description>
+            </param>
+        </params>
+        <return>
+          <param name="enabled" type="bool">
+            <description>Whether the SD card is enabled or not.</description>
+          </param>
+        </return>
+    </command>
+    <command name="_thymio2_get_sd_card">
+        <description>Enable/disable the SD card, emulated as a rw directory</description>
+        <params>
+            <param name="id" type="int">
+              <description>The ID of the Thymio2 controller</description>
+            </param>
+        </params>
+        <return>
+          <param name="enabled" type="bool">
+              <description>Whether the SD card is enabled.</description>
+          </param>
+          <param name="path" type="string">
+              <description>The path to the directory where to store files. Set to empty to disable.</description>
+          </param>
+        </return>
+    </command>
     <struct name="argument_t">
         <description>Description of an argument of an Aseba function used in <command-ref name="add_function"/>.</description>
         <param name="size" type="int" default="1">

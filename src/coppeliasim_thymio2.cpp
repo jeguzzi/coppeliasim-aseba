@@ -380,7 +380,8 @@ static std::array<std::string, Button::COUNT> button_names = {
 Thymio2::Thymio2(simInt handle_, uint8_t default_behavior_mask_) :
   handle(handle_), default_behavior_mask(default_behavior_mask_),
   behavior(new Behavior(*this, default_behavior_mask_)),
-  battery_voltage(3.61), temperature(22.0), mic_intesity(0.0), mic_threshold(0.0), r5(false) {
+  battery_voltage(3.61), temperature(22.0), mic_intesity(0.0), mic_threshold(0.0), r5(false),
+  sd_card() {
   simChar * alias = simGetObjectAlias(handle, 2);
   std::string body_path = std::string(alias)+"/Body";
   body_handle = simGetObject(body_path.c_str(), -1, -1, 0);
@@ -492,6 +493,7 @@ void Thymio2::reset() {
   temperature = 22.0;
   battery_voltage = 3.61;
   behavior->set(default_behavior_mask);
+  sd_card.close();
   log_info("Reset Thymio");
 }
 

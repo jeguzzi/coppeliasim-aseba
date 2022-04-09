@@ -3,6 +3,9 @@
 
 #include <array>
 #include <memory>
+#include <fstream>
+#include <filesystem>
+
 #include <simPlusPlus/Lib.h>
 #include <opencv2/opencv.hpp>
 
@@ -27,6 +30,109 @@ struct Wheel {
   Wheel(simInt handle=-1) : angular_speed(0.0), handle(handle), nominal_angular_target_speed(0.0) {}
  private:
   float nominal_angular_target_speed;
+};
+
+struct SDCard {
+  std::filesystem::path path;
+  std::fstream stream;
+  int file_number;
+  bool enabled;
+
+  std::filesystem::path path_for_number(unsigned number) {
+    return path / std::filesystem::path(std::to_string(number) + ".DAT");
+  }
+
+  void close() {
+    if (stream.is_open()) {
+      stream.close();
+      file_number = -1;
+    }
+  }
+
+  void set_path(const std::string & value) {
+    path = std::filesystem::path(value);
+    enabled = std::filesystem::exists(path);
+    if (stream.is_open()) {
+      stream.close();
+      file_number = -1;
+    }
+  }
+
+  void disable() {
+    close();
+    enabled = false;
+  }
+
+  bool is_open() const {
+    return enabled && stream.is_open();
+  }
+
+  std::streamsize write(const char * s, std::streamsize count) {
+    if (enabled && stream.is_open()) {
+      stream.write(s, count);
+      return count;
+    }
+    return 0;
+  }
+
+  std::streamsize read(char * s, std::streamsize count) {
+    if (enabled && stream.is_open()) {
+      stream.read(s, count);
+      if (!stream) {
+        return stream.gcount();
+      }
+      return count;
+    }
+    return 0;
+  }
+
+  bool seek(int seek) {
+    if (!enabled) return false;
+
+    if (!stream && file_number >= 0) {
+      open(file_number);
+    }
+
+    if (!stream) return false;
+
+    stream.seekp(seek);
+    stream.seekg(seek);
+
+    if (!stream) {
+      return false;
+    }
+    return true;
+  }
+
+  bool open(int number) {
+    if (!enabled) return false;
+    // Adapted from Aseba Playground
+    // close current file, ignore errors
+    if (stream.is_open()) {
+      stream.close();
+      file_number = -1;
+    }
+    // if we have to open another file
+    if (number >= 0) {
+      const char * file_path = path_for_number(number).c_str();
+      stream.open(file_path, std::ios::in | std::ios::out | std::ios::binary);
+      if (stream.fail()) {
+        // failed... maybe the file does not exist, try with trunc
+        stream.open(file_path, std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
+      }
+      if (stream.fail()) {
+        // still failed, then it is an error
+        return false;
+      } else {
+        file_number = number;
+      }
+    }
+    return true;
+  }
+
+  SDCard() : stream(), path(), enabled(false), file_number(-1) {};
+
+
 };
 
 struct Button {
@@ -213,6 +319,8 @@ class Thymio2 {
   bool r5;
   uint8_t default_behavior_mask;
 
+  SDCard sd_card;
+
   static constexpr float min_temperature = 0.0;
   static constexpr float max_temperature = 100.0;
 
@@ -382,6 +490,38 @@ class Thymio2 {
 
   bool received_rc_message() const {
     return r5;
+  }
+
+  bool sd_open(unsigned number) {
+    return sd_card.open(number);
+  }
+
+  bool sd_seek(int number) {
+    return sd_card.seek(number);
+  }
+
+  std::streamsize sd_read(char * buffer, std::streamsize count) {
+    return sd_card.read(buffer, count);
+  }
+
+  std::streamsize sd_write(const char * buffer, std::streamsize count) {
+    return sd_card.write(buffer, count);
+  }
+
+  void sd_enable(const std::string & value) {
+    if (value.empty()) {
+      sd_card.disable();
+    } else {
+      sd_card.set_path(value);
+    }
+  }
+
+  bool sd_is_enabled() const {
+    return sd_card.enabled;
+  }
+
+  std::string sd_path() const {
+    return sd_card.path;
   }
 
 };

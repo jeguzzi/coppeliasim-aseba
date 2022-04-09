@@ -147,7 +147,7 @@ class Plugin : public sim::Plugin {
     }
 
     void _thymio2_create(_thymio2_create_in *in, _thymio2_create_out *out) {
-      simInt uid = free_uid();
+      simInt uid = free_uid(in->id);
       uids.insert(uid);
       thymios.emplace(std::piecewise_construct, std::forward_as_tuple(uid),
                       std::forward_as_tuple(in->handle, in->behavior_mask));
@@ -511,6 +511,24 @@ class Plugin : public sim::Plugin {
       if (thymios.count(in->id)) {
         auto & thymio = thymios.at(in->id);
         thymio.receive_rc_message(in->address, in->command);
+      }
+    }
+
+    void _thymio2_enable_sd_card(_thymio2_enable_sd_card_in *in,
+                                 _thymio2_enable_sd_card_out *out) {
+      if (thymios.count(in->id)) {
+        auto & thymio = thymios.at(in->id);
+        thymio.sd_enable(in->path);
+        out->enabled = thymio.sd_is_enabled();
+      }
+    }
+
+    void _thymio2_get_sd_card(_thymio2_get_sd_card_in *in,
+                              _thymio2_get_sd_card_out *out) {
+      if (thymios.count(in->id)) {
+        auto & thymio = thymios.at(in->id);
+        out->enabled = thymio.sd_is_enabled();
+        out->path = thymio.sd_path();
       }
     }
 

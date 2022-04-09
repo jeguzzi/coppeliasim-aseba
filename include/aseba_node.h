@@ -144,8 +144,8 @@ public:
   }
 
 public:
-  DynamicAsebaNode(int node_id, std::string _name, std::array<uint8_t, 16> uuid_,
-                   std::string friendly_name_ = ""):
+  DynamicAsebaNode(int node_id, const std::string & _name, const std::array<uint8_t, 16> & uuid_,
+                   const std::string & friendly_name_ = ""):
     finalized(false), name(_name), friendly_name(friendly_name_), uuid(uuid_),
     sent_device_info() {
     // setup variables

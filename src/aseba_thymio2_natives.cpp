@@ -309,22 +309,19 @@ extern "C" void PlaygroundThymio2Native_sd_open(AsebaVMState *vm) {
   const int16_t number(vm->variables[AsebaNativePopArg(vm)]);
   const uint16_t statusAddr(AsebaNativePopArg(vm));
 
-  missing(vm);
-
-  // AsebaThymio2* thymio2(node_for_vm<AsebaThymio2>(vm));
-  // if (thymio2) {
-  //   int16_t result(0);
-  //   // number must be [0:32767], or -1
-  //   if (number < -1) {
-  //     result = -1;
-  //   } else if (!thymio2->openSDCardFile(number)) {  // try to open
-  //     result = -1;
-  //   }
-  //
-  //   vm->variables[statusAddr] = result;
-  //
-  //   logNativeFromThymio2(*thymio2, 17, { number, result });
-  // }
+  // /missing(vm);
+  AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
+  if (node) {
+    int16_t result(0);
+    // number must be [0:32767], or -1
+    if (number < -1) {
+      result = -1;
+    } else if (!node->robot->sd_open(number)) {  // try to open
+      result = -1;
+    }
+    vm->variables[statusAddr] = result;
+    logNativeFromThymio2(*node, 17, { number, result });
+  }
 }
 
 extern "C" void PlaygroundThymio2Native_sd_write(AsebaVMState *vm) {
@@ -332,28 +329,20 @@ extern "C" void PlaygroundThymio2Native_sd_write(AsebaVMState *vm) {
   const uint16_t statusAddr(AsebaNativePopArg(vm));
   const uint16_t dataLength(AsebaNativePopArg(vm));
 
-  missing(vm);
+  // missing(vm);
 
-  // AsebaThymio2* thymio2(node_for_vm<AsebaThymio2>(vm));
-  // if (thymio2) {
-  //   int16_t result(0);
-  //
-  //   if (thymio2->sdCardFile)
-  //     thymio2->sdCardFile.write(
-  //         reinterpret_cast<const char*>(&vm->variables[dataAddr]), dataLength*2);
-  //
-  //   if (thymio2->sdCardFile)
-  //     result = dataLength;
-  //   // a failed write will report 0. It is unlikely that a partial write occurs,
-  //   // but if so it is not handled properly.
-  //
-  //   vm->variables[statusAddr] = result;
-  //
-  //   // log the data written and the status
-  //   std::vector<int16_t> data(&vm->variables[dataAddr], &vm->variables[dataAddr+dataLength]);
-  //   data.push_back(result);
-  //   logNativeFromThymio2(*thymio2, 18, std::move(data));
-  // }
+  AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
+  if (node) {
+    int16_t result = node->robot->sd_write(
+        reinterpret_cast<const char*>(&vm->variables[dataAddr]), dataLength*2) / 2;
+    // a failed write will report 0. It is unlikely that a partial write occurs,
+    // but if so it is not handled properly.
+    vm->variables[statusAddr] = result;
+    // log the data written and the status
+    std::vector<int16_t> data(&vm->variables[dataAddr], &vm->variables[dataAddr+dataLength]);
+    data.push_back(result);
+    logNativeFromThymio2(*node, 18, std::move(data));
+  }
 }
 
 extern "C" void PlaygroundThymio2Native_sd_read(AsebaVMState *vm) {
@@ -361,54 +350,32 @@ extern "C" void PlaygroundThymio2Native_sd_read(AsebaVMState *vm) {
   const uint16_t statusAddr(AsebaNativePopArg(vm));
   const uint16_t dataLength(AsebaNativePopArg(vm));
 
-  missing(vm);
+  // missing(vm);
 
-  // AsebaThymio2* thymio2(node_for_vm<AsebaThymio2>(vm));
-  // if (thymio2) {
-  //   int16_t result(0);
-  //
-  //   if (thymio2->sdCardFile)
-  //     thymio2->sdCardFile.read(reinterpret_cast<char*>(&vm->variables[dataAddr]), dataLength*2);
-  //
-  //   if (thymio2->sdCardFile)
-  //     result = dataLength;
-  //   else
-  //     result = thymio2->sdCardFile.gcount() / 2;
-  //
-  //   vm->variables[statusAddr] = result;
-  //
-  //   // log the data read and the status
-  //   std::vector<int16_t> data(&vm->variables[dataAddr], &vm->variables[dataAddr+dataLength]);
-  //   data.push_back(result);
-  //   logNativeFromThymio2(*thymio2, 19, std::move(data));
-  // }
+  AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
+  if (node) {
+    int16_t result = node->robot->sd_read(
+        reinterpret_cast<char*>(&vm->variables[dataAddr]), dataLength*2) / 2;
+    // a failed write will report 0. It is unlikely that a partial write occurs,
+    // but if so it is not handled properly.
+    vm->variables[statusAddr] = result;
+    // log the data written and the status
+    std::vector<int16_t> data(&vm->variables[dataAddr], &vm->variables[dataAddr+dataLength]);
+    data.push_back(result);
+    logNativeFromThymio2(*node, 18, std::move(data));
+  }
 }
 
 extern "C" void PlaygroundThymio2Native_sd_seek(AsebaVMState *vm) {
   const int16_t seek(vm->variables[AsebaNativePopArg(vm)]);
   const int16_t statusAddr(AsebaNativePopArg(vm));
 
-  missing(vm);
-
-  // AsebaThymio2* thymio2(node_for_vm<AsebaThymio2>(vm));
-  // if (thymio2) {
-  //   int16_t result(0);
-  //
-  //   // if bad, try to close and re-open
-  //   if (!thymio2->sdCardFile)
-  //     thymio2->openSDCardFile(thymio2->sdCardFileNumber);
-  //
-  //   // if good, try to seek
-  //   if (thymio2->sdCardFile) {
-  //     thymio2->sdCardFile.seekp(seek);
-  //     thymio2->sdCardFile.seekg(seek);
-  //   }
-  //
-  //   if (!thymio2->sdCardFile)
-  //     result = -1;
-  //
-  //   vm->variables[statusAddr] = result;
-  //
-  //   logNativeFromThymio2(*thymio2, 20, { seek, result });
-  // }
+  // missing(vm);
+  AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
+  if (node) {
+    int16_t result(0);
+    if (!node->robot->sd_seek(seek)) result = -1;
+    vm->variables[statusAddr] = result;
+    logNativeFromThymio2(*node, 20, { seek, result });
+  }
 }

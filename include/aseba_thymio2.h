@@ -146,8 +146,8 @@ class AsebaThymio2 : public CoppeliaSimAsebaNode {
   float sound_duration;
   bool playing_sound;
  public:
-  AsebaThymio2(int node_id, std::string _name, std::array<uint8_t, 16> uuid_,
-               std::string friendly_name_ = "");
+  AsebaThymio2(int node_id, const std::string & _name, const std::array<uint8_t, 16> & uuid_,
+               const std::string & friendly_name_ = "");
   void notify_missing_feature() {};
   CS::Thymio2 * robot;
   virtual void step(float dt) override;
