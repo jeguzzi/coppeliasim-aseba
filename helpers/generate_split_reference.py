@@ -37,6 +37,16 @@ def generate_split_reference(directory, source_file):
             aseba_root.append(s)
         else:
             thymio_root.append(s)
+    for s in root.iter('enum'):
+        for_thymio = False
+        for c in s.iter('category'):
+            if c.attrib['name'] == category:
+                for_thymio = True
+                break
+        if not for_thymio:
+            aseba_root.append(s)
+        else:
+            thymio_root.append(s)
     aseba_file = "reference_Aseba.xml"
     thymio_file = "reference_Thymio.xml"
     aseba_tree.write(os.path.join(directory, aseba_file))

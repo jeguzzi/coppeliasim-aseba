@@ -628,6 +628,9 @@
         </param>
     </struct>
     <enum name="LED" item-prefix="led_" base="0">
+        <categories>
+          <category name="thymio2"/>
+        </categories>
         <item name="top" />
         <item name="bottom_left" />
         <item name="bottom_right" />
@@ -662,6 +665,9 @@
         <item name="battery_2" />
     </enum>
     <enum name="Button" item-prefix="button_" base="0">
+        <categories>
+            <category name="thymio2"/>
+        </categories>
         <item name="backward" />
         <item name="left" />
         <item name="center" />
@@ -669,10 +675,16 @@
         <item name="right" />
     </enum>
     <enum name="Motor" item-prefix="motor_" base="0">
+        <categories>
+            <category name="thymio2"/>
+        </categories>
         <item name="left" />
         <item name="right" />
     </enum>
     <enum name="Behaviors" item-prefix="behavior_" base="0">
+        <categories>
+            <category name="thymio2"/>
+        </categories>
         <item name="battery" value="1"/>
         <item name="buttons" value="2"/>
         <item name="proximity" value="4"/>
