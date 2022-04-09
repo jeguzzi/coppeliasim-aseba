@@ -32,7 +32,8 @@ AsebaThymio2::AsebaThymio2(int node_id, std::string _name,
   timer0(std::bind(&AsebaThymio2::timer0Timeout, this), 0),
   timer1(std::bind(&AsebaThymio2::timer1Timeout, this), 0),
   timer100Hz(std::bind(&AsebaThymio2::timer100HzTimeout, this), 0.01),
-  counter100Hz(0), oldTimerPeriod{0, 0}, oldMicThreshold(0), first(true) {
+  counter100Hz(0), oldTimerPeriod{0, 0}, oldMicThreshold(0), first(true),
+  sound_duration(0), playing_sound(false) {
   thymio_variables = reinterpret_cast<thymio_variables_t *>(&variables);
 
   // this simulated Thymio complies with firmware 11 public API
@@ -136,6 +137,14 @@ void AsebaThymio2::step(float dt) {
   oldMicThreshold = thymio_variables->micThreshold;
   if (oldMicThreshold > 0 && (thymio_variables->micIntensity > oldMicThreshold)) {
     emit(EVENT_MIC);
+  }
+
+  if (playing_sound) {
+    sound_duration -= dt;
+    if (sound_duration <=0) {
+      emit(EVENT_SOUND_FINISHED);
+      playing_sound = false;
+    }
   }
 
   // run timers
@@ -262,6 +271,8 @@ void AsebaThymio2::reset() {
   oldTimerPeriod[0] = 0;
   oldTimerPeriod[1] = 0;
   oldMicThreshold = 0;
+  sound_duration = 0;
+  playing_sound = false;
   first = true;
 
   robot->reset();

@@ -143,6 +143,8 @@ class AsebaThymio2 : public CoppeliaSimAsebaNode {
   int16_t oldMicThreshold;
   Aseba::SoftTimer timer100Hz;
   unsigned counter100Hz;
+  float sound_duration;
+  bool playing_sound;
  public:
   AsebaThymio2(int node_id, std::string _name, std::array<uint8_t, 16> uuid_,
                std::string friendly_name_ = "");
@@ -156,6 +158,15 @@ class AsebaThymio2 : public CoppeliaSimAsebaNode {
   }
 
   virtual void reset() override;
+
+  void set_sound_duration(float duration) {
+    if (duration > 0) {
+      sound_duration = duration;
+      playing_sound = true;
+    } else {
+      playing_sound = false;
+    }
+  }
 
 protected:
   thymio_variables_t * thymio_variables;

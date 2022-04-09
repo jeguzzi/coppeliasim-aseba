@@ -101,14 +101,17 @@ The simulated Thymio implements most of the features of the real robot:
   - [x] tap detection
   - [x] proximity communication
 
-Partial (programmatic read/write access from coppeliaSim):
+Partial (Aseba interface + programmatic read/write access from coppeliaSim):
   - [x] battery
   - [x] temperature sensor
   - [x] RC sensor
   - [x] Microphone
 
+Partial (only Aseba interface):
+  - [x] speaker (accept `sound.{play|replay|freq}` and trigger the event `sound.finished` after the sound duration, without actually playing a sound.)
+
 Missing:
-  - [ ] speaker
+
   - [ ] SD card
 
 

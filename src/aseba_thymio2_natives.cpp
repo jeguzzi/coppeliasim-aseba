@@ -63,16 +63,27 @@ extern "C" void PlaygroundThymio2Native_sound_record(AsebaVMState *vm) {
   missing(vm);
 }
 
+static const std::array<unsigned, 8> system_sound_duration = {41, 41, 14, 27, 24, 9, 14, 21};
+static const unsigned missing_sound_duration = 10;
+
 extern "C" void PlaygroundThymio2Native_sound_play(AsebaVMState *vm) {
   const int16_t number(vm->variables[AsebaNativePopArg(vm)]);
   logNativeFromVM(vm, 1, { number });
-  missing(vm);
+  AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
+  if (node) {
+    node->set_sound_duration(missing_sound_duration / 60.0);
+  }
+  // missing(vm);
 }
 
 extern "C" void PlaygroundThymio2Native_sound_replay(AsebaVMState *vm) {
   const int16_t number(vm->variables[AsebaNativePopArg(vm)]);
   logNativeFromVM(vm, 2, { number });
-  missing(vm);
+  AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
+  if (node) {
+    node->set_sound_duration(missing_sound_duration / 60.0);
+  }
+  // missing(vm);
 }
 
 extern "C" void PlaygroundThymio2Native_sound_duration(AsebaVMState *vm) {
@@ -86,7 +97,16 @@ extern "C" void PlaygroundThymio2Native_sound_duration(AsebaVMState *vm) {
 extern "C" void PlaygroundThymio2Native_sound_system(AsebaVMState *vm) {
   const int16_t number(vm->variables[AsebaNativePopArg(vm)]);
   logNativeFromVM(vm, 3, { number });
-  missing(vm);
+  AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
+  if (node) {
+    if (number == -1) {
+      node->set_sound_duration(0);
+    } else {
+      node->set_sound_duration(
+        (number < 8 ? system_sound_duration[number] : missing_sound_duration) / 60.0);
+    }
+  }
+  // missing(vm);
 }
 
 
@@ -94,7 +114,15 @@ extern "C" void PlaygroundThymio2Native_sound_freq(AsebaVMState * vm) {
   const int16_t freq(vm->variables[AsebaNativePopArg(vm)]);
   const int16_t time(vm->variables[AsebaNativePopArg(vm)]);
   logNativeFromVM(vm, 8, { freq, time });
-  missing(vm);
+  AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
+  if (node) {
+    if (time == -1) {
+      node->set_sound_duration(0);
+    } else {
+      node->set_sound_duration(std::max((int16_t) 4, time) / 60.0);
+    }
+  }
+  // missing(vm);
 }
 
 extern "C" void PlaygroundThymio2Native_sound_wave(AsebaVMState * vm) {
