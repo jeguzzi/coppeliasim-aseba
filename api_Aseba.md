@@ -8,6 +8,7 @@
 ## Functions
 | function |
 |----|
+| [simAseba.set_address](#set_address) |
 | [simAseba.create_node](#create_node) |
 | [simAseba.destroy_node](#destroy_node) |
 | [simAseba.set_uuid](#set_uuid) |
@@ -51,6 +52,22 @@ node_t = {int port , string name , int id }
   - **name** The node name
 
   - **id** The node id
+
+
+
+
+
+
+#### set_address
+
+
+Set the IP address on which Dashel listen for connection (by default 0.0.0.0). Should be called before creating nodes.
+```C++
+simAseba.set_address(string address)
+```
+*parameters*
+
+  - **address** A valid IPv4 address
 
 
 

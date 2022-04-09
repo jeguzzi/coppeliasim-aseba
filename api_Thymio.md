@@ -23,6 +23,14 @@
 | [simThymio.set_prox_comm_tx](#set_prox_comm_tx) |
 | [simThymio.get_button](#get_button) |
 | [simThymio.set_button](#set_button) |
+| [simThymio.set_battery_voltage](#set_battery_voltage) |
+| [simThymio.enable_behavior](#enable_behavior) |
+| [simThymio.set_temperature](#set_temperature) |
+| [simThymio.set_mic_intensity](#set_mic_intensity) |
+| [simThymio.set_mic_threshold](#set_mic_threshold) |
+| [simThymio.receive_rc_message](#receive_rc_message) |
+| [simThymio.enable_sd_card](#enable_sd_card) |
+| [simThymio.get_sd_card](#get_sd_card) |
 
 
 
@@ -50,13 +58,15 @@ prox_comm_message_t = {int rx , int[] payloads , float[] intensities }
 
 Instantiate a Thymio2 controller
 ```C++
-int id=simThymio.create(int handle,bool with_aseba=true,string friendly_name="Thymio II",int port=33333,int id=-1)
+int id=simThymio.create(int handle,bool with_aseba=true,int behavior_mask=0,string friendly_name="Thymio II",int port=33333,int id=-1)
 ```
 *parameters*
 
   - **handle** Handle of the Thymio2 model in CoppeliaSim
 
   - **with_aseba** Start emulating the Aseba firmware
+
+  - **behavior_mask** The behaviors started at init and at reset
 
   - **friendly_name** A friendlier name used in Thymio Suite to label nodes. Must not be unique. If left empty, it is set to "Thymio II".
 
@@ -367,5 +377,157 @@ simThymio.set_button(int id,int index,bool value)
   - **value** Pressed: true, Released: false
 
 
+
+
+
+
+#### set_battery_voltage
+
+
+Set the current battery voltage, which is not simulated.
+```C++
+simThymio.set_battery_voltage(int id,float value)
+```
+*parameters*
+
+  - **id** The ID of the Thymio2 controller
+
+  - **value** The voltage between 3.0 and 4.2 V
+
+
+
+
+
+
+#### enable_behavior
+
+
+Enable or disable one of the default behaviors
+```C++
+simThymio.enable_behavior(int id,bool value,int mask=255)
+```
+*parameters*
+
+  - **id** The ID of the Thymio2 controller
+
+  - **value** Enabled: true, Disabled: false
+
+  - **mask** An 8 bit-mask to specify the behavior. Set it to 255 to set all behaviors
+
+
+
+
+
+
+#### set_temperature
+
+
+Set the current temperature read by the sensor.
+```C++
+simThymio.set_temperature(int id,float temperature)
+```
+*parameters*
+
+  - **id** The ID of the Thymio2 controller
+
+  - **temperature** A temperature in Celsius
+
+
+
+
+
+
+#### set_mic_intensity
+
+
+Set the current sound intensity read by the microphone.
+```C++
+simThymio.set_mic_intensity(int id,float intensity)
+```
+*parameters*
+
+  - **id** The ID of the Thymio2 controller
+
+  - **intensity** A relative sound intensity in [0, 1].
+
+
+
+
+
+
+#### set_mic_threshold
+
+
+Set the microphone threshold the trigger the mic event.
+```C++
+simThymio.set_mic_threshold(int id,float threshold)
+```
+*parameters*
+
+  - **id** The ID of the Thymio2 controller
+
+  - **threshold** A relative sound intensity in [0, 1].
+
+
+
+
+
+
+#### receive_rc_message
+
+
+Notify the rc receiver of a new message.
+```C++
+simThymio.receive_rc_message(int id,int address,int command)
+```
+*parameters*
+
+  - **id** The ID of the Thymio2 controller
+
+  - **address** The 5-bit address between 0 and 31
+
+  - **command** The 6-bit command between 0 and 63
+
+
+
+
+
+
+#### enable_sd_card
+
+
+Enable/disable the SD card, emulated as a rw directory
+```C++
+bool enabled=simThymio.enable_sd_card(int id,string path)
+```
+*parameters*
+
+  - **id** The ID of the Thymio2 controller
+
+  - **path** The path to the directory where to store files. Set to empty to disable.
+
+*return*
+
+  - **enabled** Whether the SD card is enabled or not.
+
+
+
+
+#### get_sd_card
+
+
+Enable/disable the SD card, emulated as a rw directory
+```C++
+bool enabled,string path=simThymio.get_sd_card(int id)
+```
+*parameters*
+
+  - **id** The ID of the Thymio2 controller
+
+*return*
+
+  - **enabled** Whether the SD card is enabled.
+
+  - **path** The path to the directory where to store files. Set to empty to disable.
 
 
