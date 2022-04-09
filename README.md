@@ -17,7 +17,7 @@ You can control the robots/nodes
 - [coppeliaSim >= v4.3](https://coppeliarobotics.com)
 - cmake >= 3.5
 - a C++17 compiler
-- [optional, to parse aseba scripts] [libxml2](https://gitlab.gnome.org/GNOME/libxml2/-/wikis/home)
+- [optional, to parse Aseba scripts] [libxml2](https://gitlab.gnome.org/GNOME/libxml2/-/wikis/home)
 - [optional, for autodiscovery] avahi or bonjour
 - [optional, to autogenerate the docs] [Jinjia2](https://jinja.palletsprojects.com)
 
@@ -133,7 +133,7 @@ CoppeliaSim together with this plugin, adds:
   - proximity communication
   - tap detection from acceletometer
   - basic support for rc, microphone, speaker, battery, and temperature sensor.
-  - multiple robots on the same Aseba network (without the need of asebaswitch)
-  - customizable Thymio aseba node
+  - multiple robots on the same Aseba network (without the need of running `asebaswitch`)
+  - customizable Thymio Aseba node
   - custom Aseba nodes implemented in lua
-  - loading aseba scripts from lua
+  - loading Aseba scripts from lua
