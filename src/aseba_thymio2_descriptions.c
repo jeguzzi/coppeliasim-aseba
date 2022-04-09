@@ -71,6 +71,21 @@ const AsebaVMDescription thymio_variables_description = {
 
     { 1, "sd.present"},
 
+#if FW == 14
+    {5, "buttons._raw"},
+    {5, "buttons._mean"},
+    {5, "buttons._noise"},
+    {2, "_vbat"},
+    {2, "_imot"},
+    {2, "_integrator"},
+    {3, "leds.top"},
+    {3, "leds.bottom.left"},
+    {3, "leds.bottom.right"},
+    {8, "leds.circle"},
+    {1, "mic._mean"},
+    {1, "acc._tap"},
+#endif
+
     { 0, NULL }
   }
 };
@@ -97,18 +112,24 @@ const AsebaLocalEventDescription thymio_events_description[] = {
 };
 
 const AsebaNativeFunctionDescription* thymio_functions_description[] = {
-   ASEBA_NATIVES_STD_DESCRIPTIONS, PLAYGROUND_THYMIO2_NATIVES_DESCRIPTIONS, 0};
+   ASEBA_NATIVES_STD_DESCRIPTIONS, THYMIO2_NATIVES_DESCRIPTIONS,
+#if FW == 14
+   THYMIO2_NATIVES_DESCRIPTIONS_FW14,
+#endif
+   0};
 
 const AsebaNativeFunctionPointer thymio_functions[] ={
-     ASEBA_NATIVES_STD_FUNCTIONS,
-     PLAYGROUND_THYMIO2_NATIVES_FUNCTIONS
+     ASEBA_NATIVES_STD_FUNCTIONS, THYMIO2_NATIVES_FUNCTIONS,
+#if FW == 14
+     THYMIO2_NATIVES_FUNCTIONS_FW14,
+#endif
    };
 
 // native functions
 
 // sound
 
-AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_sound_record = {
+AsebaNativeFunctionDescription Thymio2NativeDescription_sound_record = {
   "sound.record",
   "Start recording of rN.wav",
   {
@@ -117,7 +138,7 @@ AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_sound_record =
   }
 };
 
-AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_sound_play = {
+AsebaNativeFunctionDescription Thymio2NativeDescription_sound_play = {
   "sound.play",
   "Start playback of pN.wav",
   {
@@ -127,7 +148,7 @@ AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_sound_play = {
 };
 
 
-AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_sound_replay = {
+AsebaNativeFunctionDescription Thymio2NativeDescription_sound_replay = {
   "sound.replay",
   "Start playback of rN.wav",
   {
@@ -136,7 +157,7 @@ AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_sound_replay =
   }
 };
 
-AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_sound_duration = {
+AsebaNativeFunctionDescription Thymio2NativeDescription_sound_duration = {
   "sound.duration",
   "Give duration in 1/10s of rN.wav",
   {
@@ -146,7 +167,7 @@ AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_sound_duration
   }
 };
 
-AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_sound_system = {
+AsebaNativeFunctionDescription Thymio2NativeDescription_sound_system = {
   "sound.system",
   "Start playback of system sound N",
   {
@@ -155,7 +176,7 @@ AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_sound_system =
   }
 };
 
-AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_sound_freq = {
+AsebaNativeFunctionDescription Thymio2NativeDescription_sound_freq = {
   "sound.freq",
   "Play frequency",
   {
@@ -167,7 +188,7 @@ AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_sound_freq = {
 
 #define WAVEFORM_SIZE 142
 
-AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_sound_wave = {
+AsebaNativeFunctionDescription Thymio2NativeDescription_sound_wave = {
   "sound.wave",
   "Set the primary wave of the tone generator",
   {
@@ -178,7 +199,7 @@ AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_sound_wave = {
 
 // leds
 
-AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_leds_circle = {
+AsebaNativeFunctionDescription Thymio2NativeDescription_leds_circle = {
   "leds.circle",
   "Set circular ring leds",
   {
@@ -194,7 +215,7 @@ AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_leds_circle = 
   }
 };
 
-AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_leds_top = {
+AsebaNativeFunctionDescription Thymio2NativeDescription_leds_top = {
   "leds.top",
   "Set RGB top led",
   {
@@ -206,7 +227,7 @@ AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_leds_top = {
 };
 
 
-AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_leds_bottom_right = {
+AsebaNativeFunctionDescription Thymio2NativeDescription_leds_bottom_right = {
   "leds.bottom.right",
   "Set RGB botom right led",
   {
@@ -217,7 +238,7 @@ AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_leds_bottom_ri
   }
 };
 
-AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_leds_bottom_left = {
+AsebaNativeFunctionDescription Thymio2NativeDescription_leds_bottom_left = {
   "leds.bottom.left",
   "Set RGB botom left led",
   {
@@ -228,7 +249,7 @@ AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_leds_bottom_le
   }
 };
 
-AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_leds_buttons = {
+AsebaNativeFunctionDescription Thymio2NativeDescription_leds_buttons = {
   "leds.buttons",
   "Set buttons leds",
   {
@@ -240,7 +261,7 @@ AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_leds_buttons =
   }
 };
 
-AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_leds_prox_h = {
+AsebaNativeFunctionDescription Thymio2NativeDescription_leds_prox_h = {
   "leds.prox.h",
   "Set horizontal proximity leds",
   {
@@ -256,7 +277,7 @@ AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_leds_prox_h = 
   }
 };
 
-AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_leds_prox_v = {
+AsebaNativeFunctionDescription Thymio2NativeDescription_leds_prox_v = {
   "leds.prox.v",
   "Set vertical proximity leds",
   {
@@ -266,7 +287,7 @@ AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_leds_prox_v = 
   }
 };
 
-AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_leds_rc = {
+AsebaNativeFunctionDescription Thymio2NativeDescription_leds_rc = {
   "leds.rc",
   "Set rc led",
   {
@@ -275,7 +296,7 @@ AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_leds_rc = {
   }
 };
 
-AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_leds_sound = {
+AsebaNativeFunctionDescription Thymio2NativeDescription_leds_sound = {
   "leds.sound",
   "Set sound led",
   {
@@ -284,7 +305,7 @@ AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_leds_sound = {
   }
 };
 
-AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_led_temperature = {
+AsebaNativeFunctionDescription Thymio2NativeDescription_led_temperature = {
   "leds.temperature",
   "Set ntc led",
   {
@@ -296,7 +317,7 @@ AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_led_temperatur
 
 // comm
 
-AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_prox_comm_enable = {
+AsebaNativeFunctionDescription Thymio2NativeDescription_prox_comm_enable = {
   "prox.comm.enable",
   "Enable or disable the proximity communication",
   {
@@ -307,7 +328,7 @@ AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_prox_comm_enab
 
 // sd
 
-AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_sd_open = {
+AsebaNativeFunctionDescription Thymio2NativeDescription_sd_open = {
   "sd.open",
   "Open a file on the SD card",
   {
@@ -317,7 +338,7 @@ AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_sd_open = {
   }
 };
 
-AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_sd_write = {
+AsebaNativeFunctionDescription Thymio2NativeDescription_sd_write = {
   "sd.write",
   "Write data to the opened file",
   {
@@ -327,7 +348,7 @@ AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_sd_write = {
   }
 };
 
-AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_sd_read = {
+AsebaNativeFunctionDescription Thymio2NativeDescription_sd_read = {
   "sd.read",
   "Read data from the opened file",
   {
@@ -337,12 +358,81 @@ AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_sd_read = {
   }
 };
 
-AsebaNativeFunctionDescription PlaygroundThymio2NativeDescription_sd_seek = {
+AsebaNativeFunctionDescription Thymio2NativeDescription_sd_seek = {
   "sd.seek",
   "Seek the opened file",
   {
     {1, "position"},
     {1, "status"},
     {0,0},
+  }
+};
+
+AsebaNativeFunctionDescription Thymio2NativeDescription_set_led = {
+  "_leds.set",
+  "Set the led",
+  {
+    {1,"led"},
+    {1,"brightness"},
+    {0,0}
+  }
+};
+
+AsebaNativeFunctionDescription Thymio2NativeDescription_rf_nodeid = {
+  "_rf.nodeid",
+  "Set Wireless Node ID",
+  {
+    {1, "nodeID"},
+    {0,0},
+  }
+};
+
+AsebaNativeFunctionDescription Thymio2NativeDescription_rf_setup = {
+  "_rf.setup",
+  "Set Wireless Channel and Network",
+  {
+    {1, "channel"},
+        {1, "networkID"},
+    {0,0},
+  }
+};
+
+AsebaNativeFunctionDescription AsebaNativeDescription__system_reboot =
+{
+  "_system.reboot",
+  "Reboot the microcontroller",
+  {
+    {0,0}
+  }
+};
+
+AsebaNativeFunctionDescription AsebaNativeDescription__system_settings_read =
+{
+  "_system.settings.read",
+  "Read a setting",
+  {
+    {1, "address"},
+    {1,  "value"},
+    {0,0}
+  }
+};
+
+AsebaNativeFunctionDescription AsebaNativeDescription__system_settings_write =
+{
+  "_system.settings.write",
+  "Write a setting",
+  {
+    { 1, "address"},
+    { 1, "value"},
+    { 0, 0 }
+  }
+};
+
+AsebaNativeFunctionDescription AsebaNativeDescription__system_settings_flash =
+{
+  "_system.settings.flash",
+  "Write the settings into flash",
+  {
+    {0,0}
   }
 };

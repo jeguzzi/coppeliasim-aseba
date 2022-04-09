@@ -445,6 +445,9 @@ class Thymio2 {
 
   void set_led_color(size_t index, bool force, float r = 0, float g = 0, float b = 0);
   void set_led_intensity(size_t index, float intensity);
+  float get_led_intensity(size_t index) const;
+  float get_led_channel(size_t index, size_t channel) const;
+  void set_led_channel(size_t index, size_t channel, float value);
   void reset_texture(bool reload = false);
   void reset();
   bool had_collision() const {return false;}

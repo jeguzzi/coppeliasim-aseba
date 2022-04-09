@@ -91,7 +91,7 @@ You can have as many robots/nodes as you like and expose them to the same or dif
 
 ## Thymio
 
-The simulated Thymio implements all features of the real robot (firmware v11).
+The simulated Thymio implements all features of the real robot (firmware v11 and v14).
 
 #### Full support
   - [x] motors
@@ -134,6 +134,7 @@ CoppeliaSim together with this plugin, adds:
   - tap detection from acceletometer
   - basic support for rc, microphone, speaker, battery, and temperature sensor.
   - **option** to enable the same [feedback] behavior implemented in the firmware that provides feedback about proximity and ground sensors, battery level, accelerometer, microphone, temperature and rc, when the LEDs are not controlled by an Aseba script.
+  - support for firmware v14
   - multiple robots on the same Aseba network (without the need of running `asebaswitch`)
   - customizable Thymio Aseba node
   - custom Aseba nodes implemented in lua

@@ -56,7 +56,7 @@ void logNativeFromVM(AsebaVMState *vm, unsigned id, std::vector<int16_t>&& args)
 
 // sound
 
-extern "C" void PlaygroundThymio2Native_sound_record(AsebaVMState *vm) {
+extern "C" void Thymio2Native_sound_record(AsebaVMState *vm) {
   const int16_t number(vm->variables[AsebaNativePopArg(vm)]);
 
   logNativeFromVM(vm, 0, { number });
@@ -66,7 +66,7 @@ extern "C" void PlaygroundThymio2Native_sound_record(AsebaVMState *vm) {
 static const std::array<unsigned, 8> system_sound_duration = {41, 41, 14, 27, 24, 9, 14, 21};
 static const unsigned missing_sound_duration = 10;
 
-extern "C" void PlaygroundThymio2Native_sound_play(AsebaVMState *vm) {
+extern "C" void Thymio2Native_sound_play(AsebaVMState *vm) {
   const int16_t number(vm->variables[AsebaNativePopArg(vm)]);
   logNativeFromVM(vm, 1, { number });
   AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
@@ -76,7 +76,7 @@ extern "C" void PlaygroundThymio2Native_sound_play(AsebaVMState *vm) {
   // missing(vm);
 }
 
-extern "C" void PlaygroundThymio2Native_sound_replay(AsebaVMState *vm) {
+extern "C" void Thymio2Native_sound_replay(AsebaVMState *vm) {
   const int16_t number(vm->variables[AsebaNativePopArg(vm)]);
   logNativeFromVM(vm, 2, { number });
   AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
@@ -86,7 +86,7 @@ extern "C" void PlaygroundThymio2Native_sound_replay(AsebaVMState *vm) {
   // missing(vm);
 }
 
-extern "C" void PlaygroundThymio2Native_sound_duration(AsebaVMState *vm) {
+extern "C" void Thymio2Native_sound_duration(AsebaVMState *vm) {
   const int16_t number(vm->variables[AsebaNativePopArg(vm)]);
   const uint16_t durationAddr(AsebaNativePopArg(vm));
   vm->variables[durationAddr] = 0;
@@ -94,7 +94,7 @@ extern "C" void PlaygroundThymio2Native_sound_duration(AsebaVMState *vm) {
   missing(vm);
 }
 
-extern "C" void PlaygroundThymio2Native_sound_system(AsebaVMState *vm) {
+extern "C" void Thymio2Native_sound_system(AsebaVMState *vm) {
   const int16_t number(vm->variables[AsebaNativePopArg(vm)]);
   logNativeFromVM(vm, 3, { number });
   AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
@@ -110,7 +110,7 @@ extern "C" void PlaygroundThymio2Native_sound_system(AsebaVMState *vm) {
 }
 
 
-extern "C" void PlaygroundThymio2Native_sound_freq(AsebaVMState * vm) {
+extern "C" void Thymio2Native_sound_freq(AsebaVMState * vm) {
   const int16_t freq(vm->variables[AsebaNativePopArg(vm)]);
   const int16_t time(vm->variables[AsebaNativePopArg(vm)]);
   logNativeFromVM(vm, 8, { freq, time });
@@ -125,7 +125,7 @@ extern "C" void PlaygroundThymio2Native_sound_freq(AsebaVMState * vm) {
   // missing(vm);
 }
 
-extern "C" void PlaygroundThymio2Native_sound_wave(AsebaVMState * vm) {
+extern "C" void Thymio2Native_sound_wave(AsebaVMState * vm) {
   const uint16_t waveAddr(AsebaNativePopArg(vm));
   // Note: if necessary, copy data of the wave form to the log
   logNativeFromVM(vm, 15, { static_cast<int16_t>(waveAddr) });
@@ -134,7 +134,7 @@ extern "C" void PlaygroundThymio2Native_sound_wave(AsebaVMState * vm) {
 
 // leds
 
-extern "C" void PlaygroundThymio2Native_leds_circle(AsebaVMState *vm) {
+extern "C" void Thymio2Native_leds_circle(AsebaVMState *vm) {
   const int16_t l0(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
   const int16_t l1(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
   const int16_t l2(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
@@ -154,14 +154,12 @@ extern "C" void PlaygroundThymio2Native_leds_circle(AsebaVMState *vm) {
     node->robot->set_led_intensity(CS::LED::RING_5, l5/32.);
     node->robot->set_led_intensity(CS::LED::RING_6, l6/32.);
     node->robot->set_led_intensity(CS::LED::RING_7, l7/32.);
-
     logNativeFromThymio2(*node, 4, { l0, l1, l2, l3, l4, l5, l6, l7 });
-
     node->robot->enable_behavior(false, CS::BEHAVIOR::LEDS_ACC);
   }
 }
 
-extern "C" void PlaygroundThymio2Native_leds_top(AsebaVMState *vm) {
+extern "C" void Thymio2Native_leds_top(AsebaVMState *vm) {
   const int16_t r(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
   const int16_t g(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
   const int16_t b(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
@@ -169,25 +167,23 @@ extern "C" void PlaygroundThymio2Native_leds_top(AsebaVMState *vm) {
   // const double param(1./std::max(std::max(r, g), std::max((int16_t)1, b)));
   AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
   if (node) {
-    node->robot->set_led_color(CS::LED::TOP,
-                               false, r / 32.0, g / 32.0, b / 32.0);
+    node->robot->set_led_color(CS::LED::TOP, false, r / 32.0, g / 32.0, b / 32.0);
     logNativeFromThymio2(*node, 5, { r, g, b });
   }
 }
 
-extern "C" void PlaygroundThymio2Native_leds_bottom_right(AsebaVMState *vm) {
+extern "C" void Thymio2Native_leds_bottom_right(AsebaVMState *vm) {
   const int16_t r(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
   const int16_t g(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
   const int16_t b(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
   AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
   if (node) {
-    node->robot->set_led_color(CS::LED::BOTTOM_RIGHT,
-                               false, r / 32.0, g / 32.0, b / 32.0);
+    node->robot->set_led_color(CS::LED::BOTTOM_RIGHT, false, r / 32.0, g / 32.0, b / 32.0);
     logNativeFromThymio2(*node, 6, { r, g, b });
   }
 }
 
-extern "C" void PlaygroundThymio2Native_leds_bottom_left(AsebaVMState *vm) {
+extern "C" void Thymio2Native_leds_bottom_left(AsebaVMState *vm) {
   const int16_t r(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
   const int16_t g(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
   const int16_t b(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
@@ -198,7 +194,7 @@ extern "C" void PlaygroundThymio2Native_leds_bottom_left(AsebaVMState *vm) {
   }
 }
 
-extern "C" void PlaygroundThymio2Native_leds_buttons(AsebaVMState *vm) {
+extern "C" void Thymio2Native_leds_buttons(AsebaVMState *vm) {
   const int16_t l0(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
   const int16_t l1(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
   const int16_t l2(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
@@ -216,7 +212,7 @@ extern "C" void PlaygroundThymio2Native_leds_buttons(AsebaVMState *vm) {
   }
 }
 
-extern "C" void PlaygroundThymio2Native_leds_prox_h(AsebaVMState *vm) {
+extern "C" void Thymio2Native_leds_prox_h(AsebaVMState *vm) {
   const int16_t l0(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
   const int16_t l1(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
   const int16_t l2(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
@@ -243,7 +239,7 @@ extern "C" void PlaygroundThymio2Native_leds_prox_h(AsebaVMState *vm) {
   }
 }
 
-extern "C" void PlaygroundThymio2Native_leds_prox_v(AsebaVMState *vm) {
+extern "C" void Thymio2Native_leds_prox_v(AsebaVMState *vm) {
   const int16_t l0(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
   const int16_t l1(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
 
@@ -258,7 +254,7 @@ extern "C" void PlaygroundThymio2Native_leds_prox_v(AsebaVMState *vm) {
   // missing(vm);
 }
 
-extern "C" void PlaygroundThymio2Native_leds_rc(AsebaVMState *vm) {
+extern "C" void Thymio2Native_leds_rc(AsebaVMState *vm) {
   const int16_t l0(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
 
   AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
@@ -269,7 +265,7 @@ extern "C" void PlaygroundThymio2Native_leds_rc(AsebaVMState *vm) {
   }
 }
 
-extern "C" void PlaygroundThymio2Native_leds_sound(AsebaVMState *vm) {
+extern "C" void Thymio2Native_leds_sound(AsebaVMState *vm) {
   const int16_t l0(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
 
   AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
@@ -280,7 +276,7 @@ extern "C" void PlaygroundThymio2Native_leds_sound(AsebaVMState *vm) {
   }
 }
 
-extern "C" void PlaygroundThymio2Native_leds_temperature(AsebaVMState *vm) {
+extern "C" void Thymio2Native_leds_temperature(AsebaVMState *vm) {
   const int16_t r(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
   const int16_t b(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
   AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
@@ -293,7 +289,89 @@ extern "C" void PlaygroundThymio2Native_leds_temperature(AsebaVMState *vm) {
   }
 }
 
-extern "C" void PlaygroundThymio2Native_prox_comm_enable(AsebaVMState *vm) {
+#define SOUND_ON 15
+
+std::array<int, 40> fw_leds = {
+  CS::LED::IR_BACK_0,
+  CS::LED::IR_BACK_1,
+  CS::LED::TOP,
+  CS::LED::TOP,
+  CS::LED::TOP,
+  CS::LED::BATTERY_0,
+  CS::LED::BATTERY_1,
+  CS::LED::BATTERY_2,
+  CS::LED::BOTTOM_LEFT,
+  CS::LED::BOTTOM_LEFT,
+  CS::LED::BOTTOM_LEFT,
+  CS::LED::BOTTOM_RIGHT,
+  CS::LED::BOTTOM_RIGHT,
+  CS::LED::BOTTOM_RIGHT,
+  -1,  // SD_CARD
+  -1,  // SOUND_ON
+  CS::LED::IR_FRONT_0,
+  CS::LED::IR_FRONT_1,
+  CS::LED::IR_FRONT_4,
+  CS::LED::IR_FRONT_5,
+  CS::LED::IR_FRONT_2,
+  CS::LED::IR_FRONT_3,
+  CS::LED::IR_GROUND_0,
+  CS::LED::IR_GROUND_1,
+  CS::LED::RING_0,
+  CS::LED::RING_1,
+  CS::LED::RING_2,
+  CS::LED::RING_3,
+  CS::LED::RING_4,
+  CS::LED::RIGHT_RED,
+  CS::LED::RIGHT_BLUE,
+  CS::LED::RING_7,
+  CS::LED::BUTTON_UP,
+  CS::LED::BUTTON_DOWN,
+  CS::LED::BUTTON_LEFT,
+  CS::LED::BUTTON_RIGHT,
+  CS::LED::RING_5,
+  CS::LED::RING_6,
+  CS::LED::LEFT_RED,
+  CS::LED::LEFT_BLUE
+};
+
+extern "C" void Thymio2Native_set_led(AsebaVMState *vm) {
+  const int16_t index(vm->variables[AsebaNativePopArg(vm)]);
+  const int16_t intensity(clampValueTo32(vm->variables[AsebaNativePopArg(vm)]));
+  AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
+  if (node) {
+    if (index == SOUND_ON || index < 0 || index > 39)
+      return;
+    int led = fw_leds[index];
+    if (led < 0)
+      return;
+    if (led == CS::LED::LEFT_RED) {
+      node->robot->set_led_channel(CS::LED::LEFT_BLUE, 0, intensity / 32.0);
+      return;
+    }
+    if (led == CS::LED::LEFT_BLUE) {
+      node->robot->set_led_channel(CS::LED::LEFT_BLUE, 2, intensity / 32.0);
+      return;
+    }
+    if (led > CS::LED::BOTTOM_RIGHT) {
+      node->robot->set_led_intensity(led, intensity / 32.0);
+      return;
+    }
+    size_t c;
+    switch (led) {
+      case CS::LED::TOP:
+        c = index - 2;
+        break;
+      case CS::LED::BOTTOM_LEFT:
+        c = index - 8;
+        break;
+      default:
+        c = index - 11;
+    }
+    node->robot->set_led_channel(led, c, intensity / 32.0);
+  }
+}
+
+extern "C" void Thymio2Native_prox_comm_enable(AsebaVMState *vm) {
   const int16_t enable(vm->variables[AsebaNativePopArg(vm)]);
 
   logNativeFromVM(vm, 16, { enable });
@@ -305,7 +383,7 @@ extern "C" void PlaygroundThymio2Native_prox_comm_enable(AsebaVMState *vm) {
   // missing(vm);
 }
 
-extern "C" void PlaygroundThymio2Native_sd_open(AsebaVMState *vm) {
+extern "C" void Thymio2Native_sd_open(AsebaVMState *vm) {
   const int16_t number(vm->variables[AsebaNativePopArg(vm)]);
   const uint16_t statusAddr(AsebaNativePopArg(vm));
 
@@ -324,7 +402,7 @@ extern "C" void PlaygroundThymio2Native_sd_open(AsebaVMState *vm) {
   }
 }
 
-extern "C" void PlaygroundThymio2Native_sd_write(AsebaVMState *vm) {
+extern "C" void Thymio2Native_sd_write(AsebaVMState *vm) {
   const uint16_t dataAddr(AsebaNativePopArg(vm));
   const uint16_t statusAddr(AsebaNativePopArg(vm));
   const uint16_t dataLength(AsebaNativePopArg(vm));
@@ -345,7 +423,7 @@ extern "C" void PlaygroundThymio2Native_sd_write(AsebaVMState *vm) {
   }
 }
 
-extern "C" void PlaygroundThymio2Native_sd_read(AsebaVMState *vm) {
+extern "C" void Thymio2Native_sd_read(AsebaVMState *vm) {
   const uint16_t dataAddr(AsebaNativePopArg(vm));
   const uint16_t statusAddr(AsebaNativePopArg(vm));
   const uint16_t dataLength(AsebaNativePopArg(vm));
@@ -366,7 +444,7 @@ extern "C" void PlaygroundThymio2Native_sd_read(AsebaVMState *vm) {
   }
 }
 
-extern "C" void PlaygroundThymio2Native_sd_seek(AsebaVMState *vm) {
+extern "C" void Thymio2Native_sd_seek(AsebaVMState *vm) {
   const int16_t seek(vm->variables[AsebaNativePopArg(vm)]);
   const int16_t statusAddr(AsebaNativePopArg(vm));
 
@@ -378,4 +456,49 @@ extern "C" void PlaygroundThymio2Native_sd_seek(AsebaVMState *vm) {
     vm->variables[statusAddr] = result;
     logNativeFromThymio2(*node, 20, { seek, result });
   }
+}
+
+extern "C" void AsebaNative__system_reboot(AsebaVMState *vm) {
+  // missing(vm);
+  AsebaThymio2 * node = dynamic_cast<AsebaThymio2 *>(Aseba::node_for_vm(vm));
+  if (node) {
+    node->reset();
+  }
+}
+
+extern "C" void AsebaNative__system_settings_read(AsebaVMState *vm) {
+  const uint16_t address = vm->variables[AsebaNativePopArg(vm)];
+  const uint16_t destidx = AsebaNativePopArg(vm);
+  missing(vm);
+  // if (address > sizeof(settings)/2 - 1) {
+  //   AsebaVMEmitNodeSpecificError(vm, "Address out of settings");
+  //   return;
+  // }
+  // vm->variables[destidx] = ((unsigned int *) &settings)[address];
+}
+
+extern "C" void AsebaNative__system_settings_write(AsebaVMState *vm) {
+  const uint16_t address = vm->variables[AsebaNativePopArg(vm)];
+  const uint16_t sourceidx = AsebaNativePopArg(vm);
+  missing(vm);
+  // if (address > sizeof(settings)/2 - 1) {
+  //   AsebaVMEmitNodeSpecificError(vm, "Address out of settings");
+  //   return;
+  // }
+  // ((unsigned int *) &settings)[address] = vm->variables[sourceidx];
+}
+
+extern "C" void AsebaNative__system_settings_flash(AsebaVMState* vm) {
+  missing(vm);
+}
+
+extern "C" void Thymio2Native_set_rf_nodeid(AsebaVMState * vm) {
+  const uint16_t nodeid = vm->variables[AsebaNativePopArg(vm)];
+  missing(vm);
+}
+
+extern "C" void Thymio2Native_set_rf_setup(AsebaVMState * vm) {
+  const uint16_t channel = vm->variables[AsebaNativePopArg(vm)];
+  const uint16_t networkID = vm->variables[AsebaNativePopArg(vm)];
+  missing(vm);
 }

@@ -79,6 +79,21 @@ typedef struct {
 
  int16_t sdPresent;
 
+#if FW == 14
+ int16_t buttonsRaw[5];
+ int16_t buttonsMean[5];
+ int16_t buttonsNoise[5];
+ int16_t vbat[2];
+ int16_t imot[2];
+ int16_t integrator[2];
+ int16_t ledTop[3];
+ int16_t ledBottomLeft[3];
+ int16_t ledBottomRight[3];
+ int16_t ledCircle[8];
+ int16_t micMean;
+ int16_t accTap;
+#endif
+
  int16_t freeSpace[512];
 } thymio_variables_t;
 
@@ -141,6 +156,8 @@ class AsebaThymio2 : public CoppeliaSimAsebaNode {
   int16_t oldMotorLeftTarget;
   int16_t oldMotorRightTarget;
   int16_t oldMicThreshold;
+  int16_t oldLedRGB[9];
+  int16_t oldLedCircle[8];
   Aseba::SoftTimer timer100Hz;
   unsigned counter100Hz;
   float sound_duration;

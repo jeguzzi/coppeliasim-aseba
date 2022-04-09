@@ -39,7 +39,7 @@ AsebaThymio2::AsebaThymio2(int node_id, const std::string & _name,
 
   // this simulated Thymio complies with firmware 11 public API
 
-  thymio_variables->fwversion[0] = 11;
+  thymio_variables->fwversion[0] = FW;
   thymio_variables->fwversion[1] = 0;
   thymio_variables->productId = ASEBA_PID_THYMIO2;
   thymio_variables->timerPeriod[0] = 0;
@@ -85,7 +85,7 @@ void AsebaThymio2::step(float dt) {
 
   // aseba 0 = left, aseba 1 = front, aseba 3 = up
   //
-  int32_t a[3];
+  int16_t a[3];
   for (size_t i = 0; i < 3; i++) {
     a[i] = thymio_variables->acc[i];
   }
@@ -152,6 +152,24 @@ void AsebaThymio2::step(float dt) {
 
   thymio_variables->sdPresent = robot->sd_is_enabled() ? 1 : 0;
 
+
+#if FW == 14
+  // buttonsRaw[5];
+  // buttonsMean[5];
+  // buttonsNoise[5];
+  int16_t v = (int16_t) (robot->get_battery_voltage() * 198.9);
+  thymio_variables->vbat[0] = v;
+  thymio_variables->vbat[1] = v;
+  if (tap) {
+    thymio_variables->accTap = (int16_t) 0;
+    for (size_t i = 0; i < 3; i++) {
+      thymio_variables->accTap = std::max<int16_t>(
+          thymio_variables->accTap, abs(a[i] - thymio_variables->acc[i]));
+    }
+  }
+#endif
+
+
   // run timers
   timer0.step(dt);
   timer1.step(dt);
@@ -196,8 +214,39 @@ void AsebaThymio2::step(float dt) {
   // robot->set_target_speed(0, double(thymio_variables->motorLeftTarget) * 0.166 / 500.);
   // robot->set_target_speed(1, double(thymio_variables->motorRightTarget) * 0.166 / 500.);
 
-  first = false;
+#if FW == 14
+  bool changed;
+  int16_t * old = &oldLedRGB[0];
+  int16_t * current = &thymio_variables->ledTop[0];
+  for (size_t l = 0; l < 3; l++) {
+    changed = false;
+    for (size_t i = 0; i < 3; i++) {
+      if (first || old[3 * l + i] == current[3 * l + i]) {
+        current[3 * l + i] = (int16_t) (robot->get_led_channel(CS::LED::TOP + l, i) * 32);
+      } else {
+        changed = true;
+      }
+      old[3 * l + i] = current[3 * l + i];
+    }
+    if (changed) {
+      robot->set_led_color(CS::LED::TOP + l, false, current[3 * l], current[3 * l + 1],
+                           current[3 * l + 2]);
+    }
+  }
+  changed = false;
+  old = &oldLedCircle[0];
+  current = &thymio_variables->ledCircle[0];
+  for (size_t i = 0; i < 8; i++) {
+    if (first || old[i] == current[i]) {
+      current[i] = (int16_t) (robot->get_led_intensity(CS::LED::RING_0 + i) * 32);
+    } else {
+      robot->set_led_intensity(CS::LED::RING_0 + i, current[i] / 32.0);
+    }
+    old[i] = current[i];
+  }
+#endif
 
+  first = false;
   robot->update_actuation(dt);
 }
 
@@ -226,7 +275,7 @@ void AsebaThymio2::timer100HzTimeout() {
 
 void AsebaThymio2::reset() {
   DynamicAsebaNode::reset();
-  thymio_variables->fwversion[0] = 11;
+  thymio_variables->fwversion[0] = FW;
   thymio_variables->fwversion[1] = 0;
   thymio_variables->productId = ASEBA_PID_THYMIO2;
   thymio_variables->timerPeriod[0] = 0;

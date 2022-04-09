@@ -518,8 +518,50 @@ void Thymio2::set_led_intensity(size_t index, float intensity) {
   }
 }
 
-void Thymio2::set_led_color(size_t index, bool force,
-                                       float r, float g, float b) {
+float Thymio2::get_led_intensity(size_t index) const {
+  if (index >= LED::COUNT) return 0.0;
+  const LED & led = leds[index];
+  return led.color.a;
+}
+
+float Thymio2::get_led_channel(size_t index, size_t channel) const {
+  if (index >= LED::COUNT) return 0.0;
+  const LED & led = leds[index];
+  switch (channel) {
+    case 0:
+      return led.color.r;
+    case 1:
+      return led.color.g;
+    case 2:
+      return led.color.b;
+    default:
+      return 0;
+  }
+}
+
+void Thymio2::set_led_channel(size_t index, size_t channel, float value) {
+  if (index >= LED::COUNT) return;
+  LED & led = leds[index];
+  float r = led.color.r * led.color.a;
+  float g = led.color.g * led.color.a;
+  float b = led.color.b * led.color.a;
+  switch (channel) {
+    case 0:
+      r = std::clamp<float>(value, 0, 1);
+      break;
+    case 1:
+      g = std::clamp<float>(value, 0, 1);
+      break;
+    case 2:
+      b = std::clamp<float>(value, 0, 1);
+      break;
+    default:
+      return;
+  }
+  set_led_color(index, false, r, g, b);
+}
+
+void Thymio2::set_led_color(size_t index, bool force, float r, float g, float b) {
   // printf("set led color %zu (%.2f %.2f %.2f)\n", index, r, g, b);
   if (index >= LED::COUNT) return;
   const LEDTexture & led_texture = led_textures[index];
