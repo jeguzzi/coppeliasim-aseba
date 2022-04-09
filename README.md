@@ -133,6 +133,7 @@ CoppeliaSim together with this plugin, adds:
   - proximity communication
   - tap detection from acceletometer
   - basic support for rc, microphone, speaker, battery, and temperature sensor.
+  - **option** to enable the same [feedback] behavior implemented in the firmware that provides feedback about proximity and ground sensors, battery level, accelerometer, microphone, temperature and rc, when the LEDs are not controlled by an Aseba script.
   - multiple robots on the same Aseba network (without the need of running `asebaswitch`)
   - customizable Thymio Aseba node
   - custom Aseba nodes implemented in lua
