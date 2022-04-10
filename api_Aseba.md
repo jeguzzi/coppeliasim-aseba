@@ -4,6 +4,9 @@
 | [argument_t](#argument_t) |
 | [node_t](#node_t) |
 
+## Enums
+| enum |
+|----|
 
 ## Functions
 | function |
@@ -52,6 +55,8 @@ node_t = {int port , string name , int id }
   - **name** The node name
 
   - **id** The node id
+
+
 
 
 

@@ -659,7 +659,7 @@
             <description>The light intensity read by each sensor; set to 0 if the message was not recevied. </description>
         </param>
     </struct>
-    <enum name="LED" item-prefix="led_" base="0">
+    <enum name="_thymio2_LED" item-prefix="led_" base="0">
         <categories>
           <category name="thymio2"/>
         </categories>
@@ -696,7 +696,7 @@
         <item name="battery_1" />
         <item name="battery_2" />
     </enum>
-    <enum name="Button" item-prefix="button_" base="0">
+    <enum name="_thymio2_Button" item-prefix="button_" base="0">
         <categories>
             <category name="thymio2"/>
         </categories>
@@ -706,14 +706,14 @@
         <item name="forward" />
         <item name="right" />
     </enum>
-    <enum name="Motor" item-prefix="motor_" base="0">
+    <enum name="_thymio2_Motor" item-prefix="motor_" base="0">
         <categories>
             <category name="thymio2"/>
         </categories>
         <item name="left" />
         <item name="right" />
     </enum>
-    <enum name="Behaviors" item-prefix="behavior_" base="0">
+    <enum name="_thymio2_Behaviors" item-prefix="behavior_" base="0">
         <categories>
             <category name="thymio2"/>
         </categories>

@@ -22,7 +22,19 @@ local sim{name}=require('{lua_file}')
 local function wrapFunc(funcName, wrapperGenerator)
     sim{name}[funcName]=wrapperGenerator()
 end
-    """)
+
+function simThymio.__addEnums()""")
+        for enum in plugin.enums:
+            if prefix not in enum.name:
+                continue
+            enum_name = enum.name.split(prefix)[-1]
+            f.write(f"""
+    sim{name}.{enum_name} =  _G['sim{plugin.name}']['{enum.name}']""")
+        f.write("""
+end
+sim.registerScriptFuncHook('sysCall_init','simThymio.__addEnums',true)
+""")
+
         for cmd in plugin.commands:
             if '_thymio2_' not in cmd.name:
                 continue

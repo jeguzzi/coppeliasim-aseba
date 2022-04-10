@@ -3,6 +3,13 @@
 |----|
 | [prox_comm_message_t](#prox_comm_message_t) |
 
+## Enums
+| enum |
+|----|
+| [simThymio.LED](#LED) |
+| [simThymio.Button](#Button) |
+| [simThymio.Motor](#Motor) |
+| [simThymio.Behaviors](#Behaviors) |
 
 ## Functions
 | function |
@@ -48,6 +55,36 @@ prox_comm_message_t = {int rx , int[] payloads , float[] intensities }
 
   - **intensities** The light intensity read by each sensor; set to 0 if the message was not recevied. 
 
+
+
+
+
+
+#### LED
+```C++
+LED = {top=0, bottom_left=1, bottom_right=2, button_up=3, button_down=4, button_left=5, button_right=6, circle_0=7, circle_1=8, circle_2=9, circle_3=10, circle_4=11, circle_5=12, circle_6=13, circle_7=14, front_0=15, front_1=16, front_2=17, front_3=18, front_4=19, front_5=20, rear_0=21, rear_1=22, left_red=23, left_blue=24, right_red=25, right_blue=26, ground_0=27, ground_1=28, battery_0=29, battery_1=30, battery_2=31}
+```
+
+
+
+#### Button
+```C++
+Button = {backward=0, left=1, center=2, forward=3, right=4}
+```
+
+
+
+#### Motor
+```C++
+Motor = {left=0, right=1}
+```
+
+
+
+#### Behaviors
+```C++
+Behaviors = {battery=1, buttons=2, proximity=4, accelerometer=8, temperature=16, rc=32, mic=64, all=255}
+```
 
 
 

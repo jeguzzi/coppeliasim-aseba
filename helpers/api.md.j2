@@ -5,6 +5,12 @@
 | [{{s.name}}](#{{s.name}}) |
 {%- endfor %}
 
+## Enums
+| enum |
+|----|
+{%- for s in plugin.enums %}
+| [sim{{plugin.name}}.{{s.name}}](#{{s.name}}) |
+{%- endfor %}
 
 ## Functions
 | function |
@@ -32,6 +38,20 @@
 {% endfor %}
 {% endfor %}
 
+
+{% for e in plugin.enums %}
+
+#### {{e.name}}
+```C++
+{{e.name}} = {
+{%- for item in e.items -%}
+{{item.name}}={{item.value}}
+{%- if not loop.last %}, {% endif -%}
+{%- endfor -%}
+}
+```
+
+{% endfor %}
 
 {% for cmd in plugin.commands %}
 

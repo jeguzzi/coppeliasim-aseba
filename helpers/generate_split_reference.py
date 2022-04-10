@@ -46,6 +46,7 @@ def generate_split_reference(directory, source_file):
         if not for_thymio:
             aseba_root.append(s)
         else:
+            s.attrib['name'] = s.attrib['name'].split(prefix)[-1]
             thymio_root.append(s)
     aseba_file = "reference_Aseba.xml"
     thymio_file = "reference_Thymio.xml"
