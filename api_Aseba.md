@@ -4,9 +4,7 @@
 | [argument_t](#argument_t) |
 | [node_t](#node_t) |
 
-## Enums
-| enum |
-|----|
+
 
 ## Functions
 | function |
@@ -26,7 +24,6 @@
 | [simAseba.destroy_network](#destroy_network) |
 | [simAseba.load_script](#load_script) |
 | [simAseba.set_script](#set_script) |
-
 
 
 

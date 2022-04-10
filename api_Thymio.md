@@ -41,7 +41,6 @@
 
 
 
-
 #### prox_comm_message_t
 A proximity communication
 ```C++

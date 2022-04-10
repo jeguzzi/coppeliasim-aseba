@@ -1,24 +1,29 @@
 ## Structures
+{% if plugin.structs -%}
 | struct |
 |----|
 {%- for s in plugin.structs %}
 | [{{s.name}}](#{{s.name}}) |
 {%- endfor %}
+{%- endif %}
 
+{% if plugin.enums -%}
 ## Enums
 | enum |
 |----|
 {%- for s in plugin.enums %}
 | [sim{{plugin.name}}.{{s.name}}](#{{s.name}}) |
 {%- endfor %}
+{%- endif %}
 
+{% if plugin.commands -%}
 ## Functions
 | function |
 |----|
 {%- for cmd in plugin.commands %}
 | [sim{{plugin.name}}.{{cmd.name}}](#{{cmd.name}}) |
 {%- endfor %}
-
+{%- endif %}
 
 {% for s in plugin.structs %}
 
