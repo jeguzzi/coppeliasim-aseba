@@ -19,9 +19,9 @@ class Thymio2::Behavior {
  private:
   Thymio2 & robot;
   unsigned int behavior;
-  unsigned acc_previous_led;
+  int acc_previous_led;
   float bat_counter;
-  float button_intensity[5];
+  float button_intensity[Button::COUNT];
   float temp_counter;
   float sound_led_intensity;
   bool enabled(int b) { return behavior & b; }
@@ -71,7 +71,7 @@ class Thymio2::Behavior {
   }
 
   void leds_buttons(float time_step) {
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < Button::COUNT; i++) {
       if (robot.get_button(i)) {
         // + 0.09375 after 20 ms
         button_intensity[i] +=  button_delta * time_step;
@@ -82,13 +82,13 @@ class Thymio2::Behavior {
       }
     }
     if (button_intensity[2]) {
-    for (int i = 0; i < 4; i++)
-      robot.set_led_intensity(LED::BUTTON_UP + i, button_intensity[2]);
+      for (int i = 0; i < 4; i++)
+        robot.set_led_intensity(LED::BUTTON_UP + i, button_intensity[Button::CENTER]);
     } else {
-      robot.set_led_intensity(LED::BUTTON_DOWN, button_intensity[0]);
-      robot.set_led_intensity(LED::BUTTON_LEFT, button_intensity[1]);
-      robot.set_led_intensity(LED::BUTTON_UP, button_intensity[3]);
-      robot.set_led_intensity(LED::BUTTON_RIGHT, button_intensity[4]);
+      robot.set_led_intensity(LED::BUTTON_DOWN, button_intensity[Button::BACKWARD]);
+      robot.set_led_intensity(LED::BUTTON_LEFT, button_intensity[Button::LEFT]);
+      robot.set_led_intensity(LED::BUTTON_UP, button_intensity[Button::FORWARD]);
+      robot.set_led_intensity(LED::BUTTON_RIGHT, button_intensity[Button::RIGHT]);
     }
   }
 
@@ -132,6 +132,7 @@ class Thymio2::Behavior {
       } else if (index < 0) {
         index += 8;
       }
+      printf("A %d \n", index);
       robot.set_led_intensity(LED::RING_0 + index, intensity);
       acc_previous_led = index;
     }
@@ -192,7 +193,7 @@ class Thymio2::Behavior {
 
     // if(ENABLED(B_LEDS_SD))
     //   behavior_sd();
-    // if(ENABLED(B_SOUND_BUTTON))
+    // if(ENABLED(B_SOUND_Button))
     //   behavior_sound_buttons();
     // if (ENABLED(B_MODE))
     //   mode_tick();
