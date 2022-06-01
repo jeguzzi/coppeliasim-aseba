@@ -38,6 +38,7 @@
 #include "aseba_network.h"
 #include "coppeliasim_aseba_node.h"
 #include "aseba_thymio2.h"
+#include "aseba_epuck.h"
 #include "coppeliasim_thymio2.h"
 #include "logging.h"
 
@@ -168,6 +169,27 @@ class Plugin : public sim::Plugin {
       for (simInt button_handle : thymio.button_handles()) {
         buttons[button_handle] = std::make_pair(uid, i);
         i++;
+      }
+      out->id = uid;
+    }
+
+    void _epuck_create(_epuck_create_in *in, _epuck_create_out *out) {
+      simInt uid = free_uid(in->id);
+      uids.insert(uid);
+      // epucks.emplace(std::piecewise_construct, std::forward_as_tuple(uid),
+      //                std::forward_as_tuple(in->handle, in->behavior_mask));
+      // std::array<uint8_t, 16> uuid;
+      // char s[17];
+      // snprintf(s, sizeof(s), "coppeliasim %04d", uid);
+      // std::copy(s, s+16, uuid.data());
+      // CS::Thymio2 & thymio = thymios.at(uid);
+      if (in->with_aseba) {
+        AsebaEPuck * node = Aseba::create_node<AsebaEPuck>(
+            uid, in->port, "epuck0");
+        node->set_script_id(simGetScriptHandleEx(sim_scripttype_childscript, in->handle, nullptr));
+        node->robot = nullptr;
+      } else {
+        // standalone_thymios.insert(uid);
       }
       out->id = uid;
     }

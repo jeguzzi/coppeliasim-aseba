@@ -160,6 +160,9 @@ coppeliasim_add_plugin(simExtAseba
   src/aseba_default_description.c
   src/aseba_network.cpp
   src/aseba_script.cpp
+  src/aseba_epuck_descriptions.c
+  src/aseba_epuck_natives.cpp
+  src/aseba_epuck.cpp
 )
 
 if(WIN32)

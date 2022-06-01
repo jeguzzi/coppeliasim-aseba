@@ -726,4 +726,29 @@
         <item name="mic" value="64"/>
         <item name="all" value="255"/>
     </enum>
+    <command name="_epuck_create">
+        <description>Instantiate a e-puck controller</description>
+        <params>
+          <param name="handle" type="int">
+              <description>Handle of the e-puck model in CoppeliaSim</description>
+          </param>
+          <param name="with_aseba" type="bool" default="true">
+            <description>Start emulating the Aseba firmware</description>
+          </param>
+          <param name="friendly_name" type="string" default='"e-puck"'>
+            <description>A friendlier name used in Thymio Suite to label nodes. Must not be unique. If left empty, it is set to "e-puck".</description>
+          </param>
+          <param name="port" type="int" default="33333">
+            <description>The Aseba port number</description>
+          </param>
+          <param name="id" type="int" default="-1">
+            <description>The Aseba node ID. Two nodes in the same Aseba network cannot have the same id. Set to -1 to choose the lowest available id.</description>
+          </param>
+        </params>
+        <return>
+            <param name="id" type="int">
+                <description>The ID assigned to the e-puck controller and its potential Aseba node.</description>
+            </param>
+        </return>
+    </command>
 </plugin>
