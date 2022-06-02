@@ -41,14 +41,48 @@ struct Gyroscope {
 
 class EPuck : public Robot {
 
+  class LED {
+   private:
+    int position;
+    bool value;
+    cv::Mat on_texture;
+    cv::Mat off_texture;
+
+    static constexpr float size_x = 8.0;
+    static constexpr float size_y = 14.0;
+    static constexpr int y = 258;
+    static constexpr float a = 1.5;
+    static constexpr int texture_size = 1024;
+    static constexpr int patch_width = 40;
+    static constexpr int patch_height = 60;
+    static cv::Mat texture;
+    static int texture_id;
+    static bool loaded_textures;
+    static void load_texture();
+    void push();
+   public:
+    static void init(int texture_id);
+    explicit LED(int position);
+    void set_value(bool);
+    bool get_value() const {
+      return value;
+    };
+  };
+
  private:
 
    Camera camera;
    Gyroscope gyroscope;
    std::array<float, 3> mic_intensity;
+   std::vector<LED> leds;
    float battery_voltage;
    uint8_t selector;
    uint8_t rc;
+   bool front_led;
+   bool body_led;
+   simInt body_handle;
+   simInt ring_handle;
+   simInt rest_handle;
 
  public:
   EPuck(simInt handle);
@@ -103,6 +137,28 @@ class EPuck : public Robot {
     return 0.0;
   }
 
+  void set_ring_led(size_t index, bool value) {
+    if (index > leds.size()) return;
+    if (index == leds.size()) {
+      for(auto & led : leds) {
+        led.set_value(value);
+      }
+    } else {
+      leds[index].set_value(value);
+    }
+  }
+  void set_body_led(bool value);
+  void set_front_led(bool value);
+  bool get_ring_led(size_t index) const {
+    if (index > leds.size()) return false;
+    return leds[index].get_value();
+  }
+  bool get_body_led() const {
+    return body_led;
+  }
+  bool get_front_led() const {
+    return front_led;
+  }
 };
 
 }

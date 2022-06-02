@@ -176,13 +176,34 @@ void AsebaEPuck::update_camera() {
   emit(EVENT_CAMERA);
 }
 
-
 void AsebaEPuck::update_leds() {
+  bool value;
   for (size_t i = 0; i < 8; i++) {
-    // e_set_led(i, epuck_variables->leds[i] ? 1 : 0);
+    value = epuck_variables->leds[i] == 1;
+    if (first || value == leds[i]) {
+      leds[i] = robot->get_ring_led(i);
+      epuck_variables->leds[i] = (leds[i] ? 1 : 0);
+    } else {
+      robot->set_ring_led(i, value);
+      leds[i] = value;
+    }
   }
-  // e_set_body_led(epuck_variables->leds[8] ? 1 : 0);
-  // e_set_front_led(epuck_variables->leds[9] ? 1 : 0);
+  value = epuck_variables->leds[8] == 1;
+  if (first || value == leds[8]) {
+    leds[8] = robot->get_body_led();
+    epuck_variables->leds[8] = (leds[8] ? 1 : 0);
+  } else {
+    robot->set_body_led(value);
+    leds[8] = value;
+  }
+  value = epuck_variables->leds[9] == 1;
+  if (first || value == leds[9]) {
+    leds[9] = robot->get_front_led();
+    epuck_variables->leds[9] = (leds[9] ? 1 : 0);
+  } else {
+    robot->set_front_led(value);
+    leds[9] = value;
+  }
 }
 
 void AsebaEPuck::update_proximity_sensors() {

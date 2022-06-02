@@ -42,7 +42,7 @@ typedef struct {
  int16_t productId;
  int16_t motorLeftTarget;
  int16_t motorRightTarget;
- int16_t leds[10];          // TODO(Jerome)
+ int16_t leds[10];
  int16_t prox[8];
  int16_t ambient[8];
  int16_t acc[3];
@@ -95,6 +95,7 @@ class AsebaEPuck : public CoppeliaSimAsebaNode {
   int16_t motor_right_target;
   int16_t camera_line;
   int16_t selector_state;
+  bool leds[10];
   bool is_version_1_3;
   Aseba::SoftTimer timer64Hz;
  public:

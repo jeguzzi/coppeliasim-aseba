@@ -650,6 +650,31 @@ class Plugin : public sim::Plugin {
       }
     }
 
+    void _epuck_set_ring_led(_epuck_set_ring_led_in *in,
+                             _epuck_set_ring_led_out *out) {
+      if (epucks.count(in->id)) {
+        auto & epuck = epucks.at(in->id);
+        epuck.set_ring_led(in->index, in->value);
+      }
+    }
+
+    void _epuck_set_body_led(_epuck_set_body_led_in *in,
+                             _epuck_set_body_led_out *out) {
+      if (epucks.count(in->id)) {
+        auto & epuck = epucks.at(in->id);
+        epuck.set_body_led(in->value);
+      }
+    }
+
+    void _epuck_set_front_led(_epuck_set_front_led_in *in,
+                              _epuck_set_front_led_out *out) {
+      if (epucks.count(in->id)) {
+        auto & epuck = epucks.at(in->id);
+        epuck.set_front_led(in->value);
+      }
+    }
+
+
  private:
   std::map<simInt, CS::Thymio2> thymios;
   std::map<simInt, CS::EPuck> epucks;
