@@ -30,7 +30,7 @@ AsebaEPuck::AsebaEPuck(int node_id, const std::string & _name,
   CoppeliaSimAsebaNode(node_id, _name, uuid_, friendly_name_),
   timer(std::bind(&AsebaEPuck::timerTimeout, this), 0),
   timer64Hz(std::bind(&AsebaEPuck::timer64HzTimeout, this), 1.0 / 64.0),
-  timer_period(0), camera_line(0), first(true),
+  timer_period(0), camera_line(50), first(true),
   robot(nullptr), is_version_1_3(true) {
   epuck_variables = reinterpret_cast<epuck_variables_t *>(&variables);
   epuck_variables->id = node_id;
@@ -134,16 +134,21 @@ void AsebaEPuck::step(float dt) {
   robot->update_actuation(dt);
 }
 
+// 5 bit per channel multiplied by 3 (i.e. between 0 and 93)
+static uint8_t aseba_pixel(uint8_t pixel) {
+  return 3 * (pixel >> 3);
+}
+
 void AsebaEPuck::update_camera() {
+  const uint8_t * image = robot->get_camera_line(camera_line / 100.0);
   for (size_t i = 0; i < 60; i++) {
-    epuck_variables->camR[i] = 0;  // CAM_RED(cam_data[i]);
-    epuck_variables->camG[i] = 0;  // CAM_GREEN(cam_data[i]);
-    epuck_variables->camB[i] = 0;  // CAM_BLUE(cam_data[i]);
+    epuck_variables->camR[i] = aseba_pixel(image[3 * i]);
+    epuck_variables->camG[i] = aseba_pixel(image[3 * i + 1]);
+    epuck_variables->camB[i] = aseba_pixel(image[3 * i + 2]);
   }
   if (camera_line != epuck_variables->camLine) {
-    camera_line = epuck_variables->camLine;
-    // TODO(Jerome)
-    // setCamLine(camline);
+    // line clamped between 0 and 99
+    camera_line = std::clamp<uint16_t>(epuck_variables->camLine, 0, 99);
   }
   emit(EVENT_CAMERA);
 }

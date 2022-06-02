@@ -4,6 +4,8 @@ project(simExtAseba)
 set(CMAKE_C_STANDARD 99)
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   # add_compile_options(-Wall -Wextra -Wpedantic)
+  add_compile_options(-Wno-c99-extensions -Wno-gnu-flexible-array-initializer)
+  # -Wc99-extensions
 endif()
 
 if(WIN32)

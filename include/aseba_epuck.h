@@ -46,10 +46,10 @@ typedef struct {
  int16_t prox[8];           // TODO(Jerome)
  int16_t ambient[8];        // TODO(Jerome)
  int16_t acc[3];
- int16_t camLine;           // TODO(Jerome)
- int16_t camR[60];          // TODO(Jerome)
- int16_t camG[60];          // TODO(Jerome)
- int16_t camB[60];          // TODO(Jerome)
+ int16_t camLine;
+ int16_t camR[60];
+ int16_t camG[60];
+ int16_t camB[60];
  int16_t leftSteps;
  int16_t rightSteps;
  int16_t mic[3];            // TODO(Jerome)

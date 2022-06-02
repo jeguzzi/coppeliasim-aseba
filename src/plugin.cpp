@@ -89,21 +89,16 @@ class Plugin : public sim::Plugin {
     }
 
     void onSimulationAboutToEnd() {
-      printf("1\n");
       while (thymios.size()) {
         auto it = thymios.begin();
         destroy_node_with_uid(it->first);
       }
-      printf("2\n");
       while (epucks.size()) {
         auto it = epucks.begin();
         destroy_node_with_uid(it->first);
       }
-      printf("3\n");
       Aseba::destroy_all_nodes();
-      printf("4\n");
       Aseba::remove_all_networks();
-      printf("5\n");
     }
 
     void onModuleHandle(char *customData) {

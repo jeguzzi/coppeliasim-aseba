@@ -5,6 +5,21 @@
 
 namespace CS {
 
+void Camera::update_sensing(float dt) {
+  if (handle <= 0) return;
+  simHandleVisionSensor(handle, nullptr, nullptr);
+  simInt width = 0;
+  simInt height = 0;
+  simUChar *buffer = simGetVisionSensorCharImage(handle, &width, &height);
+  if (width != image_width || height != image_height) {
+    log_error("Wrong image size %d x %d", width, height);
+    return;
+  }
+  unsigned size = width * height * 3;
+  image = std::vector<uint8_t>(buffer, buffer + size);
+  simReleaseBuffer((const simChar *)buffer);
+}
+
 static std::array<std::string, 2> wheel_prefixes = {"/Left", "/Right"};
 static std::array<std::string, 8> proximity_names = {
     "0", "1", "2", "3", "4", "5", "6", "7"};
@@ -32,6 +47,8 @@ EPuck::EPuck(simInt handle_) : Robot(handle_) {
   simInt acc_handle = simGetObject(acc_path.c_str(), -1, -1, 0);
   accelerometer = Accelerometer(acc_handle);
 
+  std::string camera_path = std::string(alias)+"/Camera";
+  camera = Camera(simGetObject(camera_path.c_str(), -1, -1, 0));
   simReleaseBuffer(alias);
   reset();
 }
@@ -47,6 +64,7 @@ void EPuck::reset() {
 
 void EPuck::update_sensing(float dt) {
   Robot::update_sensing(dt);
+  camera.update_sensing(dt);
 }
 
 void EPuck::update_actuation(float dt) {
