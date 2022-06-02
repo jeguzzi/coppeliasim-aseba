@@ -6,7 +6,7 @@
 namespace CS {
 
 void Camera::update_sensing(float dt) {
-  if (handle <= 0) return;
+  if (!active || handle <= 0) return;
   simHandleVisionSensor(handle, nullptr, nullptr);
   simInt width = 0;
   simInt height = 0;
@@ -18,6 +18,21 @@ void Camera::update_sensing(float dt) {
   unsigned size = width * height * 3;
   image = std::vector<uint8_t>(buffer, buffer + size);
   simReleaseBuffer((const simChar *)buffer);
+}
+
+void Gyroscope::update_sensing(float dt) {
+  if (!active || handle <= 0) return;
+  simFloat w[3];
+  // get angular velocity in absolute coordinates
+  simGetObjectVelocity(handle+sim_handleflag_axis, nullptr, w);
+  simFloat t[12];
+  simGetObjectMatrix(handle, -1, t);
+  // just rotation
+  t[3] = t[7] = t[11] = 0.0;
+  simInvertMatrix(t);
+  // get angular velocity in body frame
+  simTransformVector(t, w);
+  std::copy(w, w+ 3, values);
 }
 
 static std::array<std::string, 2> wheel_prefixes = {"/Left", "/Right"};
@@ -50,6 +65,8 @@ EPuck::EPuck(simInt handle_) :
 
   std::string camera_path = std::string(alias)+"/Camera";
   camera = Camera(simGetObject(camera_path.c_str(), -1, -1, 0));
+
+  gyroscope = Gyroscope(simGetObject((std::string(alias)+"/Gyroscope").c_str(), -1, -1, 0));
   simReleaseBuffer(alias);
   reset();
 }
@@ -66,6 +83,7 @@ void EPuck::reset() {
 void EPuck::update_sensing(float dt) {
   Robot::update_sensing(dt);
   camera.update_sensing(dt);
+  gyroscope.update_sensing(dt);
 }
 
 void EPuck::update_actuation(float dt) {

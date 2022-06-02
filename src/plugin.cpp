@@ -640,6 +640,16 @@ class Plugin : public sim::Plugin {
       }
     }
 
+    void _epuck_get_gyroscope(_epuck_get_gyroscope_in *in,
+                              _epuck_get_gyroscope_out *out) {
+      if (epucks.count(in->id)) {
+        const auto & epuck = epucks.at(in->id);
+        out->x = epuck.get_angular_velocity(0);
+        out->y = epuck.get_angular_velocity(1);
+        out->z = epuck.get_angular_velocity(2);
+      }
+    }
+
  private:
   std::map<simInt, CS::Thymio2> thymios;
   std::map<simInt, CS::EPuck> epucks;

@@ -886,4 +886,23 @@
         <return>
         </return>
     </command>
+    <command name="_epuck_get_gyroscope">
+        <description>Get the current reading the gyroscope</description>
+        <params>
+            <param name="id" type="int">
+              <description>The ID of the e-puck controller</description>
+            </param>
+        </params>
+        <return>
+          <param name="x" type="float">
+              <description>The x-component in rad/s</description>
+          </param>
+          <param name="y" type="float">
+              <description>The y-component in rad/s</description>
+          </param>
+          <param name="z" type="float">
+              <description>The z-component in rad/s</description>
+          </param>
+        </return>
+    </command>
 </plugin>

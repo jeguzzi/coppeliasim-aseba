@@ -88,6 +88,11 @@ inline uint16_t aseba_battery(float voltage) {
   return value;
 }
 
+// TODO(Jerome): I don't know the conversion factor
+inline uint16_t aseba_gyro(float speed) {
+  return round(1000 * speed);
+}
+
 void AsebaEPuck::step(float dt) {
   // get physical variables
   robot->update_sensing(dt);
@@ -96,7 +101,7 @@ void AsebaEPuck::step(float dt) {
     // TODO(Jerome): check orientation
     epuck_variables->acc[i] = aseba_acc(robot->get_acceleration(i));
     epuck_variables->mic[i] = aseba_mic(robot->get_mic_intensity(i));
-    epuck_variables->gyro[i] = 0;  // getAllAxesGyro
+    epuck_variables->gyro[i] = aseba_gyro(robot->get_angular_velocity(i));
   }
 
   update_camera();

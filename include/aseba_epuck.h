@@ -59,7 +59,7 @@ typedef struct {
  // battery (percentage for e-puck 1.3, state for e-puck <= 1.2)
  int16_t battery;
  // gyro (only for e-puck 1.3)
- int16_t gyro[3];           // TODO(Jerome)
+ int16_t gyro[3];
  int16_t freeSpace[128];
 } epuck_variables_t;
 

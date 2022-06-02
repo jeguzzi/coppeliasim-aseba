@@ -17,6 +17,7 @@ struct Camera {
   int image_width;
   int image_height;
   std::vector<uint8_t> image;
+  bool active;
 
   void update_sensing(float dt);
 
@@ -26,7 +27,16 @@ struct Camera {
   }
 
   Camera(simInt handle=-1) :
-    handle(handle), image_width(60), image_height(60), image(image_width * image_height * 3) {}
+    handle(handle), image_width(60), image_height(60), image(image_width * image_height * 3),
+    active(true) {}
+};
+
+struct Gyroscope {
+  float values[3];
+  simInt handle;
+  bool active;
+  Gyroscope(int handle=-1) : values(), handle(handle), active(true) {};
+  void update_sensing(float dt);
 };
 
 class EPuck : public Robot {
@@ -34,6 +44,7 @@ class EPuck : public Robot {
  private:
 
    Camera camera;
+   Gyroscope gyroscope;
    std::array<float, 3> mic_intensity;
    float battery_voltage;
    uint8_t selector;
@@ -85,6 +96,11 @@ class EPuck : public Robot {
 
   void set_rc(uint8_t value) {
     rc = value;
+  }
+
+  float get_angular_velocity(size_t index) const {
+    if(index < 3) return gyroscope.values[index];
+    return 0.0;
   }
 
 };
