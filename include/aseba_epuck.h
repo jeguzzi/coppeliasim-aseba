@@ -43,8 +43,8 @@ typedef struct {
  int16_t motorLeftTarget;
  int16_t motorRightTarget;
  int16_t leds[10];          // TODO(Jerome)
- int16_t prox[8];           // TODO(Jerome)
- int16_t ambient[8];        // TODO(Jerome)
+ int16_t prox[8];
+ int16_t ambient[8];
  int16_t acc[3];
  int16_t camLine;
  int16_t camR[60];

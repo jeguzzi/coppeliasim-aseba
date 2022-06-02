@@ -93,10 +93,10 @@ class Thymio2::Behavior {
   }
 
   void leds_prox(float time_step) {
-    float h = CS::ProximitySensor::max_value - CS::ProximitySensor::min_value;
+    float h = robot.proximity_max_value - robot.proximity_min_value;
     // Do a linear transformation from min-max to led 0-31!
     for (int i = 0; i < 7; i++) {
-      float intensity = (robot.get_proximity_value(i) - CS::ProximitySensor::min_value) / h;
+      float intensity = (robot.get_proximity_value(i) - robot.proximity_min_value) / h;
       if (i < 2) {
         robot.set_led_intensity(CS::LED::IR_FRONT_0 + i, intensity);
       }
@@ -371,6 +371,9 @@ static void load_textures() {
   loaded_textures = true;
 }
 
+static const float x0 = 0.0003;
+static const float lambda = 0.0857;
+
 static std::array<std::string, 2> wheel_prefixes = {"/Left", "/Right"};
 static std::array<std::string, 7> proximity_names = {
     "Left", "CenterLeft", "Center", "CenterRight", "Right", "RearLeft", "RearRight"};
@@ -396,7 +399,8 @@ Thymio2::Thymio2(simInt handle_, uint8_t default_behavior_mask_) :
   for (size_t i = 0; i < proximity_names.size(); i++) {
     std::string prox_path = std::string(alias)+"/Proximity" + proximity_names[i];
     simInt prox_handle = simGetObject(prox_path.c_str(), -1, -1, 0);
-    proximity_sensors.push_back(ProximitySensor(prox_handle));
+    proximity_sensors.push_back(ProximitySensor(
+        prox_handle, proximity_min_value, proximity_max_value, x0, lambda));
     prox_comm.emitter_handles[i] = prox_handle;
     prox_comm.sensor_handles[i] = simGetObject((prox_path + "/Comm").c_str(), -1, -1, 0);
   }

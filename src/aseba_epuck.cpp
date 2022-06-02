@@ -187,8 +187,8 @@ void AsebaEPuck::update_leds() {
 
 void AsebaEPuck::update_proximity_sensors() {
   for (size_t i = 0; i < 8; i++) {
-    epuck_variables->ambient[i] = 313;  // e_get_ambient_light(i);
-    epuck_variables->prox[i] = 131;     // e_get_calibrated_prox(i);
+    epuck_variables->ambient[i] = 3800;
+    epuck_variables->prox[i] = robot->get_proximity_value(i);
   }
 }
 

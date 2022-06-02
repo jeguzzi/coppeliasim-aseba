@@ -217,6 +217,9 @@ class Thymio2 : public Robot {
   virtual void update_sensing(float dt);
   virtual void update_actuation(float dt);
 
+  static constexpr float proximity_min_value = 1000.0;
+  static constexpr float proximity_max_value = 4505.0;
+
   static constexpr float min_battery_voltage = 3.0;
   static constexpr float max_battery_voltage = 4.2;
 

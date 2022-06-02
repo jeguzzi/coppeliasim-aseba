@@ -35,6 +35,11 @@ void Gyroscope::update_sensing(float dt) {
   std::copy(w, w+ 3, values);
 }
 
+// TODO(Jerome): calibrate
+static const float max_value = 3731.0;
+static const float min_value = 0.0;
+static const float x0 = 0.0;
+static const float lambda = 0.083;
 static std::array<std::string, 2> wheel_prefixes = {"/Left", "/Right"};
 static std::array<std::string, 8> proximity_names = {
     "0", "1", "2", "3", "4", "5", "6", "7"};
@@ -49,11 +54,11 @@ EPuck::EPuck(simInt handle_) :
     simInt wheel_handle = simGetObject(wheel_path.c_str(), -1, -1, 0);
     wheels.push_back(Wheel(0.0211745, wheel_handle));
   }
-  // for (const auto & proximity_name : proximity_names) {
-  //   std::string prox_path = std::string(alias)+"/Proximity" + proximity_name;
-  //   simInt prox_handle = simGetObject(prox_path.c_str(), -1, -1, 0);
-  //   proximity_sensors.push_back(ProximitySensor(prox_handle));
-  // }
+  for (const auto & proximity_name : proximity_names) {
+    std::string prox_path = std::string(alias)+"/Proximity_" + proximity_name;
+    simInt prox_handle = simGetObject(prox_path.c_str(), -1, -1, 0);
+    proximity_sensors.push_back(ProximitySensor(prox_handle, min_value, max_value, x0, lambda));
+  }
   // for (const auto & ground_name : ground_names) {
   //   std::string ground_path = std::string(alias)+"/Ground" + ground_name;
   //   simInt ground_handle = simGetObject(ground_path.c_str(), -1, -1, 0);

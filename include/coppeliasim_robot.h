@@ -48,15 +48,18 @@ struct ProximitySensor {
   simInt handle;
   bool active;
   bool only_red;
-  static constexpr float max_value = 4505.0;
-  static constexpr float min_value = 1000.0;
-  static constexpr float x0 = 0.0003;
-  static constexpr float lambda = 0.0857;
+  const float min_value;
+  const float max_value;
+  const float x0;
+  const float lambda;
   int16_t saturated_value() const {
     if (!detected) return 0;
     return static_cast<int16_t>(value);
   }
-  ProximitySensor(simInt handle_=-1) : handle(handle_), detected(false), active(true), only_red(false) {}
+  ProximitySensor(
+      simInt handle_=-1, float min_value=0, float max_value=0, float x0=0, float lambda=0) :
+  handle(handle_), detected(false), active(true), only_red(false),
+  min_value(min_value), max_value(max_value), x0(x0), lambda(lambda) {}
   void update_sensing(float dt);
 };
 
