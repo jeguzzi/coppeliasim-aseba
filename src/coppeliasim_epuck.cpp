@@ -3,7 +3,6 @@
 
 #include <math.h>
 
-#define TEXTURE_DIR_ "/Users/Jerome/Desktop/epuck_model"
 namespace CS {
 
 bool EPuck::LED::loaded_textures = false;
@@ -165,7 +164,7 @@ void EPuck::LED::init(int texture_id_) {
 void EPuck::LED::load_texture() {
   if (loaded_textures) return;
   printf("load_texture\n");
-  texture = cv::imread(TEXTURE_DIR_ "/epuck.png");
+  texture = cv::imread(TEXTURE_DIR "/epuck.png");
   printf("loaded_texture %d\n", texture.size().width);
   loaded_textures = true;
 }

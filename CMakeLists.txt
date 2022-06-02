@@ -222,6 +222,7 @@ if(DEFINED MODEL_DIR)
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-diffusionMap2.png
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-texture.png
       ${CMAKE_CURRENT_SOURCE_DIR}/models/e-puck-aseba.ttm
+      ${CMAKE_CURRENT_SOURCE_DIR}/models/epuck.png
     DESTINATION ${MODEL_DIR}
   )
 endif()
