@@ -52,12 +52,12 @@ typedef struct {
  int16_t camB[60];
  int16_t leftSteps;
  int16_t rightSteps;
- int16_t mic[3];            // TODO(Jerome)
- int16_t selector;          // TODO(Jerome)
- int16_t tvRemote;          // TODO(Jerome)
+ int16_t mic[3];
+ int16_t selector;
+ int16_t tvRemote;
  int16_t timerPeriod;
  // battery (percentage for e-puck 1.3, state for e-puck <= 1.2)
- int16_t battery;           // TODO(Jerome)
+ int16_t battery;
  // gyro (only for e-puck 1.3)
  int16_t gyro[3];           // TODO(Jerome)
  int16_t freeSpace[128];

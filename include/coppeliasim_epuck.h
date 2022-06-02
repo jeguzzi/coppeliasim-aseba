@@ -34,6 +34,10 @@ class EPuck : public Robot {
  private:
 
    Camera camera;
+   std::array<float, 3> mic_intensity;
+   float battery_voltage;
+   uint8_t selector;
+   uint8_t rc;
 
  public:
   EPuck(simInt handle);
@@ -45,6 +49,42 @@ class EPuck : public Robot {
   void reset();
   const uint8_t * get_camera_line(float y) const {
     return camera.get_line(y);
+  }
+
+  float get_mic_intensity(size_t i) const {
+    if (i < 3) {
+      return mic_intensity[i];
+    }
+    return 0.0;
+  }
+
+  void set_mic_intensity(std::vector<float> values) {
+    size_t l = std::min(values.size(), mic_intensity.size());
+    std::copy_n(values.begin(), l, mic_intensity.begin());
+  }
+
+  float get_battery_voltage() const {
+    return battery_voltage;
+  }
+
+  void set_battery_voltage(float value) {
+    battery_voltage = std::clamp<float>(value, 3.0, 4.2);
+  }
+
+  uint8_t get_selector() const {
+    return selector;
+  }
+
+  void set_selector(uint8_t value) {
+    selector = value & 0xF;
+  }
+
+  uint8_t get_rc() const {
+    return rc;
+  }
+
+  void set_rc(uint8_t value) {
+    rc = value;
   }
 
 };

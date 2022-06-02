@@ -608,6 +608,38 @@ class Plugin : public sim::Plugin {
       }
     }
 
+    void _epuck_set_mic_intensity(_epuck_set_mic_intensity_in *in,
+                                  _epuck_set_mic_intensity_out *out) {
+      if (epucks.count(in->id)) {
+        auto & epuck = epucks.at(in->id);
+        epuck.set_mic_intensity(in->intensity);
+      }
+    }
+
+    void _epuck_set_battery_voltage(_epuck_set_battery_voltage_in *in,
+                                    _epuck_set_battery_voltage_out *out) {
+      if (epucks.count(in->id)) {
+        auto & epuck = epucks.at(in->id);
+        epuck.set_battery_voltage(in->value);
+      }
+    }
+
+    void _epuck_set_selector(_epuck_set_selector_in *in,
+                             _epuck_set_selector_out *out) {
+      if (epucks.count(in->id)) {
+        auto & epuck = epucks.at(in->id);
+        epuck.set_selector(in->position);
+      }
+    }
+
+    void _epuck_receive_rc_message(_epuck_receive_rc_message_in *in,
+                                   _epuck_receive_rc_message_out *out) {
+      if (epucks.count(in->id)) {
+        auto & epuck = epucks.at(in->id);
+        epuck.set_rc(in->data);
+      }
+    }
+
  private:
   std::map<simInt, CS::Thymio2> thymios;
   std::map<simInt, CS::EPuck> epucks;

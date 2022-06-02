@@ -834,4 +834,56 @@
           </param>
         </return>
     </command>
+    <command name="_epuck_set_mic_intensity">
+        <description>Set the current sound intensities read by the microphones.</description>
+        <params>
+            <param name="id" type="int">
+              <description>The ID of the e-puck controller</description>
+            </param>
+            <param name="intensity" type="table" item-type="float">
+                <description>An array of size 3 with the relative sound intensity in [0, 1].</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="_epuck_set_battery_voltage">
+        <description>Set the current battery voltage, which is not simulated.</description>
+        <params>
+            <param name="id" type="int">
+              <description>The ID of the e-puck controller</description>
+            </param>
+            <param name="value" type="float">
+                <description>The voltage between 3.0 and 4.2 V</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="_epuck_set_selector">
+        <description>Set the current selector position.</description>
+        <params>
+            <param name="id" type="int">
+              <description>The ID of the e-puck controller</description>
+            </param>
+            <param name="position" type="int">
+                <description>The position between 0 and 15</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="_epuck_receive_rc_message">
+        <description>Notify the rc receiver of a new message.</description>
+        <params>
+            <param name="id" type="int">
+              <description>The ID of the e-puck controller</description>
+            </param>
+            <param name="data" type="int">
+                <description>The payload between 0 and 255</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
 </plugin>

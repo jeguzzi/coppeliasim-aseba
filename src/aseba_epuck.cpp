@@ -70,6 +70,24 @@ inline float from_aseba_steps(int16_t steps) {
   return steps * 1.28e-4;
 }
 
+// TODO(Jerome): I don't know the bounds
+inline uint16_t aseba_mic(float value) {
+  return round(1000 * value);
+}
+
+// TODO(Jerome): Verify that this is the same as done by the firmare at L34
+// 100*(float)(e_acc_scan[2][e_last_acc_scan_id]-MIN_BATT_VALUE)/(float)BATT_VALUES_RANGE;
+#define MIN_BATT_VALUE 3.4
+#define MAX_BATT_VALUE 4.2
+#define BATT_VALUES_RANGE (MAX_BATT_VALUE-MIN_BATT_VALUE)
+
+inline uint16_t aseba_battery(float voltage) {
+  uint16_t value = std::clamp<int16_t>(
+      round(100 * (voltage - MIN_BATT_VALUE) / BATT_VALUES_RANGE), 0, 100);
+  // printf("B %.4f -> %d\n", voltage, value);
+  return value;
+}
+
 void AsebaEPuck::step(float dt) {
   // get physical variables
   robot->update_sensing(dt);
@@ -77,7 +95,7 @@ void AsebaEPuck::step(float dt) {
   for (size_t i = 0; i < 3; i++) {
     // TODO(Jerome): check orientation
     epuck_variables->acc[i] = aseba_acc(robot->get_acceleration(i));
-    epuck_variables->mic[i] = 0;   // e_get_micro_volume(i);
+    epuck_variables->mic[i] = aseba_mic(robot->get_mic_intensity(i));
     epuck_variables->gyro[i] = 0;  // getAllAxesGyro
   }
 
@@ -89,17 +107,17 @@ void AsebaEPuck::step(float dt) {
 
   // battery
   if (is_version_1_3) {
-    epuck_variables->battery = 88;  // getBatteryValuePercentage();
+    epuck_variables->battery = aseba_battery(robot->get_battery_voltage());
   } else {
-    epuck_variables->battery = 1;  // BATT_LOW=1 => battery ok, BATT_LOW=0 => battery<3.4V
+    epuck_variables->battery = (robot->get_battery_voltage() > 3.4) ? 1 : 0;
   }
 
-  epuck_variables->selector = 0;  // getselector();
+  epuck_variables->selector = robot->get_selector();
   if (!first && selector_state != epuck_variables->selector) {
     emit(EVENT_SELECTOR);
   }
   selector_state = epuck_variables->selector;
-  epuck_variables->tvRemote = 0;  // e_get_data();
+  epuck_variables->tvRemote = robot->get_rc();
 
   // run timers
   timer.step(dt);

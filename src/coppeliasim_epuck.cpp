@@ -25,7 +25,8 @@ static std::array<std::string, 8> proximity_names = {
     "0", "1", "2", "3", "4", "5", "6", "7"};
 static std::array<std::string, 3> ground_names = {"Left", "Center", "Right"};
 
-EPuck::EPuck(simInt handle_) : Robot(handle_) {
+EPuck::EPuck(simInt handle_) :
+  Robot(handle_), mic_intensity({0, 0, 0}), battery_voltage(4.0), selector(0), rc(0) {
   simChar * alias = simGetObjectAlias(handle, 2);
   log_info("Initializing EPuck with handle %d (%s)", handle, alias);
   for (const auto & wheel_prefix : wheel_prefixes) {
