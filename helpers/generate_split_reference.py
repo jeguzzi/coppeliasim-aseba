@@ -5,6 +5,8 @@ import xml.etree.ElementTree as ET
 
 
 def generate_split_reference(directory, source_file):
+    robots = {'Thymio': {'prefix': '_thymio2_', 'category': 'thymio2'},
+              'EPuck': {'prefix': '_epuck_', 'category': 'epuck'}}
     xml_file = os.path.join(directory, source_file)
     tree = ET.parse(xml_file)
     root = tree.getroot()
@@ -12,47 +14,50 @@ def generate_split_reference(directory, source_file):
     aseba_tree = ET.ElementTree(aseba_root)
     aseba_root.attrib['name'] = "Aseba"
     aseba_root.attrib['author'] = "jerome@idsia.ch"
-    thymio_root = ET.Element("plugin")
-    thymio_tree = ET.ElementTree(thymio_root)
-    thymio_root.attrib['name'] = "Thymio"
-    thymio_root.attrib['author'] = "jerome@idsia.ch"
-
-    prefix = '_thymio2_'
-    category = 'thymio2'
+    for name in robots:
+        robots[name]['root'] = ET.Element("plugin")
+        robots[name]['tree'] = ET.ElementTree(robots[name]['root'])
+        robots[name]['root'].attrib['name'] = name
+        robots[name]['root'].attrib['author'] = "jerome@idsia.ch"
 
     for cmd in root.iter('command'):
-        if '_thymio2_' not in cmd.attrib['name']:
-            aseba_root.append(cmd)
+        for name, data in robots.items():
+            if data['prefix'] in cmd.attrib['name']:
+                cmd.attrib['name'] = cmd.attrib['name'].split(data['prefix'])[-1]
+                data['root'].append(cmd)
+                break
         else:
-            cmd.attrib['name'] = cmd.attrib['name'].split(prefix)[-1]
-            thymio_root.append(cmd)
+            aseba_root.append(cmd)
 
     for s in root.iter('struct'):
-        for_thymio = False
         for c in s.iter('category'):
-            if c.attrib['name'] == category:
-                for_thymio = True
-                break
-        if not for_thymio:
-            aseba_root.append(s)
+            for name, data in robots.items():
+                if c.attrib['name'] == data['category']:
+                    data['root'].append(s)
+                    break
+            else:
+                continue
+            break
         else:
-            thymio_root.append(s)
+            aseba_root.append(s)
     for s in root.iter('enum'):
-        for_thymio = False
         for c in s.iter('category'):
-            if c.attrib['name'] == category:
-                for_thymio = True
-                break
-        if not for_thymio:
-            aseba_root.append(s)
+            for name, data in robots.items():
+                if c.attrib['name'] == data['category']:
+                    s.attrib['name'] = s.attrib['name'].split(data['prefix'])[-1]
+                    data['root'].append(s)
+                    break
+            else:
+                continue
+            break
         else:
-            s.attrib['name'] = s.attrib['name'].split(prefix)[-1]
-            thymio_root.append(s)
+            aseba_root.append(s)
     aseba_file = "reference_Aseba.xml"
-    thymio_file = "reference_Thymio.xml"
     aseba_tree.write(os.path.join(directory, aseba_file))
-    thymio_tree.write(os.path.join(directory, thymio_file))
-    return aseba_file, thymio_file
+    for name, data in robots.items():
+        robot_file = f"reference_{name}.xml"
+        data['tree'].write(os.path.join(directory, robot_file))
+    return aseba_file, robots
 
 
 if __name__ == '__main__':

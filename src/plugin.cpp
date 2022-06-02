@@ -40,6 +40,7 @@
 #include "aseba_thymio2.h"
 #include "aseba_epuck.h"
 #include "coppeliasim_thymio2.h"
+#include "coppeliasim_epuck.h"
 #include "logging.h"
 
 std::set<unsigned> uids = {};
@@ -72,6 +73,7 @@ class Plugin : public sim::Plugin {
         setExtVersion("ASEBA");
         setBuildDate(BUILD_DATE);
         sim::registerScriptVariable("simThymio", "require('simThymio-typecheck')", 0);
+        sim::registerScriptVariable("simEPuck", "require('simEPuck-typecheck')", 0);
     }
 
     void onScriptStateDestroyed(int scriptID) {
@@ -87,18 +89,30 @@ class Plugin : public sim::Plugin {
     }
 
     void onSimulationAboutToEnd() {
+      printf("1\n");
       while (thymios.size()) {
         auto it = thymios.begin();
         destroy_node_with_uid(it->first);
       }
+      printf("2\n");
+      while (epucks.size()) {
+        auto it = epucks.begin();
+        destroy_node_with_uid(it->first);
+      }
+      printf("3\n");
       Aseba::destroy_all_nodes();
+      printf("4\n");
       Aseba::remove_all_networks();
+      printf("5\n");
     }
 
     void onModuleHandle(char *customData) {
       simFloat time_step = simGetSimulationTimeStep();
       for (auto uid : standalone_thymios) {
         thymios.at(uid).do_step(time_step);
+      }
+      for (auto uid : standalone_epucks) {
+        epucks.at(uid).do_step(time_step);
       }
       for (auto & [uid, thymio] : thymios) {
         if (thymio.prox_comm_enabled()) {
@@ -176,20 +190,20 @@ class Plugin : public sim::Plugin {
     void _epuck_create(_epuck_create_in *in, _epuck_create_out *out) {
       simInt uid = free_uid(in->id);
       uids.insert(uid);
-      // epucks.emplace(std::piecewise_construct, std::forward_as_tuple(uid),
-      //                std::forward_as_tuple(in->handle, in->behavior_mask));
-      // std::array<uint8_t, 16> uuid;
-      // char s[17];
-      // snprintf(s, sizeof(s), "coppeliasim %04d", uid);
-      // std::copy(s, s+16, uuid.data());
-      // CS::Thymio2 & thymio = thymios.at(uid);
+      epucks.emplace(std::piecewise_construct, std::forward_as_tuple(uid),
+                     std::forward_as_tuple(in->handle));
+      std::array<uint8_t, 16> uuid;
+      char s[17];
+      snprintf(s, sizeof(s), "coppeliasim %04d", uid);
+      std::copy(s, s+16, uuid.data());
+      CS::EPuck & robot = epucks.at(uid);
       if (in->with_aseba) {
         AsebaEPuck * node = Aseba::create_node<AsebaEPuck>(
             uid, in->port, "epuck0");
         node->set_script_id(simGetScriptHandleEx(sim_scripttype_childscript, in->handle, nullptr));
-        node->robot = nullptr;
+        node->robot = &robot;
       } else {
-        // standalone_thymios.insert(uid);
+        standalone_epucks.insert(uid);
       }
       out->id = uid;
     }
@@ -225,10 +239,16 @@ class Plugin : public sim::Plugin {
         }
         thymios.erase(uid);
       }
+      if (epucks.count(uid)) {
+        epucks.erase(uid);
+      }
       Aseba::destroy_node(uid);
       uids.erase(uid);
       if (standalone_thymios.count(uid)) {
         standalone_thymios.erase(uid);
+      }
+      if (standalone_epucks.count(uid)) {
+        standalone_epucks.erase(uid);
       }
     }
 
@@ -293,6 +313,45 @@ class Plugin : public sim::Plugin {
         out->x = thymio.get_acceleration(0);
         out->y = thymio.get_acceleration(1);
         out->z = thymio.get_acceleration(2);
+      }
+    }
+
+    void _epuck_set_target_speed(_epuck_set_target_speed_in *in,
+                                 _epuck_set_target_speed_out *out) {
+      if (in->id == -1) {
+         for (auto & [_, robot] : epucks) {
+           robot.set_target_speed(in->index, in->speed);
+         }
+      } else if (epucks.count(in->id)) {
+        epucks.at(in->id).set_target_speed(in->index, in->speed);
+      }
+    }
+
+    void _epuck_get_speed(_epuck_get_speed_in *in, _epuck_get_speed_out *out) {
+      if (epucks.count(in->id)) {
+        out->speed = epucks.at(in->id).get_speed(in->index);
+      }
+    }
+
+    void _epuck_get_proximity(_epuck_get_proximity_in *in, _epuck_get_proximity_out *out) {
+      if (epucks.count(in->id)) {
+        out->reading = epucks.at(in->id).get_proximity_value(in->index);
+      }
+    }
+
+    void _epuck_get_ground(_epuck_get_ground_in *in, _epuck_get_ground_out *out) {
+      if (epucks.count(in->id)) {
+        out->reflected = epucks.at(in->id).get_ground_reflected(in->index);
+      }
+    }
+
+    void _epuck_get_acceleration(_epuck_get_acceleration_in *in,
+                                   _epuck_get_acceleration_out *out) {
+      if (epucks.count(in->id)) {
+        const auto & robot = epucks.at(in->id);
+        out->x = robot.get_acceleration(0);
+        out->y = robot.get_acceleration(1);
+        out->z = robot.get_acceleration(2);
       }
     }
 
@@ -556,7 +615,9 @@ class Plugin : public sim::Plugin {
 
  private:
   std::map<simInt, CS::Thymio2> thymios;
+  std::map<simInt, CS::EPuck> epucks;
   std::set<int> standalone_thymios;
+  std::set<int> standalone_epucks;
   std::map<simInt, std::pair<simInt, unsigned>> buttons;
   std::map<int, int> prox_comm_tx;
 };

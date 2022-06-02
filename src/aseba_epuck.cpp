@@ -45,18 +45,38 @@ AsebaEPuck::AsebaEPuck(int node_id, const std::string & _name,
 
 // #define G 9.81f
 // input in m^2/s
+// TODO(Jerome): I don't know the conversion factor to get m/s^2 from aseba values
+// For now I use a placeholder (x1000)
 
-// inline uint16_t aseba_acc(float a) {
-//   return round(std::max(std::min(a / G * 23.0f, 32.0f), -32.0f));
-// }
+inline int16_t aseba_acc(float a) {
+  return round(a * 1000);
+}
+
+// n = 1000 steps are about d = 12.8 cm
+// assume radius is r = 0.021 cm
+// value = angle * r / d * n = angle * 164.0625
+// => 15 bit is about 4.2 m, or 200 rad (32 rounds)
+
+inline int16_t to_aseba_steps(float angle) {
+  return round(angle * 164.0625);
+}
+
+inline int16_t to_aseba_steps_speed(float speed) {
+  return round(speed / 1.28e-4);
+}
+
+// returns a distance!
+inline float from_aseba_steps(int16_t steps) {
+  return steps * 1.28e-4;
+}
 
 void AsebaEPuck::step(float dt) {
   // get physical variables
-  // TODO(Jerome)
-  // robot->update_sensing(dt);
+  robot->update_sensing(dt);
 
   for (size_t i = 0; i < 3; i++) {
-    epuck_variables->acc[i] = 0;   // e_get_acc(i);
+    // TODO(Jerome): check orientation
+    epuck_variables->acc[i] = aseba_acc(robot->get_acceleration(i));
     epuck_variables->mic[i] = 0;   // e_get_micro_volume(i);
     epuck_variables->gyro[i] = 0;  // getAllAxesGyro
   }
@@ -64,8 +84,8 @@ void AsebaEPuck::step(float dt) {
   update_camera();
 
   // encoders
-  epuck_variables->leftSteps = 0;  // e_get_steps_left();
-  epuck_variables->rightSteps = 0;  // e_get_steps_right();
+  epuck_variables->leftSteps = to_aseba_steps(robot->get_odometry(CS::Wheel::LEFT));
+  epuck_variables->rightSteps = to_aseba_steps(robot->get_odometry(CS::Wheel::RIGHT));
 
   // battery
   if (is_version_1_3) {
@@ -96,20 +116,22 @@ void AsebaEPuck::step(float dt) {
   int16_t desired_left_speed = std::clamp<int16_t>(epuck_variables->motorLeftTarget, -1000, 1000);
   int16_t desired_right_speed = std::clamp<int16_t>(epuck_variables->motorRightTarget, -1000, 1000);
   if (first || motor_left_target == epuck_variables->motorLeftTarget) {
-    epuck_variables->motorLeftTarget = 0;  //  robot->get_target_speed(0) * 500. / 0.166;
+    epuck_variables->motorLeftTarget = to_aseba_steps_speed(
+        robot->get_target_speed(CS::Wheel::LEFT));
   } else {
-    // robot->set_target_speed(0, double(desired_left_speed) * 0.166 / 500.);
+    robot->set_target_speed(CS::Wheel::LEFT, from_aseba_steps(desired_left_speed));
   }
   if (first || motor_right_target == epuck_variables->motorRightTarget) {
-    epuck_variables->motorRightTarget = 0;  // robot->get_target_speed(1) * 500. / 0.166;
+    epuck_variables->motorRightTarget = to_aseba_steps_speed(
+        robot->get_target_speed(CS::Wheel::RIGHT));
   } else {
-    // robot->set_target_speed(1, double(motor_right_target) * 0.166 / 500.);
+    robot->set_target_speed(CS::Wheel::RIGHT, from_aseba_steps(desired_right_speed));
   }
   motor_left_target = epuck_variables->motorLeftTarget;
   motor_right_target = epuck_variables->motorRightTarget;
 
   first = false;
-  // robot->update_actuation(dt);
+  robot->update_actuation(dt);
 }
 
 void AsebaEPuck::update_camera() {

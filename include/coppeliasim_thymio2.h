@@ -8,29 +8,9 @@
 
 #include <simPlusPlus/Lib.h>
 #include <opencv2/opencv.hpp>
+#include "coppeliasim_robot.h"
 
 namespace CS {
-
-struct Wheel {
-  enum {
-    LEFT, RIGHT
-  };
-
-  float angular_speed;
-  simInt handle;
-  static constexpr float radius = 0.027;
-  float speed() const {
-    return radius * angular_speed;
-  }
-  void update_sensing(float dt);
-  void set_target_speed(float speed);
-  float get_target_speed() const {
-    return nominal_angular_target_speed * radius;
-  }
-  Wheel(simInt handle=-1) : angular_speed(0.0), handle(handle), nominal_angular_target_speed(0.0) {}
- private:
-  float nominal_angular_target_speed;
-};
 
 struct SDCard {
   std::filesystem::path path;
@@ -149,24 +129,6 @@ struct Button {
   Button(simInt handle_ = -1) : value(false), handle(handle_) {}
 };
 
-struct ProximitySensor {
-  float value;
-  bool detected;
-  simInt handle;
-  bool active;
-  bool only_red;
-  static constexpr float max_value = 4505.0;
-  static constexpr float min_value = 1000.0;
-  static constexpr float x0 = 0.0003;
-  static constexpr float lambda = 0.0857;
-  int16_t saturated_value() const {
-    if (!detected) return 0;
-    return static_cast<int16_t>(value);
-  }
-  ProximitySensor(simInt handle_=-1) : handle(handle_), detected(false), active(true), only_red(false) {}
-  void update_sensing(float dt);
-};
-
 struct ProxCommMsg {
   std::array<float, 7> intensities;
   std::array<int, 7> payloads;
@@ -182,77 +144,6 @@ struct ProximityComm {
   ProximityComm() :
     enabled(false), tx(0), rx_buffer(), sensor_handles(), emitter_handles()  {};
   void update_sensing(const std::array<simInt, 7> & tx_handles, simInt tx);
-};
-
-struct GroundSensor {
-  float reflected_light;
-  // float ambient_light;
-  simInt handle;
-  bool active;
-  bool only_red;
-  bool use_vision;
-  // int16_t reflected() const {
-  //   return static_cast<int16_t>(reflected_light);
-  // }
-  // int16_t delta() const {
-  //   return static_cast<int16_t>(reflected_light - ambient_light);
-  // }
-  // static constexpr float max_value = 1032.0;
-  static constexpr float min_value = 0.0;
-  // static constexpr float x0 = 0.0084;
-  static constexpr float max_value = 1291.8;
-  static constexpr float x0 = 0.0;
-  static constexpr float lambda = 0.01631;
-  // static constexpr float lambda = 0.0192;
-  void update_sensing(float dt);
-  GroundSensor(simInt handle_=-1);
-private:
-  simInt vision_handle;
-};
-
-struct Accelerometer {
-  float values[3];
-  simInt handle;
-  bool active;
-  Accelerometer(int handle_=-1);
-  void update_sensing(float dt);
-private:
-  float mass;
-  simInt sensor;
-};
-
-struct Color {
-  float r, g, b, a;
-
-  explicit Color(float r = 0, float g = 0, float b = 0) :
-    r(r), g(g), b(b), a(0) {}
-
-  operator bool() const {
-    return a && r && g && b;
-  }
-
-  bool set_a(float a_) {
-    if (a != a_) {
-      a = a_;
-      return true;
-    }
-    return false;
-  }
-
-  bool set_rgb(float r_, float g_, float b_) {
-    float a_ = std::max({r_, g_, b_});
-    if (a_ > 0) {
-      r_ /= a_;
-      g_ /= a_;
-      b_ /= a_;
-    }
-    if((a == a_ && r == r_ && g == g_ && b == b_)) return false;
-    a = a_;
-    r = r_;
-    g = g_;
-    b = b_;
-    return true;
-  }
 };
 
 struct LED {
@@ -292,21 +183,16 @@ enum BEHAVIOR {
   LEDS_MIC = 64
 };
 
-class Thymio2 {
+class Thymio2 : public Robot {
 
  class Behavior;
 
  private:
-  std::array<Wheel, 2> wheels;
-  std::array<ProximitySensor, 7> proximity_sensors;
-  std::array<GroundSensor, 2> ground_sensors;
   std::array<LED, LED::COUNT> leds;
   std::array<Button, Button::COUNT> buttons;
-  Accelerometer accelerometer;
   ProximityComm prox_comm;
   cv::Mat texture;
   simInt texture_id;
-  simInt handle;
   simInt body_handle;
 
   std::unique_ptr<Behavior> behavior;
@@ -327,11 +213,9 @@ class Thymio2 {
  public:
   Thymio2(simInt handle, uint8_t default_behavior_mask = 0x0);
   ~Thymio2();
-  void set_target_speed(size_t index, float speed);
-  float get_target_speed(size_t index);
+
   virtual void update_sensing(float dt);
   virtual void update_actuation(float dt);
-  virtual void do_step(float dt);
 
   static constexpr float min_battery_voltage = 3.0;
   static constexpr float max_battery_voltage = 4.2;
@@ -344,49 +228,6 @@ class Thymio2 {
 
   void set_battery_voltage(float value) {
     battery_voltage = std::clamp(value, min_battery_voltage, max_battery_voltage);
-  }
-
-  const float * get_acceleration_values() const {
-    return accelerometer.values;
-  }
-
-  float get_speed(size_t index) const {
-    if(index < wheels.size()) return wheels[index].speed();
-    return 0.0;
-  }
-  int16_t get_proximity_value(size_t index) const {
-    if(index < proximity_sensors.size()) return proximity_sensors[index].saturated_value();
-    return 0;
-  }
-  int16_t get_ground_reflected(size_t index) const {
-    if(index < ground_sensors.size()) return ground_sensors[index].reflected_light;
-    return 0;
-  }
-  int16_t get_ground_delta(size_t index) {
-    if(index < ground_sensors.size()) return ground_sensors[index].reflected_light;
-    return 0;
-  }
-  float get_acceleration(size_t index) const {
-    if(index < 3) return accelerometer.values[index];
-    return 0.0;
-  }
-  void enable_accelerometer(bool value) {
-    accelerometer.active = value;
-  }
-
-  void enable_ground(bool value, bool red = false, bool vision = false) {
-    for (auto & sensor : ground_sensors) {
-      sensor.active = value;
-      sensor.only_red = red;
-      sensor.use_vision = vision;
-    }
-  }
-
-  void enable_proximity(bool value, bool red = false) {
-    for (auto & sensor : proximity_sensors) {
-      sensor.active = value;
-      sensor.only_red = red;
-    }
   }
 
   bool get_button(size_t index) {

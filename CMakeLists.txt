@@ -152,7 +152,9 @@ target_link_libraries(test
 coppeliasim_add_plugin(simExtAseba
   SOURCES
   src/plugin.cpp
+  src/coppeliasim_robot.cpp
   src/coppeliasim_thymio2.cpp
+  src/coppeliasim_epuck.cpp
   src/aseba_node.cpp
   src/aseba_thymio2_descriptions.c
   src/aseba_thymio2_natives.cpp
@@ -179,10 +181,13 @@ add_custom_target(
     &&
     ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_split_reference.py --directory ${CMAKE_CURRENT_BINARY_DIR}/generated
     &&
-    ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_lua.py --directory ${CMAKE_CURRENT_BINARY_DIR}/generated
+    ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_lua.py Thymio _thymio2_ --directory ${CMAKE_CURRENT_BINARY_DIR}/generated
+    &&
+    ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_lua.py EPuck _epuck_ --directory ${CMAKE_CURRENT_BINARY_DIR}/generated
   BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/generated/simThymio-typecheck.lua
+             ${CMAKE_CURRENT_BINARY_DIR}/generated/simEPuck-typecheck.lua
   DEPENDS simExtAseba
-  COMMENT "Generating Thymio lua script"
+  COMMENT "Generating Thymio and e-puck lua script"
 )
 
 add_custom_target(
@@ -193,6 +198,8 @@ add_custom_target(
     ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_markdown_api.py --directory ${CMAKE_CURRENT_BINARY_DIR}/generated --file reference_Aseba.xml
     &&
     ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_markdown_api.py --directory ${CMAKE_CURRENT_BINARY_DIR}/generated --file reference_Thymio.xml
+    &&
+    ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_markdown_api.py --directory ${CMAKE_CURRENT_BINARY_DIR}/generated --file reference_EPuck.xml
   DEPENDS generate_thymio_lua
   COMMENT "Generating docs"
 )
@@ -212,6 +219,7 @@ if(DEFINED MODEL_DIR)
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-diffusionMap1.png
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-diffusionMap2.png
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-texture.png
+      ${CMAKE_CURRENT_SOURCE_DIR}/models/e-puck-aseba.ttm
     DESTINATION ${MODEL_DIR}
   )
 endif()
@@ -220,6 +228,13 @@ install(
   FILES
     ${CMAKE_CURRENT_BINARY_DIR}/generated/simThymio-typecheck.lua
     ${CMAKE_CURRENT_SOURCE_DIR}/lua/simThymio.lua
+  DESTINATION ${COPPELIASIM_LUA_DIR}
+)
+
+install(
+  FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/generated/simEPuck-typecheck.lua
+    ${CMAKE_CURRENT_SOURCE_DIR}/lua/simEPuck.lua
   DESTINATION ${COPPELIASIM_LUA_DIR}
 )
 

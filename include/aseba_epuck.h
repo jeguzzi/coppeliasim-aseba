@@ -25,6 +25,7 @@ Adapted by JG from https://github.com/aseba-community/aseba-target-epuck/blob/ma
 #define __ASEBA_EPUCK_H
 
 #include "common/utils/utils.h"
+#include "coppeliasim_epuck.h"
 #include "coppeliasim_aseba_node.h"
 #include "aseba_epuck_natives.h"
 #include <utility>
@@ -39,18 +40,18 @@ typedef struct {
  int16_t source;
  int16_t args[32];
  int16_t productId;
- int16_t motorLeftTarget;   // TODO(Jerome)
- int16_t motorRightTarget;  // TODO(Jerome)
+ int16_t motorLeftTarget;
+ int16_t motorRightTarget;
  int16_t leds[10];          // TODO(Jerome)
  int16_t prox[8];           // TODO(Jerome)
  int16_t ambient[8];        // TODO(Jerome)
- int16_t acc[3];            // TODO(Jerome)
+ int16_t acc[3];
  int16_t camLine;           // TODO(Jerome)
  int16_t camR[60];          // TODO(Jerome)
  int16_t camG[60];          // TODO(Jerome)
  int16_t camB[60];          // TODO(Jerome)
- int16_t leftSteps;         // TODO(Jerome)
- int16_t rightSteps;        // TODO(Jerome)
+ int16_t leftSteps;
+ int16_t rightSteps;
  int16_t mic[3];            // TODO(Jerome)
  int16_t selector;          // TODO(Jerome)
  int16_t tvRemote;          // TODO(Jerome)
@@ -100,8 +101,7 @@ class AsebaEPuck : public CoppeliaSimAsebaNode {
   AsebaEPuck(int node_id, const std::string & _name, const std::array<uint8_t, 16> & uuid_,
              const std::string & friendly_name_ = "");
   void notify_missing_feature() {};
-  // TODO(Jerome)
-  void * robot;
+  CS::EPuck * robot;
   virtual void step(float dt) override;
   virtual std::string advertized_name() const override {
     return "e-puck";

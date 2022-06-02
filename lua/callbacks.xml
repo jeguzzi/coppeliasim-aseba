@@ -751,4 +751,87 @@
             </param>
         </return>
     </command>
+    <command name="_epuck_get_speed">
+        <description>Get the currrent angular speed of a motor</description>
+        <params>
+            <param name="id" type="int">
+              <description>The ID of the e-puck controller</description>
+            </param>
+            <param name="index" type="int">
+                <description>The index of the motor (left: 0, right: 0)</description>
+            </param>
+        </params>
+        <return>
+          <param name="speed" type="float">
+              <description>The angular speed in rad/s</description>
+          </param>
+        </return>
+    </command>
+    <command name="_epuck_set_target_speed">
+        <description>Set the target angular speed of a motor</description>
+        <params>
+            <param name="id" type="int">
+              <description>The ID of the e-puck controller</description>
+            </param>
+            <param name="index" type="int">
+                <description>The index of the motor (left: 0, right: 0)</description>
+            </param>
+            <param name="speed" type="float">
+                <description>The angular speed in rad/s</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="_epuck_get_acceleration">
+        <description>Get the current reading the accelerometer</description>
+        <params>
+            <param name="id" type="int">
+              <description>The ID of the e-puck controller</description>
+            </param>
+        </params>
+        <return>
+          <param name="x" type="float">
+              <description>The x-component (left) in m/s^2</description>
+          </param>
+          <param name="y" type="float">
+              <description>The y-component (front) in m/s^2</description>
+          </param>
+          <param name="z" type="float">
+              <description>The z-component (down) in m/s^2</description>
+          </param>
+        </return>
+    </command>
+    <command name="_epuck_get_ground">
+        <description>Get the current reading of a ground sensor</description>
+        <params>
+            <param name="id" type="int">
+              <description>The ID of the e-puck controller</description>
+            </param>
+            <param name="index" type="int">
+                <description>The index of the sensor (left: 0, right: 0)</description>
+            </param>
+        </params>
+        <return>
+          <param name="reflected" type="float">
+              <description>The current sensor reading</description>
+          </param>
+        </return>
+    </command>
+    <command name="_epuck_get_proximity">
+        <description>Get the current reading of a proximity sensor</description>
+        <params>
+            <param name="id" type="int">
+              <description>The ID of the e-puck controller</description>
+            </param>
+            <param name="index" type="int">
+                <description>The index of the sensor</description>
+            </param>
+        </params>
+        <return>
+          <param name="reading" type="float">
+              <description>The current sensor reading</description>
+          </param>
+        </return>
+    </command>
 </plugin>
