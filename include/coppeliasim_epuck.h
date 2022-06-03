@@ -161,6 +161,10 @@ class EPuck : public Robot {
   bool get_front_led() const {
     return front_led;
   }
+
+  void enable_camera(bool value) {
+    camera.active = true;
+  }
 };
 
 }

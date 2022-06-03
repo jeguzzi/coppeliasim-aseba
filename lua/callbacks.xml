@@ -947,4 +947,46 @@
         <return>
         </return>
     </command>
+    <command name="_epuck_enable_accelerometer">
+        <description>Enable or disable the accelerometer</description>
+        <params>
+          <param name="id" type="int">
+            <description>The ID of the e-puck controller</description>
+          </param>
+          <param name="state" type="bool">
+              <description>The state (enabled: true, disabled: false)</description>
+          </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="_epuck_enable_camera">
+        <description>Enable or disable the camera</description>
+        <params>
+            <param name="id" type="int">
+              <description>The ID of the e-puck controller</description>
+            </param>
+            <param name="state" type="bool">
+                <description>The state (enabled: true, disabled: false)</description>
+            </param>
+        </params>
+        <return>
+        </return>
+    </command>
+    <command name="_epuck_enable_proximity">
+          <description>Enable, disable and configure the proximity sensors</description>
+        <params>
+          <param name="id" type="int">
+            <description>The ID of the e-puck controller</description>
+          </param>
+          <param name="state" type="bool">
+              <description>The state (enabled: true, disabled: false)</description>
+          </param>
+          <param name="red" type="bool" default="false">
+              <description>Configure the sensors to respond only to the red-compoment of the reflecting material.</description>
+          </param>
+        </params>
+        <return>
+        </return>
+    </command>
 </plugin>

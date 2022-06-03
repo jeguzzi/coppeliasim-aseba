@@ -12,6 +12,17 @@
 | [simEPuck.get_acceleration](#get_acceleration) |
 | [simEPuck.get_ground](#get_ground) |
 | [simEPuck.get_proximity](#get_proximity) |
+| [simEPuck.set_mic_intensity](#set_mic_intensity) |
+| [simEPuck.set_battery_voltage](#set_battery_voltage) |
+| [simEPuck.set_selector](#set_selector) |
+| [simEPuck.receive_rc_message](#receive_rc_message) |
+| [simEPuck.get_gyroscope](#get_gyroscope) |
+| [simEPuck.set_ring_led](#set_ring_led) |
+| [simEPuck.set_body_led](#set_body_led) |
+| [simEPuck.set_front_led](#set_front_led) |
+| [simEPuck.enable_accelerometer](#enable_accelerometer) |
+| [simEPuck.enable_camera](#enable_camera) |
+| [simEPuck.enable_proximity](#enable_proximity) |
 
 
 
@@ -144,5 +155,211 @@ float reading=simEPuck.get_proximity(int id,int index)
 *return*
 
   - **reading** The current sensor reading
+
+
+
+
+#### set_mic_intensity
+
+
+Set the current sound intensities read by the microphones.
+```C++
+simEPuck.set_mic_intensity(int id,float[] intensity)
+```
+*parameters*
+
+  - **id** The ID of the e-puck controller
+
+  - **intensity** An array of size 3 with the relative sound intensity in [0, 1].
+
+
+
+
+
+
+#### set_battery_voltage
+
+
+Set the current battery voltage, which is not simulated.
+```C++
+simEPuck.set_battery_voltage(int id,float value)
+```
+*parameters*
+
+  - **id** The ID of the e-puck controller
+
+  - **value** The voltage between 3.0 and 4.2 V
+
+
+
+
+
+
+#### set_selector
+
+
+Set the current selector position.
+```C++
+simEPuck.set_selector(int id,int position)
+```
+*parameters*
+
+  - **id** The ID of the e-puck controller
+
+  - **position** The position between 0 and 15
+
+
+
+
+
+
+#### receive_rc_message
+
+
+Notify the rc receiver of a new message.
+```C++
+simEPuck.receive_rc_message(int id,int data)
+```
+*parameters*
+
+  - **id** The ID of the e-puck controller
+
+  - **data** The payload between 0 and 255
+
+
+
+
+
+
+#### get_gyroscope
+
+
+Get the current reading the gyroscope
+```C++
+float x,float y,float z=simEPuck.get_gyroscope(int id)
+```
+*parameters*
+
+  - **id** The ID of the e-puck controller
+
+*return*
+
+  - **x** The x-component in rad/s
+
+  - **y** The y-component in rad/s
+
+  - **z** The z-component in rad/s
+
+
+
+
+#### set_ring_led
+
+
+Switch on or off one of the 8 red LED
+```C++
+simEPuck.set_ring_led(int id,int index,bool value)
+```
+*parameters*
+
+  - **id** The ID of the e-puck controller
+
+  - **index** The index of the LED (from 0 to 7)
+
+  - **value** LED state
+
+
+
+
+
+
+#### set_body_led
+
+
+Switch on or off the green body LED
+```C++
+simEPuck.set_body_led(int id,bool value)
+```
+*parameters*
+
+  - **id** The ID of the e-puck controller
+
+  - **value** LED state
+
+
+
+
+
+
+#### set_front_led
+
+
+Switch on or off the green front LED
+```C++
+simEPuck.set_front_led(int id,bool value)
+```
+*parameters*
+
+  - **id** The ID of the e-puck controller
+
+  - **value** LED state
+
+
+
+
+
+
+#### enable_accelerometer
+
+
+Enable or disable the accelerometer
+```C++
+simEPuck.enable_accelerometer(int id,bool state)
+```
+*parameters*
+
+  - **id** The ID of the e-puck controller
+
+  - **state** The state (enabled: true, disabled: false)
+
+
+
+
+
+
+#### enable_camera
+
+
+Enable or disable the camera
+```C++
+simEPuck.enable_camera(int id,bool state)
+```
+*parameters*
+
+  - **id** The ID of the e-puck controller
+
+  - **state** The state (enabled: true, disabled: false)
+
+
+
+
+
+
+#### enable_proximity
+
+
+Enable, disable and configure the proximity sensors
+```C++
+simEPuck.enable_proximity(int id,bool state,bool red=false)
+```
+*parameters*
+
+  - **id** The ID of the e-puck controller
+
+  - **state** The state (enabled: true, disabled: false)
+
+  - **red** Configure the sensors to respond only to the red-compoment of the reflecting material.
+
+
 
 

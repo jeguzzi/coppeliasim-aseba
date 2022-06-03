@@ -674,6 +674,40 @@ class Plugin : public sim::Plugin {
       }
     }
 
+    void _epuck_enable_accelerometer(_epuck_enable_accelerometer_in *in,
+                                     _epuck_enable_accelerometer_out *out) {
+      if (in->id == -1) {
+        for (auto & [_, epuck] : epucks) {
+          epuck.enable_accelerometer(in->state);
+        }
+      } else if (epucks.count(in->id)) {
+        auto & epuck = epucks.at(in->id);
+        epuck.enable_accelerometer(in->state);
+      }
+    }
+
+    void _epuck_enable_camera(_epuck_enable_camera_in *in, _epuck_enable_camera_out *out) {
+      if (in->id == -1) {
+        for (auto & [_, epuck] : epucks) {
+          epuck.enable_camera(in->state);
+        }
+      } else if (thymios.count(in->id)) {
+        auto & epuck = epucks.at(in->id);
+        epuck.enable_camera(in->state);
+      }
+    }
+
+    void _epuck_enable_proximity(_epuck_enable_proximity_in *in,
+                                 _epuck_enable_proximity_out *out) {
+    if (in->id == -1) {
+       for (auto & [_, epuck] : epucks) {
+         epuck.enable_proximity(in->state, in->red);
+       }
+    } else if (epucks.count(in->id)) {
+        auto & epuck = epucks.at(in->id);
+        epuck.enable_proximity(in->state, in->red);
+      }
+    }
 
  private:
   std::map<simInt, CS::Thymio2> thymios;

@@ -1,7 +1,7 @@
 # Simulate Aseba and Thymios in CoppeliaSIm
 
 
-This repository contain code to simulate specific robots ([Thymio2](http://www.thymio.org)) and generic [Aseba](https://www.thymio.org/products/programming-with-thymio-suite/program-thymio-aseba/) nodes in [CoppeliaSim](https://coppeliarobotics.com).
+This repository contain code to simulate specific robots ([Thymio2](http://www.thymio.org) and [e-puck](http://http://www.e-puck.org)) and generic [Aseba](https://www.thymio.org/products/programming-with-thymio-suite/program-thymio-aseba/) nodes in [CoppeliaSim](https://coppeliarobotics.com).
 
 You can control the robots/nodes
 - in lua, using the interpreter embedded in CoppeliaSim
@@ -59,7 +59,7 @@ This will build the plugin and install it  together with the robot model[s].
 
 ## Running
 
-Launch CoppeliaSim. In the model browser, you will find a model for the Thymio in `robots > mobile`, which you can drag into the scene. Press play.
+Launch CoppeliaSim. In the model browser, you will find models for the Thymio and e-puck (called `e-puck-aseba` to distinguish it from the model already installed) in `robots > mobile`, which you can drag into the scene. Press play.
 
 ### Aseba lua interface
 
@@ -83,6 +83,11 @@ simThymio.set_led(0, 0, 1.0, 0.0, 0.0)
 where the first to arguments identifies robot and LED and colors are encoded in float instead.
 
 If you want, you can customize the Aseba node of the simulated Thymio too, using the [same API](api_Aseba.md).
+
+### e-puck lua interface
+
+Similarly, the simulated e-puck, emulates the [Aseba firmware](https://github.com/aseba-community/aseba-target-epuck) available for real e-pucks, while we also expose a [lua interface](api_EPuck.md).
+
 
 ### Multiple robots
 
@@ -139,3 +144,34 @@ CoppeliaSim together with this plugin, adds:
   - customizable Thymio Aseba node
   - custom Aseba nodes implemented in lua
   - loading Aseba scripts from lua
+
+
+## e-puck
+
+The simulated e-puck implements all features of the real robot exposed in the Aseba firmware.
+
+#### Full support
+  - [x] motors
+  - [x] LEDs
+  - [x] proximity sensors
+  - [x] accelerometer
+  - [x] gyroscope
+  - [x] camera
+
+#### Partial support
+##### Aseba interface and programmatic read/write access from coppeliaSim
+  - [x] battery
+  - [x] selector
+  - [x] RC sensor
+  - [x] microphones
+
+Like for the Thymio, the object model is taken directly from Enki. With respect to Enki/Aseba playground, coppeliaSim together with this plugin, share this features:
+  - simulate one or more e-puck, emulating the Aseba-based firmware (and are therefore compatible with Aseba Studio).
+  - motors, proximity sensors, camera
+
+In addition to the list presented before for the Thymio, this simulation adds specific e-puck features:
+  - LEDs
+  - accelerometer
+  - gyroscope
+  - basic support for rc, microphones, battery, and selector.
+  - customizable e-puck Aseba node
