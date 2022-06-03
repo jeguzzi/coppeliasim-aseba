@@ -5,10 +5,6 @@
 
 namespace CS {
 
-bool EPuck::LED::loaded_textures = false;
-int EPuck::LED::texture_id = 0;
-cv::Mat EPuck::LED::texture;
-
 void Camera::update_sensing(float dt) {
   if (!active || handle <= 0) return;
   simHandleVisionSensor(handle, nullptr, nullptr);
@@ -48,10 +44,9 @@ static std::array<std::string, 2> wheel_prefixes = {"/Left", "/Right"};
 static std::array<std::string, 8> proximity_names = {
     "0", "1", "2", "3", "4", "5", "6", "7"};
 static std::array<std::string, 3> ground_names = {"Left", "Center", "Right"};
-static std::array<int, 8> led_positions = {0, 75, 150, 225, 300, 375, 450, 525};
 
 EPuck::EPuck(simInt handle_) :
-  Robot(handle_), leds(), front_led(false), body_led(false),
+  Robot(handle_), front_led(false), body_led(false),
   mic_intensity({0, 0, 0}), battery_voltage(4.0), selector(0), rc(0) {
   simChar * alias = simGetObjectAlias(handle, 2);
   log_info("Initializing EPuck with handle %d (%s)", handle, alias);
@@ -82,22 +77,20 @@ EPuck::EPuck(simInt handle_) :
   ring_handle = simGetObject((std::string(alias)+"/Ring").c_str(), -1, -1, 0);
   body_handle = simGetObject((std::string(alias)+"/Body").c_str(), -1, -1, 0);
   rest_handle = simGetObject((std::string(alias)+"/Rest").c_str(), -1, -1, 0);
-  LED::init(simGetShapeTextureId(ring_handle));
-
-  for (auto position : led_positions) {
-    leds.emplace_back(position);
-  }
+  leds = LEDRing(ring_handle);
   simReleaseBuffer(alias);
   reset();
 }
 
-EPuck::~EPuck() { }
+EPuck::~EPuck() {
+  set_body_led(false);
+  set_front_led(false);
+  leds.reset(false);
+}
 
 void EPuck::reset() {
   Robot::reset();
-  for (auto & led : leds) {
-    led.set_value(false);
-  }
+  leds.reset(true);
   set_body_led(false);
   set_front_led(false);
   log_info("Reset e-puck");
@@ -114,7 +107,7 @@ void EPuck::update_actuation(float dt) {
 }
 
 void EPuck::set_body_led(bool value) {
-  printf("set_body_led %d\n", value);
+  // log_debug("set_body_led %d\n", value);
   if (value != body_led) {
     body_led = value;
     simFloat color[3] = {0.0, 0.27f * value, 0.0};
@@ -133,8 +126,66 @@ void EPuck::set_front_led(bool value) {
   }
 }
 
+LEDRing::LEDRing(simInt shape_handle_) : shape_handle(shape_handle_) {
+  if (shape_handle <= 0) return;
+  texture_id = simGetShapeTextureId(shape_handle);
+  log_info("loading led texture");
+  texture = cv::imread(TEXTURE_DIR "/epuck.png");
+  simInt64 uid = simGetObjectUid(shape_handle);
+  // HACK(Jerome): One pixel should be specific to each robot,
+  // else coppeliaSim will link them when it save the scene
+  texture.data[0] = (uint8_t) (uid & 0xFF);
+  texture.data[1] = (uint8_t) ((uid >> 8) & 0xFF);
+  texture.data[2] = (uint8_t) ((uid >> 16) & 0xFF);
+  log_info("loaded led texture of size (%d, %d)", texture.size().width, texture.size().height);
+  reset(true);
+  for (auto position : positions) {
+    leds.emplace_back(position, texture);
+  }
+}
 
-static void draw_blob(uint8_t* target, uint8_t* base, int width,
+void LEDRing::reset(bool reload) {
+  if (shape_handle <= 0) return;
+  for (auto & led : leds) {
+    led.value = false;
+  }
+  cv::Mat t;
+  cv::cvtColor(texture, t, cv::COLOR_BGR2RGB);
+  cv::flip(t, t, 0);
+  log_info("resetting led texture (%d)", reload);
+  if (reload) {
+    SShapeVizInfo info;
+    simInt r = simGetShapeViz(shape_handle, 0, &info);
+    texture_id = simApplyTexture(
+        shape_handle, info.textureCoords, info.indicesSize * 2,
+        (const simUChar *)t.ptr(), info.textureRes, 1);
+    log_debug("Reset texture for handle %d -> texture_id %d", shape_handle, texture_id);
+    simReleaseBuffer((const char *)info.indices);
+    simReleaseBuffer((const char *)info.normals);
+    simReleaseBuffer((const char *)info.texture);
+    simReleaseBuffer((const char *)info.textureCoords);
+  } else {
+    simWriteTexture(texture_id, 0, (const char *)t.ptr(), 0, 0, texture_size, texture_size, 0);
+  }
+  log_info("reset led texture");
+}
+
+void LEDRing::set_value(size_t index, bool v) {
+  if (shape_handle <= 0) return;
+  if (index > leds.size()) return;
+  if (index == leds.size()) {
+    for (size_t i = 0; i < leds.size(); i++) {
+      set_value(i, v);
+    }
+    return;
+  }
+  if (v != leds[index].value) {
+    leds[index].value = v;
+    leds[index].push(texture_id, texture_size);
+  }
+}
+
+static void draw_blob(uint8_t* target, const uint8_t* base, int width,
                       int x0, int y0, int size_x, int size_y,
                       float a, float rx, float ry,
                       uint8_t colorR, uint8_t colorG, uint8_t colorB) {
@@ -156,43 +207,21 @@ static void draw_blob(uint8_t* target, uint8_t* base, int width,
   }
 }
 
-void EPuck::LED::init(int texture_id_) {
-  texture_id = texture_id_;
-  load_texture();
-}
-
-void EPuck::LED::load_texture() {
-  if (loaded_textures) return;
-  printf("load_texture\n");
-  texture = cv::imread(TEXTURE_DIR "/epuck.png");
-  printf("loaded_texture %d\n", texture.size().width);
-  loaded_textures = true;
-}
-
-EPuck::LED::LED(int position) : value(false), position(position) {
-  printf("Creating a LED at %d\n", position);
-  cv::Mat patch = LED::texture(cv::Rect(position, LED::y, LED::patch_width, LED::patch_height));
+LEDRing::LED::LED(int position, const cv::Mat & texture) : value(false), position(position) {
+  log_info("Creating LED at %d", position);
+  cv::Mat patch = texture(cv::Rect(position, y, patch_width, patch_height));
   cv::flip(patch, off_texture, 0);
   cv::cvtColor(off_texture, off_texture, cv::COLOR_BGR2RGB);
   on_texture = patch.clone();
-  draw_blob(on_texture.ptr<uint8_t>(), LED::texture.ptr<uint8_t>(), LED::texture_size, position,
-            LED::y, LED::patch_width, LED::patch_height, LED::a, LED::size_x, LED::size_y,
-            255, 0, 0);
-  push();
+  draw_blob(on_texture.ptr<uint8_t>(), texture.ptr<uint8_t>(), texture.size().width, position,
+            y, patch_width, patch_height, a, size_x, size_y, 255, 0, 0);
+  log_info("Created LED");
 }
 
-void EPuck::LED::push() {
+void LEDRing::LED::push(simInt texture_id, int texture_size) {
   const char * patch = (const char *) (value ? on_texture : off_texture).ptr<uint8_t>();
-  simWriteTexture(LED::texture_id, 0, patch, position,
-                  LED::texture_size - LED::y - LED::patch_height, LED::patch_width,
-                  LED::patch_height, 0);
-}
-
-void EPuck::LED::set_value(bool v) {
-  if (v != value) {
-    value = v;
-    push();
-  }
+  simWriteTexture(texture_id, 0, patch, position, texture_size - y - patch_height, patch_width,
+                  patch_height, 0);
 }
 
 // void EPuck::set_ring_led(size_t index, bool value) {

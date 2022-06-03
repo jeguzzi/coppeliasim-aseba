@@ -458,7 +458,7 @@ void Thymio2::reset_texture(bool reload) {
   simInt64 uid = simGetObjectUid(handle);
   // HACK(Jerome): One pixel should be specific to each robot,
   // else coppeliaSim will link them when it save the scene
-  // But this hack isnot working for image loaded textures
+  // But this hack is not working for image loaded textures
   // log_debug("hack: add pixel with uid %lld\n", uid);
   m.data[0] = (uint8_t) (uid & 0xFF);
   m.data[1] = (uint8_t) ((uid >> 8) & 0xFF);

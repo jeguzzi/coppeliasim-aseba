@@ -39,42 +39,50 @@ struct Gyroscope {
   void update_sensing(float dt);
 };
 
-class EPuck : public Robot {
+class LEDRing {
 
-  class LED {
-   private:
+  struct LED {
     int position;
     bool value;
     cv::Mat on_texture;
     cv::Mat off_texture;
-
     static constexpr float size_x = 8.0;
     static constexpr float size_y = 14.0;
     static constexpr int y = 258;
     static constexpr float a = 1.5;
-    static constexpr int texture_size = 1024;
     static constexpr int patch_width = 40;
     static constexpr int patch_height = 60;
-    static cv::Mat texture;
-    static int texture_id;
-    static bool loaded_textures;
-    static void load_texture();
-    void push();
-   public:
-    static void init(int texture_id);
-    explicit LED(int position);
-    void set_value(bool);
-    bool get_value() const {
-      return value;
-    };
+    void push(simInt texture_id, int texture_size);
+    explicit LED(int position, const cv::Mat & texture);
   };
+
+  private:
+    static constexpr std::array<int, 8> positions = {0, 75, 150, 225, 300, 375, 450, 525};
+    static constexpr int texture_size = 1024;
+    cv::Mat texture;
+    int texture_id;
+    simInt shape_handle;
+    std::vector<LED> leds;
+  public:
+    explicit LEDRing(simInt shape_handle=-1);
+    void reset(bool);
+    void set_value(size_t index, bool value);
+    bool get_value(size_t index) const {
+      if (index < leds.size()) {
+        return leds[index].value;
+      }
+      return false;
+    };
+};
+
+class EPuck : public Robot {
 
  private:
 
    Camera camera;
    Gyroscope gyroscope;
    std::array<float, 3> mic_intensity;
-   std::vector<LED> leds;
+   LEDRing leds;
    float battery_voltage;
    uint8_t selector;
    uint8_t rc;
@@ -138,20 +146,12 @@ class EPuck : public Robot {
   }
 
   void set_ring_led(size_t index, bool value) {
-    if (index > leds.size()) return;
-    if (index == leds.size()) {
-      for(auto & led : leds) {
-        led.set_value(value);
-      }
-    } else {
-      leds[index].set_value(value);
-    }
+    leds.set_value(index, value);
   }
   void set_body_led(bool value);
   void set_front_led(bool value);
   bool get_ring_led(size_t index) const {
-    if (index > leds.size()) return false;
-    return leds[index].get_value();
+    return leds.get_value(index);
   }
   bool get_body_led() const {
     return body_led;
