@@ -77,6 +77,7 @@ EPuck::EPuck(simInt handle_) :
   ring_handle = simGetObject((std::string(alias)+"/Ring").c_str(), -1, -1, 0);
   body_handle = simGetObject((std::string(alias)+"/Body").c_str(), -1, -1, 0);
   rest_handle = simGetObject((std::string(alias)+"/Rest").c_str(), -1, -1, 0);
+  front_led_handle = simGetObject((std::string(alias)+"/FrontLed").c_str(), -1, -1, 0);
   leds = LEDRing(ring_handle);
   simReleaseBuffer(alias);
   reset();
@@ -121,8 +122,9 @@ void EPuck::set_body_led(bool value) {
 
 void EPuck::set_front_led(bool value) {
   if (value != front_led) {
-    // TODO(Jerome): complete
     front_led = value;
+    simFloat color[3] = {0.5f * value, 1.0f * value, 0.0};
+    simSetShapeColor(front_led_handle, nullptr, sim_colorcomponent_emission, color);
   }
 }
 

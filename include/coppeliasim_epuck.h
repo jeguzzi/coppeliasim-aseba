@@ -91,6 +91,7 @@ class EPuck : public Robot {
    simInt body_handle;
    simInt ring_handle;
    simInt rest_handle;
+   simInt front_led_handle;
 
  public:
   EPuck(simInt handle);
