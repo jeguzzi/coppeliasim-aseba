@@ -57,7 +57,8 @@ class LEDRing {
   };
 
   private:
-    static constexpr std::array<int, 8> positions = {0, 75, 150, 225, 300, 375, 450, 525};
+    // static constexpr std::array<int, 8> positions = {0, 75, 150, 225, 300, 375, 450, 525};
+    static constexpr std::array<int, 8> positions = {369, 304, 238, 173, 106, 41, 500, 434};
     static constexpr int texture_size = 1024;
     cv::Mat texture;
     int texture_id;
