@@ -124,7 +124,7 @@ The implementation is heavily inspired by the excellent 2D simulator [Enki](http
 
 Enki provides the core functionality of [Aseba playground](http://wiki.thymio.org/en:asebaplayground), which is the simulator mostly commonly used with Thymios and Aseba.
 
-With respect to Enki/Aseba playground, coppeliaSim together with this plugin, share this features:
+With respect to Enki/Aseba playground, coppeliaSim together with this plugin, shares these features:
   - simulate one or more Thymio, emulating the Aseba-based firmware (and are therefore compatible with Aseba Studio and/or VPL).
   - motors, LEDs, proximity sensors, buttons, ground sensors.
   - compatible with the new autodiscovery of Thymio Suite.
@@ -165,13 +165,15 @@ The simulated e-puck implements all features of the real robot exposed in the As
   - [x] RC sensor
   - [x] microphones
 
-Like for the Thymio, the object model is taken directly from Enki. With respect to Enki/Aseba playground, coppeliaSim together with this plugin, share this features:
-  - simulate one or more e-puck, emulating the Aseba-based firmware (and are therefore compatible with Aseba Studio).
+Like for the Thymio, the object model is taken directly from Enki. With respect to Enki/Aseba playground, coppeliaSim together with this plugin, shares these features:
+  - simulate one or more e-puck, emulating the Aseba-based firmware (therefore compatible with Aseba Studio).
   - motors, proximity sensors, camera
 
 In addition to the list presented before for the Thymio, this simulation adds specific e-puck features:
-  - LEDs
+  - 8 red LED on the ring
+  - green body LED
+  - green front LED
   - accelerometer
   - gyroscope
-  - basic support for rc, microphones, battery, and selector.
+  - basic support for rc, microphones, battery, and selector
   - customizable e-puck Aseba node
