@@ -109,7 +109,7 @@ list(APPEND CMAKE_MODULE_PATH
 )
 
 find_package(CoppeliaSim 4.3 REQUIRED)
-find_package(OpenCV 4 REQUIRED )
+find_package(OpenCV 4 COMPONENTS core imgproc imgcodecs REQUIRED)
 
 include_directories(${OpenCV_INCLUDE_DIRS} )
 include_directories(${LIBXML2_INCLUDE_DIR} )
