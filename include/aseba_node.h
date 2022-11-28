@@ -415,6 +415,7 @@ public:
 
   virtual void reset() {
     memset(vm.variables, 0, vm.variablesSize * sizeof(int16_t));
+    variables[ID] = vm.nodeId;
   }
 
  protected:

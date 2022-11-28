@@ -39,6 +39,7 @@ AsebaThymio2::AsebaThymio2(int node_id, const std::string & _name,
 
   // this simulated Thymio complies with firmware 11 public API
 
+  thymio_variables->id = node_id;
   thymio_variables->fwversion[0] = FW;
   thymio_variables->fwversion[1] = 0;
   thymio_variables->productId = ASEBA_PID_THYMIO2;
@@ -275,6 +276,7 @@ void AsebaThymio2::timer100HzTimeout() {
 
 void AsebaThymio2::reset() {
   DynamicAsebaNode::reset();
+  thymio_variables->id = vm.nodeId;
   thymio_variables->fwversion[0] = FW;
   thymio_variables->fwversion[1] = 0;
   thymio_variables->productId = ASEBA_PID_THYMIO2;
