@@ -394,7 +394,7 @@ Thymio2::Thymio2(simInt handle_, uint8_t default_behavior_mask_) :
   for (const auto & wheel_prefix : wheel_prefixes) {
     std::string wheel_path = std::string(alias) + wheel_prefix + "Motor";
     simInt wheel_handle = simGetObject(wheel_path.c_str(), -1, -1, 0);
-    wheels.push_back(Wheel(0.027, wheel_handle));
+    wheels.push_back(Wheel(0.022, wheel_handle));
   }
   for (size_t i = 0; i < proximity_names.size(); i++) {
     std::string prox_path = std::string(alias)+"/Proximity" + proximity_names[i];
