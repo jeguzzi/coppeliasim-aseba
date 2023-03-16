@@ -8,6 +8,7 @@
 #include <valarray>
 #include <cstdlib>
 #include <cstdint>
+#include <cstring>
 
 #include "vm/vm.h"
 #include "vm/natives.h"
