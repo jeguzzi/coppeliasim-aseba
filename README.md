@@ -14,7 +14,7 @@ You can control the robots/nodes
 
 - [Aseba](https://github.com/aseba-community/aseba)  (available as submodule)
 - [Dashel](https://github.com/aseba-community/dashel) (available as submodule)
-- [CoppeliaSim >= v4.3](https://coppeliarobotics.com)
+- [CoppeliaSim v4.3, or v4.4](https://coppeliarobotics.com) (we do not yet support the latest v4.5)
 - Cmake >= 3.5
 - a C++17 compiler
 - [OpenCV](https://opencv.org/)
