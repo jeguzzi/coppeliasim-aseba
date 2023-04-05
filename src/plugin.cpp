@@ -194,7 +194,7 @@ class Plugin : public sim::Plugin {
       CS::EPuck & robot = epucks.at(uid);
       if (in->with_aseba) {
         AsebaEPuck * node = Aseba::create_node<AsebaEPuck>(
-            uid, in->port, "epuck0");
+            uid, in->port, "e-puck0");
         node->set_script_id(simGetScriptHandleEx(sim_scripttype_childscript, in->handle, nullptr));
         node->robot = &robot;
       } else {
