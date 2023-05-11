@@ -295,11 +295,11 @@
             <param name="vision" type="bool" default="false">
                 <description>Configure the sensors to use vision to get the color of the reflecting material.</description>
             </param>
-            <param name="max_value" type="float" default="4741.9">
-                <description>Sensor model max value: at distance below x0, the response is 1/4 of the maximal value. Then it decreases smoothly and monotonically </description>
+            <param name="max_value" type="float" default="1185.5">
+                <description>Sensor model max value: at distance below x0, the response is clamped to the maximal value. Then it decreases smoothly and monotonically </description>
             </param>    
             <param name="x0" type="float" default="0.00864">
-                <description>Sensor model x0: at distance below x0, the response is 1/4 of the maximal value. Then it decreases smoothly and monotonically. Larger values lead to a slower decrease with distance</description>
+                <description>Sensor model x0: at distance below x0, the response is clamped to the maximal value. Then it decreases smoothly and monotonically. Larger values lead to a slower decrease with distance</description>
             </param>           
         </params>
         <return>
