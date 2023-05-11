@@ -140,7 +140,7 @@ simThymio.enable_accelerometer(int id,bool state)
 
 Enable, disable and configure the ground sensors
 ```C++
-simThymio.enable_ground(int id,bool state,bool red=false,bool vision=false)
+simThymio.enable_ground(int id,bool state,bool red=false,bool vision=false,float max_value=4741.9,float x0=0.00864)
 ```
 *parameters*
 
@@ -148,9 +148,13 @@ simThymio.enable_ground(int id,bool state,bool red=false,bool vision=false)
 
   - **state** The state (enabled: true, disabled: false)
 
-  - **red** Configure the sensors to respond only to the red-compoment of the reflecting material.
+  - **red** Configure the sensors to respond only to the red-component of the reflecting material.
 
   - **vision** Configure the sensors to use vision to get the color of the reflecting material.
+
+  - **max_value** Sensor model max value: at distance below x0, the response is 1/4 of the maximal value. Then it decreases smoothly and monotonically 
+
+  - **x0** Sensor model x0: at distance below x0, the response is 1/4 of the maximal value. Then it decreases smoothly and monotonically. Larger values lead to a slower decrease with distance
 
 
 
