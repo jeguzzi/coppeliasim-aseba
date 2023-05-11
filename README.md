@@ -130,7 +130,7 @@ CoppeliaSim together with this plugin, adds:
   - some more LEDs (2 for ground sensors and 3 for the battery-level)
   - accelerometer
   - proximity communication
-  - tap detection from acceletometer
+  - tap detection from accelerometer
   - basic support for rc, microphone, speaker, battery, and temperature sensor.
   - **option** to enable the same behavior of the real robot that provides feedback about proximity and ground sensors, battery level, accelerometer, microphone, temperature and rc, when the LEDs are not controlled by an Aseba script.
   - support for firmware v14

@@ -2,6 +2,7 @@
 #include "logging.h"
 
 #include <math.h>
+#include <algorithm>
 
 #define G 9.81f
 
@@ -105,7 +106,8 @@ class Thymio2::Behavior {
       }
     }
     for (int i = 0; i < 2; i++) {
-      float intensity = robot.get_ground_delta(i) / CS::GroundSensor::max_value;
+      float intensity = robot.get_ground_delta(i) / 1024;
+      //CS::GroundSensor::max_value;
       robot.set_led_intensity(CS::LED::IR_GROUND_0 + i, intensity);
     }
   }
@@ -666,6 +668,16 @@ static float ir(float distance, float normal, float r, float g, float b,
         max_value, min_value);
 }
 
+
+static float ir_ground(float distance, float normal, float r, float g, float b,
+                float max_value, float min_value, float x0,
+                bool only_red = false) {
+  const float v = only_red ? 0.8 * r + 0.2 : (r + g + b) / 3;
+  const float y = distance > x0 ? 1.0f / (distance/x0 + 1.0f) : 0.5f;
+  return std::clamp(max_value * abs(normal) * v * y * y, min_value, max_value);
+}
+
+
 // From enki: it ignores the distance (as enki is 2D)
 // TODO(Jerome): consider the distance too
 // inline double _sigm(float x, float s) {
@@ -718,7 +730,8 @@ void ProximitySensor::update_sensing(float dt) {
 }
 
 GroundSensor::GroundSensor(simInt handle_) :
-  handle(handle_), active(true), only_red(false), use_vision(false) {
+  handle(handle_), active(true), only_red(false), use_vision(false), 
+  max_value(default_max_value), x0(default_x0) {
   if (handle >= 0) {
     simChar * alias = simGetObjectAlias(handle, 2);
     std::string path = std::string(alias);
@@ -790,8 +803,10 @@ void GroundSensor::update_sensing(float dt) {
     }
     // printf("intensity %.2f\n", intensity);
     // reflected_light = ground_response(detectedPoint[3], surfaceNormalVector[2], intensity);
-    reflected_light = ir(detectedPoint[3], surfaceNormalVector[2], rgb[0], rgb[1], rgb[2],
-                         max_value, min_value, x0, lambda, only_red);
+    // reflected_light = ir(detectedPoint[3], surfaceNormalVector[2], rgb[0], rgb[1], rgb[2],
+    //                      max_value, min_value, x0, lambda, only_red);
+    reflected_light = ir_ground(detectedPoint[3], surfaceNormalVector[2], rgb[0], rgb[1], rgb[2],
+                         max_value, min_value, x0, only_red);
   } else {
     // printf("No detection\n");
     // reflected_light = 0;

@@ -186,26 +186,25 @@ struct ProximityComm {
 
 struct GroundSensor {
   float reflected_light;
-  // float ambient_light;
   simInt handle;
   bool active;
   bool only_red;
   bool use_vision;
-  // int16_t reflected() const {
-  //   return static_cast<int16_t>(reflected_light);
-  // }
-  // int16_t delta() const {
-  //   return static_cast<int16_t>(reflected_light - ambient_light);
-  // }
-  // static constexpr float max_value = 1032.0;
+
   static constexpr float min_value = 0.0;
-  // static constexpr float x0 = 0.0084;
+  #if 0
   static constexpr float max_value = 1291.8;
   static constexpr float x0 = 0.0;
   static constexpr float lambda = 0.01631;
-  // static constexpr float lambda = 0.0192;
+  #endif
+  constexpr static float default_max_value = 4741.9;
+  constexpr static float default_x0 = 0.00864;
+  float max_value;
+  float x0;
+
   void update_sensing(float dt);
   GroundSensor(simInt handle_=-1);
+
 private:
   simInt vision_handle;
 };
@@ -374,11 +373,15 @@ class Thymio2 {
     accelerometer.active = value;
   }
 
-  void enable_ground(bool value, bool red = false, bool vision = false) {
+  void enable_ground(bool value, bool red = false, bool vision = false, 
+                     float max_value=GroundSensor::default_max_value, 
+                     float x0=GroundSensor::default_x0) {
     for (auto & sensor : ground_sensors) {
       sensor.active = value;
       sensor.only_red = red;
       sensor.use_vision = vision;
+      sensor.max_value = max_value;
+      sensor.x0 = x0;
     }
   }
 
