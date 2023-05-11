@@ -197,7 +197,7 @@ struct GroundSensor {
   static constexpr float x0 = 0.0;
   static constexpr float lambda = 0.01631;
   #endif
-  constexpr static float default_max_value = 4741.9;
+  constexpr static float default_max_value = 1185.5;
   constexpr static float default_x0 = 0.00864;
   float max_value;
   float x0;

@@ -673,7 +673,7 @@ static float ir_ground(float distance, float normal, float r, float g, float b,
                 float max_value, float min_value, float x0,
                 bool only_red = false) {
   const float v = only_red ? 0.8 * r + 0.2 : (r + g + b) / 3;
-  const float y = distance > x0 ? 1.0f / (distance/x0 + 1.0f) : 0.5f;
+  const float y = distance > x0 ? 2.0f / (distance/x0 + 1.0f) : 1.0f;
   return std::clamp(max_value * abs(normal) * v * y * y, min_value, max_value);
 }
 
