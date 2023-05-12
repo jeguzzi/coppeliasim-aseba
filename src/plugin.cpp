@@ -451,11 +451,11 @@ class Plugin : public sim::Plugin {
     void _thymio2_enable_ground(_thymio2_enable_ground_in *in, _thymio2_enable_ground_out *out) {
       if (in->id == -1) {
         for (auto & [_, thymio] : thymios) {
-          thymio.enable_ground(in->state, in->red, in->vision);
+          thymio.enable_ground(in->state, in->red, in->vision, in->max_value, in->x0);
         }
       } else if (thymios.count(in->id)) {
         auto & thymio = thymios.at(in->id);
-        thymio.enable_ground(in->state, in->red, in->vision);
+        thymio.enable_ground(in->state, in->red, in->vision, in->max_value, in->x0);
       }
     }
 
