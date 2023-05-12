@@ -105,7 +105,8 @@ class Thymio2::Behavior {
       }
     }
     for (int i = 0; i < 2; i++) {
-      float intensity = robot.get_ground_delta(i) / CS::GroundSensor::max_value;
+      float intensity = robot.get_ground_delta(i) / 1024;
+      //CS::GroundSensor::max_value;
       robot.set_led_intensity(CS::LED::IR_GROUND_0 + i, intensity);
     }
   }
