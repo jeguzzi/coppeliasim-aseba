@@ -1,4 +1,4 @@
-# Simulate Aseba and Thymios in CoppeliaSIm
+# Simulate Aseba, Thymios and E-Pucks in CoppeliaSim
 
 This repository contain code to simulate specific robots ([Thymio2](http://www.thymio.org) and [e-puck](http://http://www.e-puck.org)) and generic [Aseba](https://www.thymio.org/products/programming-with-thymio-suite/program-thymio-aseba/) nodes in [CoppeliaSim](https://coppeliarobotics.com).
 
@@ -60,7 +60,6 @@ This will build the plugin and install it together with the robot model[s].
 
 ## Running
 
-<<<<<<< HEAD
 Launch CoppeliaSim. In the model browser, you will find models for Thymio, [MightyThymio](https://github.com/jeguzzi/mighty-thymio), and e-puck (called `e-puck-aseba` to distinguish it from the model already installed) in `robots > mobile`, which you can drag into the scene. Press play.
 
 ### Aseba lua interface
