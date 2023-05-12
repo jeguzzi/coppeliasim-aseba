@@ -15,6 +15,8 @@ You can control the robots/nodes
 - [Aseba](https://github.com/aseba-community/aseba)  (available as submodule)
 - [Dashel](https://github.com/aseba-community/dashel) (available as submodule)
 - [CoppeliaSim v4.3, or v4.4](https://coppeliarobotics.com) (we do not yet support the latest v4.5)
+- [xsltproc](http://xmlsoft.org/xslt/xsltproc.html) (CoppeliaSim plugins dependency)
+- [xmlschema](https://github.com/sissaschool/xmlschema) (CoppeliaSim plugins dependency)
 - Cmake >= 3.5
 - a C++17 compiler
 - [OpenCV](https://opencv.org/)
@@ -25,14 +27,14 @@ You can control the robots/nodes
 #### Linux
 
 ```console
-sudo apt install cmake libopencv-dev [libxml2-dev] [libavahi-compat-libdnssd-dev]
-[python3 -m pip install Jinja2]
+sudo apt install cmake libopencv-dev xsltproc [libxml2-dev] [libavahi-compat-libdnssd-dev]
+[python3 -m pip install Jinja2 xmlschema]
 ```
 
 #### MacOs
 ```console
 brew install cmake opencv [libxml2]
-[python3 -m pip install Jinja2]
+[python3 -m pip install Jinja2 xmlschema]
 ```
 
 ### CoppeliaSim
