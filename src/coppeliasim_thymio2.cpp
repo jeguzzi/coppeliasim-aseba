@@ -381,24 +381,24 @@ static std::array<std::string, 2> ground_names = {"Left", "Right"};
 static std::array<std::string, Button::COUNT> button_names = {
     "Backward", "Left", "Center", "Forward", "Right"};
 
-Thymio2::Thymio2(simInt handle_, uint8_t default_behavior_mask_) :
+Thymio2::Thymio2(int handle_, uint8_t default_behavior_mask_) :
   Robot(handle_), default_behavior_mask(default_behavior_mask_),
   behavior(new Behavior(*this, default_behavior_mask_)),
   battery_voltage(3.61), temperature(22.0), mic_intesity(0.0), mic_threshold(0.0), r5(false),
   sd_card() {
-  simChar * alias = simGetObjectAlias(handle, 2);
+  char * alias = simGetObjectAlias(handle, 2);
   std::string body_path = std::string(alias)+"/Body";
   body_handle = simGetObject(body_path.c_str(), -1, -1, 0);
   texture_id = simGetShapeTextureId(body_handle);
   log_info("Initializing Thymio2 with handle %d and texture_id %d", handle, texture_id);
   for (const auto & wheel_prefix : wheel_prefixes) {
     std::string wheel_path = std::string(alias) + wheel_prefix + "Motor";
-    simInt wheel_handle = simGetObject(wheel_path.c_str(), -1, -1, 0);
+    int wheel_handle = simGetObject(wheel_path.c_str(), -1, -1, 0);
     wheels.push_back(Wheel(0.022, wheel_handle));
   }
   for (size_t i = 0; i < proximity_names.size(); i++) {
     std::string prox_path = std::string(alias)+"/Proximity" + proximity_names[i];
-    simInt prox_handle = simGetObject(prox_path.c_str(), -1, -1, 0);
+    int prox_handle = simGetObject(prox_path.c_str(), -1, -1, 0);
     proximity_sensors.push_back(ProximitySensor(
         prox_handle, proximity_min_value, proximity_max_value, x0, lambda));
     prox_comm.emitter_handles[i] = prox_handle;
@@ -406,11 +406,11 @@ Thymio2::Thymio2(simInt handle_, uint8_t default_behavior_mask_) :
   }
   for (const auto & ground_name : ground_names) {
     std::string ground_path = std::string(alias)+"/Ground" + ground_name;
-    simInt ground_handle = simGetObject(ground_path.c_str(), -1, -1, 0);
+    int ground_handle = simGetObject(ground_path.c_str(), -1, -1, 0);
     ground_sensors.push_back(GroundSensor(ground_handle));
   }
   std::string acc_path = std::string(alias)+"/Accelerometer";
-  simInt acc_handle = simGetObject(acc_path.c_str(), -1, -1, 0);
+  int acc_handle = simGetObject(acc_path.c_str(), -1, -1, 0);
   accelerometer = Accelerometer(acc_handle);
   for (size_t i = LED::BUTTON_UP; i <= LED::BUTTON_RIGHT; i++) {
     leds[i].color = Color(1, 0, 0);
@@ -433,7 +433,7 @@ Thymio2::Thymio2(simInt handle_, uint8_t default_behavior_mask_) :
 
   for (size_t i = 0; i < buttons.size(); i++) {
     std::string button_path = std::string(alias)+"/Button" + button_names[i];
-    simInt button_handle = simGetObject(button_path.c_str(), -1, -1, 0);
+    int button_handle = simGetObject(button_path.c_str(), -1, -1, 0);
     buttons[i] = Button(button_handle);
   }
 
@@ -455,7 +455,7 @@ void Thymio2::reset_texture(bool reload) {
   cv::cvtColor(body_texture, texture, cv::COLOR_BGR2RGB);
   cv::Mat m = cv::Mat(TEXTURE_SIZE, TEXTURE_SIZE, CV_8UC3);
   cv::flip(texture, m, 0);
-  simInt64 uid = simGetObjectUid(handle);
+  int64 uid = simGetObjectUid(handle);
   // HACK(Jerome): One pixel should be specific to each robot,
   // else coppeliaSim will link them when it save the scene
   // But this hack is not working for image loaded textures
@@ -464,13 +464,24 @@ void Thymio2::reset_texture(bool reload) {
   m.data[1] = (uint8_t) ((uid >> 8) & 0xFF);
   m.data[2] = (uint8_t) ((uid >> 16) & 0xFF);
   if (reload) {
-    // simInt textureResolution[2] = {TEXTURE_SIZE, TEXTURE_SIZE};
+    // int textureResolution[2] = {TEXTURE_SIZE, TEXTURE_SIZE};
     SShapeVizInfo info;
-    simInt r = simGetShapeViz(body_handle, 0, &info);
+    int r = simGetShapeViz(body_handle, 0, &info);
     // printf("r %d, (%d, %d) %d \n", r, info.textureRes[0], info.textureRes[1], info.indicesSize);
+
+    // HACK(Jerome): in 4.5 SShapeVizInfo.textureCoords is an array of floats
+    // while simApplyTexture accept an array of doubles!
+#if SIM_PROGRAM_VERSION_NB >= 40500
+    double textureCoords[3 * info.indicesSize];
+    for (int i = 0; i < 3 * info.indicesSize; ++i) {
+      textureCoords[i] = (double) info.textureCoords[i];
+    }    
+#else
+    float * textureCoords = info.textureCoords;
+#endif
     texture_id = simApplyTexture(
-        body_handle, info.textureCoords, info.indicesSize * 2,
-        (const simUChar *)m.ptr(), info.textureRes, 1);
+        body_handle, textureCoords, info.indicesSize * 2,
+        (const unsigned char *)m.ptr(), info.textureRes, 1);
     // bottom-left corner is not mapped on the shape (i.e., the pixel is not visible)
 
     log_debug("Reset texture for handle %d -> texture_id %d", handle, texture_id);
@@ -592,7 +603,7 @@ void Thymio2::update_actuation(float dt) {
 }
 
 // to align z axis
-static void get_vector_orientation(float * dp, float * q) {
+static void get_vector_orientation(simFloat * dp, simFloat * q) {
   float nhs = dp[0] * dp[0] + dp[1] * dp[1];
   float n  = sqrt(nhs + dp[2] * dp[2]);
   float nh  = sqrt(nhs);
@@ -630,15 +641,15 @@ static float prox_comm_response(float intensity,
 // Difference between my enki and this implementation
 // - enki: I sum over all sectors; here: I just use 1 ray, not sure if this is still calibrated
 
-static bool check_emitter_receiver(simInt emitter_handle, simInt receiver_handle,
-                                   simInt receiver_sensor,
+static bool check_emitter_receiver(int emitter_handle, int receiver_handle,
+                                   int receiver_sensor,
                                    float & distance,
                                    float & cos_emitter_angle,
                                    float & cos_receiver_angle,
                                    float max_emitter_angle = 0.524,
                                    float max_receiver_angle = 0.644,
                                    float max_range = 0.48) {
-  float position[3];
+  simFloat position[3];
   simGetObjectPosition(receiver_handle, emitter_handle, position);
   distance = sqrt(position[0] * position[0] + position[1] * position[1] +
                   position[2] * position[2]);
@@ -648,38 +659,38 @@ static bool check_emitter_receiver(simInt emitter_handle, simInt receiver_handle
   float emitter_angle = abs(acos(cos_emitter_angle));
   // printf("emitter angle %.2f <? %.2f\n", emitter_angle, max_emitter_angle);
   if (emitter_angle > max_emitter_angle) return false;
-  float emitter_position[3];
+  simFloat emitter_position[3];
   simGetObjectPosition(emitter_handle, receiver_handle, emitter_position);
   cos_receiver_angle = emitter_position[2] / distance;
   float receiver_angle = abs(acos(cos_receiver_angle));
   // printf("receiver angle %.2f <? %.2f\n", receiver_angle, max_receiver_angle);
   if (receiver_angle > max_receiver_angle) return false;
-  float q[4];
+  simFloat q[4];
   get_vector_orientation(emitter_position, q);
   // printf("Set orientation of ray %d to %.2f %.2f %.2f %.2f\n",
   //        receiver_sensor, q[0], q[1], q[2], q[3]);
   simSetObjectQuaternion(receiver_sensor, receiver_handle, q);
-  simInt detectedObjectHandle = -1;
-  float detectedPoint[4];
-  simInt r = simCheckProximitySensorEx(receiver_sensor, sim_handle_all, 5, distance - 1e-3, 0.0,
+  int detectedObjectHandle = -1;
+  simFloat detectedPoint[4];
+  int r = simCheckProximitySensorEx(receiver_sensor, sim_handle_all, 5, distance - 1e-3, 0.0,
                                        detectedPoint, &detectedObjectHandle, nullptr);
   // printf("Collision? %d: %d (%d) at %.2f (%.2f)\n",
   // receiver_sensor, r, detectedObjectHandle, detectedPoint[3], distance - 1e-3);
   return r == 0;
 }
 
-void ProximityComm::update_sensing(const std::array<simInt, 7> & tx_handles, simInt value) {
+void ProximityComm::update_sensing(const std::array<int, 7> & tx_handles, int value) {
   // printf("update_sensing %d\n", value);
   ProxCommMsg msg;
   int i = 0;
   bool received = false;
   for (size_t i = 0; i < 7; i++) {
     /* code */
-    simInt receiver = emitter_handles[i];
-    simInt sensor = sensor_handles[i];
+    int receiver = emitter_handles[i];
+    int sensor = sensor_handles[i];
     float intensity = 0.0;
     // printf("receiver %d with sensor %d\n", receiver, sensor);
-    for (const simInt emitter : tx_handles) {
+    for (const int emitter : tx_handles) {
       float distance, cos_e, cos_r;
       // printf("emitter %d\n", emitter);
       if (check_emitter_receiver(emitter, receiver, sensor, distance, cos_e, cos_r)) {

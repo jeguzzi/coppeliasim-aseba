@@ -33,7 +33,6 @@
 #include <set>
 #include "config.h"
 #include "simPlusPlus/Plugin.h"
-#include "simPlusPlus/Handle.h"
 #include "stubs.h"
 #include "aseba_network.h"
 #include "coppeliasim_aseba_node.h"
@@ -82,9 +81,9 @@ class Plugin : public sim::Plugin {
     }
 
     void onSimulationAboutToStart() {
-      simSetInt32Parameter(
+      simSetInt32Param(
           sim_intparam_prox_sensor_select_down, sim_objectspecialproperty_detectable);
-      simSetInt32Parameter(
+      simSetInt32Param(
           sim_intparam_prox_sensor_select_up, sim_objectspecialproperty_detectable);
     }
 
@@ -157,7 +156,7 @@ class Plugin : public sim::Plugin {
     }
 
     void _thymio2_create(_thymio2_create_in *in, _thymio2_create_out *out) {
-      simInt uid = free_uid(in->id);
+      int uid = free_uid(in->id);
       uids.insert(uid);
       thymios.emplace(std::piecewise_construct, std::forward_as_tuple(uid),
                       std::forward_as_tuple(in->handle, in->behavior_mask));
@@ -175,7 +174,7 @@ class Plugin : public sim::Plugin {
         standalone_thymios.insert(uid);
       }
       unsigned i = 0;
-      for (simInt button_handle : thymio.button_handles()) {
+      for (int button_handle : thymio.button_handles()) {
         buttons[button_handle] = std::make_pair(uid, i);
         i++;
       }
@@ -183,7 +182,7 @@ class Plugin : public sim::Plugin {
     }
 
     void _epuck_create(_epuck_create_in *in, _epuck_create_out *out) {
-      simInt uid = free_uid(in->id);
+      int uid = free_uid(in->id);
       uids.insert(uid);
       epucks.emplace(std::piecewise_construct, std::forward_as_tuple(uid),
                      std::forward_as_tuple(in->handle));
@@ -204,7 +203,7 @@ class Plugin : public sim::Plugin {
     }
 
     void create_node(create_node_in *in, create_node_out *out) {
-      simInt uid = free_uid(in->id);
+      int uid = free_uid(in->id);
       uids.insert(uid);
       std::array<uint8_t, 16> uuid;
       std::string friendly_name;
@@ -229,7 +228,7 @@ class Plugin : public sim::Plugin {
     void destroy_node_with_uid(unsigned uid) {
       if (thymios.count(uid)) {
         CS::Thymio2 & thymio = thymios.at(uid);
-        for (simInt button_handle : thymio.button_handles()) {
+        for (int button_handle : thymio.button_handles()) {
           buttons.erase(button_handle);
         }
         thymios.erase(uid);
@@ -710,11 +709,11 @@ class Plugin : public sim::Plugin {
     }
 
  private:
-  std::map<simInt, CS::Thymio2> thymios;
-  std::map<simInt, CS::EPuck> epucks;
+  std::map<int, CS::Thymio2> thymios;
+  std::map<int, CS::EPuck> epucks;
   std::set<int> standalone_thymios;
   std::set<int> standalone_epucks;
-  std::map<simInt, std::pair<simInt, unsigned>> buttons;
+  std::map<int, std::pair<int, unsigned>> buttons;
   std::map<int, int> prox_comm_tx;
 };
 

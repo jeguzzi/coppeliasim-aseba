@@ -7,6 +7,13 @@
 #include <filesystem>
 
 #include <simPlusPlus/Lib.h>
+
+#if SIM_PROGRAM_VERSION_NB >= 40500
+typedef double simFloat;
+#else
+typedef float simFloat;
+#endif
+
 #include <opencv2/opencv.hpp>
 
 namespace CS {
@@ -20,13 +27,13 @@ struct Wheel {
     LEFT, RIGHT
   };
   const float radius;
-  float angular_speed;
+  simFloat angular_speed;
   // sensed
-  float angle;
+  simFloat angle;
   bool first;
   // integrated (starts at 0 and then continuos)
   float odometry;
-  simInt handle;
+  int handle;
   float speed() const {
     return radius * angular_speed;
   }
@@ -35,7 +42,7 @@ struct Wheel {
   float get_target_speed() const {
     return nominal_angular_target_speed * radius;
   }
-  Wheel(float radius, simInt handle=-1) :
+  Wheel(float radius, int handle=-1) :
     radius(radius), angular_speed(0.0), first(true), odometry(0.0), handle(handle),
     nominal_angular_target_speed(0.0) {}
  private:
@@ -45,7 +52,7 @@ struct Wheel {
 struct ProximitySensor {
   float value;
   bool detected;
-  simInt handle;
+  int handle;
   bool active;
   bool only_red;
   const float min_value;
@@ -57,7 +64,7 @@ struct ProximitySensor {
     return static_cast<int16_t>(value);
   }
   ProximitySensor(
-      simInt handle_=-1, float min_value=0, float max_value=0, float x0=0, float lambda=0) :
+      int handle_=-1, float min_value=0, float max_value=0, float x0=0, float lambda=0) :
   handle(handle_), detected(false), active(true), only_red(false),
   min_value(min_value), max_value(max_value), x0(x0), lambda(lambda) {}
   void update_sensing(float dt);
@@ -66,7 +73,7 @@ struct ProximitySensor {
 struct GroundSensor {
   float reflected_light;
   // float ambient_light;
-  simInt handle;
+  int handle;
   bool active;
   bool only_red;
   bool use_vision;
@@ -84,20 +91,20 @@ struct GroundSensor {
   static constexpr float lambda = 0.01631;
   // static constexpr float lambda = 0.0192;
   void update_sensing(float dt);
-  GroundSensor(simInt handle_=-1);
+  GroundSensor(int handle_=-1);
 private:
-  simInt vision_handle;
+  int vision_handle;
 };
 
 struct Accelerometer {
   float values[3];
-  simInt handle;
+  int handle;
   bool active;
   Accelerometer(int handle_=-1);
   void update_sensing(float dt);
 private:
-  float mass;
-  simInt sensor;
+  simFloat mass;
+  int sensor;
 };
 
 struct Color {
@@ -141,10 +148,10 @@ class Robot {
   std::vector<ProximitySensor> proximity_sensors;
   std::vector<GroundSensor> ground_sensors;
   Accelerometer accelerometer;
-  simInt handle;
+  int handle;
 
  public:
-  Robot(simInt handle);
+  Robot(int handle);
   ~Robot();
   void set_target_speed(size_t index, float speed);
   float get_target_speed(size_t index);

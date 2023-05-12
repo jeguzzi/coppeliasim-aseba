@@ -8,16 +8,21 @@ namespace CS {
 void Camera::update_sensing(float dt) {
   if (!active || handle <= 0) return;
   simHandleVisionSensor(handle, nullptr, nullptr);
-  simInt width = 0;
-  simInt height = 0;
-  simUChar *buffer = simGetVisionSensorCharImage(handle, &width, &height);
+  int resolution[2];
+#if SIM_PROGRAM_VERSION_NB >= 40400
+  unsigned char *buffer = simGetVisionSensorImg(handle, 0, 0.0, nullptr, nullptr, resolution);
+#else
+  unsigned char *buffer = simGetVisionSensorCharImage(handle, &width, &height);
+#endif
+  const int width = resolution[0];
+  const int height = resolution[1];
   if (width != image_width || height != image_height) {
     log_error("Wrong image size %d x %d", width, height);
     return;
   }
   unsigned size = width * height * 3;
   image = std::vector<uint8_t>(buffer, buffer + size);
-  simReleaseBuffer((const simChar *)buffer);
+  simReleaseBuffer((const char *)buffer);
 }
 
 void Gyroscope::update_sensing(float dt) {
@@ -45,28 +50,28 @@ static std::array<std::string, 8> proximity_names = {
     "0", "1", "2", "3", "4", "5", "6", "7"};
 static std::array<std::string, 3> ground_names = {"Left", "Center", "Right"};
 
-EPuck::EPuck(simInt handle_) :
+EPuck::EPuck(int handle_) :
   Robot(handle_), front_led(false), body_led(false),
   mic_intensity({0, 0, 0}), battery_voltage(4.0), selector(0), rc(0) {
-  simChar * alias = simGetObjectAlias(handle, 2);
+  char * alias = simGetObjectAlias(handle, 2);
   log_info("Initializing EPuck with handle %d (%s)", handle, alias);
   for (const auto & wheel_prefix : wheel_prefixes) {
     std::string wheel_path = std::string(alias) + wheel_prefix + "Motor";
-    simInt wheel_handle = simGetObject(wheel_path.c_str(), -1, -1, 0);
+    int wheel_handle = simGetObject(wheel_path.c_str(), -1, -1, 0);
     wheels.push_back(Wheel(0.0211745, wheel_handle));
   }
   for (const auto & proximity_name : proximity_names) {
     std::string prox_path = std::string(alias)+"/Proximity_" + proximity_name;
-    simInt prox_handle = simGetObject(prox_path.c_str(), -1, -1, 0);
+    int prox_handle = simGetObject(prox_path.c_str(), -1, -1, 0);
     proximity_sensors.push_back(ProximitySensor(prox_handle, min_value, max_value, x0, lambda));
   }
   // for (const auto & ground_name : ground_names) {
   //   std::string ground_path = std::string(alias)+"/Ground" + ground_name;
-  //   simInt ground_handle = simGetObject(ground_path.c_str(), -1, -1, 0);
+  //   int ground_handle = simGetObject(ground_path.c_str(), -1, -1, 0);
   //   ground_sensors.push_back(GroundSensor(ground_handle));
   // }
   std::string acc_path = std::string(alias)+"/Accelerometer";
-  simInt acc_handle = simGetObject(acc_path.c_str(), -1, -1, 0);
+  int acc_handle = simGetObject(acc_path.c_str(), -1, -1, 0);
   accelerometer = Accelerometer(acc_handle);
 
   std::string camera_path = std::string(alias)+"/Camera";
@@ -111,8 +116,8 @@ void EPuck::set_body_led(bool value) {
   // log_debug("set_body_led %d\n", value);
   if (value != body_led) {
     body_led = value;
-    simFloat color[3] = {0.0, 0.27f * value, 0.0};
-    simInt r = simSetShapeColor(body_handle, nullptr, sim_colorcomponent_emission, color);
+    float color[3] = {0.0, 0.27f * value, 0.0};
+    int r = simSetShapeColor(body_handle, nullptr, sim_colorcomponent_emission, color);
     color[1] *= 0.8;
     simSetShapeColor(ring_handle, nullptr, sim_colorcomponent_emission, color);
     color[1] *= 0.8;
@@ -123,17 +128,17 @@ void EPuck::set_body_led(bool value) {
 void EPuck::set_front_led(bool value) {
   if (value != front_led) {
     front_led = value;
-    simFloat color[3] = {0.5f * value, 1.0f * value, 0.0};
+    float color[3] = {0.5f * value, 1.0f * value, 0.0};
     simSetShapeColor(front_led_handle, nullptr, sim_colorcomponent_emission, color);
   }
 }
 
-LEDRing::LEDRing(simInt shape_handle_) : shape_handle(shape_handle_) {
+LEDRing::LEDRing(int shape_handle_) : shape_handle(shape_handle_) {
   if (shape_handle <= 0) return;
   texture_id = simGetShapeTextureId(shape_handle);
   log_info("loading led texture");
   texture = cv::imread(TEXTURE_DIR "/epuck.png");
-  simInt64 uid = simGetObjectUid(shape_handle);
+  int64 uid = simGetObjectUid(shape_handle);
   // HACK(Jerome): One pixel should be specific to each robot,
   // else coppeliaSim will link them when it save the scene
   texture.data[0] = (uint8_t) (uid & 0xFF);
@@ -157,10 +162,20 @@ void LEDRing::reset(bool reload) {
   log_info("resetting led texture (%d)", reload);
   if (reload) {
     SShapeVizInfo info;
-    simInt r = simGetShapeViz(shape_handle, 0, &info);
+    int r = simGetShapeViz(shape_handle, 0, &info);
+  // HACK(Jerome): in 4.5 SShapeVizInfo.textureCoords is an array of floats
+  // while simApplyTexture accept an array of doubles!
+#if SIM_PROGRAM_VERSION_NB >= 40500
+    double textureCoords[3 * info.indicesSize];
+    for (int i = 0; i < 3 * info.indicesSize; ++i) {
+      textureCoords[i] = (double) info.textureCoords[i];
+    }    
+#else
+    float * textureCoords = info.textureCoords;
+#endif
     texture_id = simApplyTexture(
-        shape_handle, info.textureCoords, info.indicesSize * 2,
-        (const simUChar *)t.ptr(), info.textureRes, 1);
+        shape_handle, textureCoords, info.indicesSize * 2,
+        (const unsigned char *)t.ptr(), info.textureRes, 1);
     log_debug("Reset texture for handle %d -> texture_id %d", shape_handle, texture_id);
     simReleaseBuffer((const char *)info.indices);
     simReleaseBuffer((const char *)info.normals);
@@ -220,7 +235,7 @@ LEDRing::LED::LED(int position, const cv::Mat & texture) : value(false), positio
   log_info("Created LED");
 }
 
-void LEDRing::LED::push(simInt texture_id, int texture_size) {
+void LEDRing::LED::push(int texture_id, int texture_size) {
   const char * patch = (const char *) (value ? on_texture : off_texture).ptr<uint8_t>();
   simWriteTexture(texture_id, 0, patch, position, texture_size - y - patch_height, patch_width,
                   patch_height, 0);

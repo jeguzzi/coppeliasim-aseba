@@ -21,7 +21,7 @@
 // }
 
 template<typename ... Args>
-void log(simInt verbosity, const std::string & format, Args&&... args) {
+void log(int verbosity, const std::string & format, Args&&... args) {
   simAddLog("Aseba", verbosity, sim::util::sprintf(format, std::forward<Args>(args)...).c_str());
 }
 

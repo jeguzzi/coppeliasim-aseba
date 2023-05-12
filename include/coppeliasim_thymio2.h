@@ -125,8 +125,8 @@ struct Button {
     COUNT
   };
   bool value;
-  simInt handle;
-  Button(simInt handle_ = -1) : value(false), handle(handle_) {}
+  int handle;
+  Button(int handle_ = -1) : value(false), handle(handle_) {}
 };
 
 struct ProxCommMsg {
@@ -137,13 +137,13 @@ struct ProxCommMsg {
 
 struct ProximityComm {
   bool enabled;
-  simInt tx;
+  int tx;
   std::vector<ProxCommMsg> rx_buffer;
-  std::array<simInt, 7> sensor_handles;
-  std::array<simInt, 7> emitter_handles;
+  std::array<int, 7> sensor_handles;
+  std::array<int, 7> emitter_handles;
   ProximityComm() :
     enabled(false), tx(0), rx_buffer(), sensor_handles(), emitter_handles()  {};
-  void update_sensing(const std::array<simInt, 7> & tx_handles, simInt tx);
+  void update_sensing(const std::array<int, 7> & tx_handles, int tx);
 };
 
 struct LED {
@@ -192,8 +192,8 @@ class Thymio2 : public Robot {
   std::array<Button, Button::COUNT> buttons;
   ProximityComm prox_comm;
   cv::Mat texture;
-  simInt texture_id;
-  simInt body_handle;
+  int texture_id;
+  int body_handle;
 
   std::unique_ptr<Behavior> behavior;
   float battery_voltage;
@@ -211,7 +211,7 @@ class Thymio2 : public Robot {
   static constexpr float max_temperature = 100.0;
 
  public:
-  Thymio2(simInt handle, uint8_t default_behavior_mask = 0x0);
+  Thymio2(int handle, uint8_t default_behavior_mask = 0x0);
   ~Thymio2();
 
   virtual void update_sensing(float dt);
@@ -246,8 +246,8 @@ class Thymio2 : public Robot {
     }
   }
 
-  std::vector<simInt> button_handles() const {
-    std::vector<simInt> handles;
+  std::vector<int> button_handles() const {
+    std::vector<int> handles;
     for (auto & button : buttons) {
       handles.push_back(button.handle);
     }
@@ -262,7 +262,7 @@ class Thymio2 : public Robot {
     return prox_comm.tx;
   }
 
-  void set_prox_comm_tx(simInt tx) {
+  void set_prox_comm_tx(int tx) {
     // printf("robot set_prox_comm_tx %d\n", tx);
     prox_comm.tx = tx;
   }
@@ -271,7 +271,7 @@ class Thymio2 : public Robot {
     prox_comm.enabled = value;
   }
 
-  const std::array<simInt, 7> & prox_comm_emitter_handles() const {
+  const std::array<int, 7> & prox_comm_emitter_handles() const {
     return prox_comm.emitter_handles;
   }
 
@@ -279,7 +279,7 @@ class Thymio2 : public Robot {
     return prox_comm.enabled;
   }
 
-  void update_prox_comm(const std::array<simInt, 7> & emitter_handles, simInt tx) {
+  void update_prox_comm(const std::array<int, 7> & emitter_handles, int tx) {
     prox_comm.update_sensing(emitter_handles, tx);
   }
 

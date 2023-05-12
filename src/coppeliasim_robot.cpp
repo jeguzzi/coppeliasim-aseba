@@ -19,7 +19,7 @@ static float normalize_angle(float angle) {
 
 namespace CS {
 
-Robot::Robot(simInt handle_) : handle(handle_), wheels(), proximity_sensors(), ground_sensors() { }
+Robot::Robot(int handle_) : handle(handle_), wheels(), proximity_sensors(), ground_sensors() { }
 
 Robot::~Robot() { }
 
@@ -73,8 +73,8 @@ void Wheel::set_target_speed(float speed) {
 }
 
 void Wheel::update_sensing(float dt) {
-  simInt r = simGetJointVelocity(handle, &angular_speed);
-  float new_angle;
+  int r = simGetJointVelocity(handle, &angular_speed);
+  simFloat new_angle;
   r = simGetJointPosition(handle, &new_angle);
   if (first) {
     odometry = 0.0;
@@ -151,17 +151,17 @@ void ProximitySensor::update_sensing(float dt) {
   // (now No and front face, accurate)
   // https://www.coppeliarobotics.com/helpFiles/en/regularApi/simCheckProximitySensorEx.htm
   simFloat detectedPoint[4];
-  simInt detectedObjectHandle = 0;
+  int detectedObjectHandle = 0;
   simFloat surfaceNormalVector[3];
 
-  simInt r = simCheckProximitySensorEx(
+  int r = simCheckProximitySensorEx(
       handle, sim_handle_all, 1, 0.28, 0, detectedPoint, &detectedObjectHandle,
       surfaceNormalVector);
   // printf("Checked %d -> %d\n", handle);
   if (r > 0) {
     detected = true;
     // get diffusion color of detected object
-    simFloat rgbData[3];
+    float rgbData[3];
     r = simGetObjectColor(detectedObjectHandle, 0, sim_colorcomponent_ambient_diffuse, rgbData);
     // float intensity = std::max({rgbData[0], rgbData[1], rgbData[2]});
     // value = proximity_response(detectedPoint[3], surfaceNormalVector[2], intensity);
@@ -176,10 +176,10 @@ void ProximitySensor::update_sensing(float dt) {
   }
 }
 
-GroundSensor::GroundSensor(simInt handle_) :
+GroundSensor::GroundSensor(int handle_) :
   handle(handle_), active(true), only_red(false), use_vision(false) {
   if (handle >= 0) {
-    simChar * alias = simGetObjectAlias(handle, 2);
+    char * alias = simGetObjectAlias(handle, 2);
     std::string path = std::string(alias);
     simReleaseBuffer(alias);
     vision_handle = simGetObject((path + "/Vision").c_str(), -1, -1, 0);
@@ -200,9 +200,9 @@ GroundSensor::GroundSensor(simInt handle_) :
 
 void GroundSensor::update_sensing(float dt) {
   simFloat detectedPoint[4];
-  simInt detectedObjectHandle = 0;
+  int detectedObjectHandle = 0;
   simFloat surfaceNormalVector[3];
-  simInt r = simCheckProximitySensorEx(
+  int r = simCheckProximitySensorEx(
       handle, sim_handle_all, 1, 0.1, 0, detectedPoint, &detectedObjectHandle,
       surfaceNormalVector);
   // printf("GroundSensor::update_sensing r %d %d %.3f\n", detectedObjectHandle, detectedPoint[3]);
@@ -213,9 +213,9 @@ void GroundSensor::update_sensing(float dt) {
     // bool has_texture = (simGetShapeTextureId(detectedObjectHandle) != -1);
     if (use_vision) {
       simFloat* auxValues = nullptr;
-      simInt* auxValuesCount = nullptr;
+      int* auxValuesCount = nullptr;
       // const simFloat * rgbData = simCheckVisionSensorEx(vision_handle, sim_handle_all, true);
-      // simInt r1 = simCheckVisionSensor(vision_handle, detectedObjectHandle,
+      // int r1 = simCheckVisionSensor(vision_handle, detectedObjectHandle,
       //                                  &auxValues, &auxValuesCount);
       simHandleVisionSensor(vision_handle, &auxValues, &auxValuesCount);
       if ((auxValuesCount[0] > 0) && (auxValuesCount[1] >= 15)) {
@@ -233,7 +233,7 @@ void GroundSensor::update_sensing(float dt) {
       simReleaseBuffer((char*)auxValuesCount);
       // return;
       // if (rgbData) {
-      //   simInt re[2];
+      //   int re[2];
       //   simGetVisionSensorResolution(vision_handle, re);
       //   printf("%.3f %.3f %3.f (%d, %d, %d)\n",
       //   rgbData[0], rgbData[1], rgbData[2], re[0], re[1]);
@@ -241,7 +241,7 @@ void GroundSensor::update_sensing(float dt) {
       // } else {
       //   intensity = 0.0;
       // }
-      // simReleaseBuffer((const simChar *) rgbData);
+      // simReleaseBuffer((const char *) rgbData);
     } else {
       // printf("no texture\n");
       simGetObjectColor(detectedObjectHandle, 0, sim_colorcomponent_ambient_diffuse, rgb);
@@ -260,12 +260,12 @@ void GroundSensor::update_sensing(float dt) {
 
 Accelerometer::Accelerometer(int handle_) : handle(handle_), active(true) {
   if (handle >= 0) {
-    simChar * alias = simGetObjectAlias(handle, 2);
+    char * alias = simGetObjectAlias(handle, 2);
     std::string path = std::string(alias);
     simReleaseBuffer(alias);
-    simInt massObject = simGetObject((path + "/forceSensor/mass").c_str(), -1, -1, 0);
+    int massObject = simGetObject((path + "/forceSensor/mass").c_str(), -1, -1, 0);
     sensor = simGetObject((path + "/forceSensor").c_str(), -1, -1, 0);
-    simInt r = simGetObjectFloatParam(massObject, sim_shapefloatparam_mass, &mass);
+    int r = simGetObjectFloatParam(massObject, sim_shapefloatparam_mass, &mass);
     if (r != 1) {
       log_error("Error %d getting mass of object %d", r, massObject);
     }
@@ -273,8 +273,8 @@ Accelerometer::Accelerometer(int handle_) : handle(handle_), active(true) {
 }
 
 void Accelerometer::update_sensing(float dt) {
-    float force[3];
-    simInt result = simReadForceSensor(sensor, force, nullptr);
+    simFloat force[3];
+    int result = simReadForceSensor(sensor, force, nullptr);
     if (result > 0) {
       // printf("Acc: %.1e %1.e %.1e %.1e\n", force[0], force[1], force[2], mass);
       for (size_t i = 0; i < 3; i++) {

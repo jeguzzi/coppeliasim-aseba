@@ -13,7 +13,7 @@
 namespace CS {
 
 struct Camera {
-  simInt handle;
+  int handle;
   int image_width;
   int image_height;
   std::vector<uint8_t> image;
@@ -26,14 +26,14 @@ struct Camera {
     return image.data() +  image_width * i * 3;
   }
 
-  Camera(simInt handle=-1) :
+  Camera(int handle=-1) :
     handle(handle), image_width(60), image_height(60), image(image_width * image_height * 3),
     active(true) {}
 };
 
 struct Gyroscope {
   float values[3];
-  simInt handle;
+  int handle;
   bool active;
   Gyroscope(int handle=-1) : values(), handle(handle), active(true) {};
   void update_sensing(float dt);
@@ -52,7 +52,7 @@ class LEDRing {
     static constexpr float a = 1.5;
     static constexpr int patch_width = 40;
     static constexpr int patch_height = 60;
-    void push(simInt texture_id, int texture_size);
+    void push(int texture_id, int texture_size);
     explicit LED(int position, const cv::Mat & texture);
   };
 
@@ -62,10 +62,10 @@ class LEDRing {
     static constexpr int texture_size = 1024;
     cv::Mat texture;
     int texture_id;
-    simInt shape_handle;
+    int shape_handle;
     std::vector<LED> leds;
   public:
-    explicit LEDRing(simInt shape_handle=-1);
+    explicit LEDRing(int shape_handle=-1);
     void reset(bool);
     void set_value(size_t index, bool value);
     bool get_value(size_t index) const {
@@ -89,13 +89,13 @@ class EPuck : public Robot {
    uint8_t rc;
    bool front_led;
    bool body_led;
-   simInt body_handle;
-   simInt ring_handle;
-   simInt rest_handle;
-   simInt front_led_handle;
+   int body_handle;
+   int ring_handle;
+   int rest_handle;
+   int front_led_handle;
 
  public:
-  EPuck(simInt handle);
+  EPuck(int handle);
   ~EPuck();
 
   virtual void update_sensing(float dt);

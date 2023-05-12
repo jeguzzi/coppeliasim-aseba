@@ -25,22 +25,25 @@ list(APPEND CMAKE_MODULE_PATH
   ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules
 )
 
-if(NOT LIBPLUGIN_DIR)
-  if(DEFINED ENV{COPPELIASIM_ROOT_DIR})
-    set(LIBPLUGIN_DIR $ENV{COPPELIASIM_ROOT_DIR}/programming/libPlugin)
-  else()
-    set(LIBPLUGIN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../libPlugin)
-  endif()
+if(NOT COPPELIASIM_INCLUDE_DIR)
+    if(DEFINED ENV{COPPELIASIM_ROOT_DIR})
+        set(COPPELIASIM_INCLUDE_DIR $ENV{COPPELIASIM_ROOT_DIR}/programming/include)
+    else()
+        set(COPPELIASIM_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+    endif()
 endif()
+if(NOT LIBPLUGIN_DIR)
+    if(DEFINED ENV{COPPELIASIM_ROOT_DIR})
+        set(LIBPLUGIN_DIR $ENV{COPPELIASIM_ROOT_DIR}/programming/libPlugin)
+    else()
+        set(LIBPLUGIN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../libPlugin)
+    endif()
+endif()
+
 list(APPEND CMAKE_MODULE_PATH
-  ${LIBPLUGIN_DIR}/cmake
-)
-
-find_package(CoppeliaSim 4.3 REQUIRED)
-set(LIB_INSTALL_DIR ${COPPELIASIM_LIBRARIES_DIR} CACHE FILEPATH "")
-set(MODEL_DIR ${COPPELIASIM_MODELS_DIR}/robots/mobile)
-
-message("MODEL DIR ${MODEL_DIR}")
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules
+    ${COPPELIASIM_INCLUDE_DIR}/cmake
+    ${LIBPLUGIN_DIR}/cmake)
 
 macro(codesign target)
 endmacro(codesign)
@@ -97,18 +100,12 @@ add_subdirectory(${ASEBA_DIR}/aseba/compiler asebacompiler EXCLUDE_FROM_ALL)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
-if(NOT LIBPLUGIN_DIR)
-  if(DEFINED ENV{COPPELIASIM_ROOT_DIR})
-    set(LIBPLUGIN_DIR $ENV{COPPELIASIM_ROOT_DIR}/programming/libPlugin)
-  else()
-    set(LIBPLUGIN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../libPlugin)
-  endif()
-endif()
-list(APPEND CMAKE_MODULE_PATH
-  ${LIBPLUGIN_DIR}/cmake
-)
 
 find_package(CoppeliaSim 4.3 REQUIRED)
+
+set(LIB_INSTALL_DIR ${COPPELIASIM_LIBRARIES_DIR} CACHE FILEPATH "")
+set(MODEL_DIR ${COPPELIASIM_MODELS_DIR}/robots/mobile)
+
 find_package(OpenCV 4 COMPONENTS core imgproc imgcodecs REQUIRED)
 
 include_directories(${OpenCV_INCLUDE_DIRS} )
@@ -179,7 +176,7 @@ find_package(Python3 REQUIRED COMPONENTS Interpreter)
 add_custom_target(
   generate_thymio_lua ALL
   COMMAND
-    ${EXPORT_} "PYTHONPATH=${LIBPLUGIN_DIR}/simStubsGen"
+    ${EXPORT_} "PYTHONPATH=${LIBPLUGIN_DIR}/simStubsGen:${COPPELIASIM_INCLUDE_DIR}/simStubsGen"
     &&
     ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_split_reference.py --directory ${CMAKE_CURRENT_BINARY_DIR}/generated
     &&
@@ -195,7 +192,7 @@ add_custom_target(
 add_custom_target(
   docs
   COMMAND
-    ${EXPORT_} "PYTHONPATH=${LIBPLUGIN_DIR}/simStubsGen"
+    ${EXPORT_} "PYTHONPATH=${LIBPLUGIN_DIR}/simStubsGen:${COPPELIASIM_INCLUDE_DIR}/simStubsGen"
     &&
     ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_markdown_api.py --directory ${CMAKE_CURRENT_BINARY_DIR}/generated --file reference_Aseba.xml
     &&
