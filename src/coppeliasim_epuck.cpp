@@ -12,7 +12,7 @@ void Camera::update_sensing(float dt) {
 #if SIM_PROGRAM_VERSION_NB >= 40400
   unsigned char *buffer = simGetVisionSensorImg(handle, 0, 0.0, nullptr, nullptr, resolution);
 #else
-  unsigned char *buffer = simGetVisionSensorCharImage(handle, &width, &height);
+  unsigned char *buffer = simGetVisionSensorCharImage(handle, &resolution[0], &resolution[1]);
 #endif
   const int width = resolution[0];
   const int height = resolution[1];
