@@ -230,8 +230,8 @@ void AsebaThymio2::step(float dt) {
       old[3 * l + i] = current[3 * l + i];
     }
     if (changed) {
-      robot->set_led_color(CS::LED::TOP + l, false, current[3 * l], current[3 * l + 1],
-                           current[3 * l + 2]);
+      robot->set_led_color(CS::LED::TOP + l, false, current[3 * l] / 32.0, current[3 * l + 1] / 32.0,
+                           current[3 * l + 2] / 32.0);
     }
   }
   changed = false;

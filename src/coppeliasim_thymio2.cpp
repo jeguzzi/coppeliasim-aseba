@@ -567,6 +567,9 @@ void Thymio2::set_led_channel(size_t index, size_t channel, float value) {
 void Thymio2::set_led_color(size_t index, bool force, float r, float g, float b) {
   // printf("set led color %zu (%.2f %.2f %.2f)\n", index, r, g, b);
   if (index >= LED::COUNT) return;
+  r = std::clamp(r, 0.0f, 1.0f);
+  g = std::clamp(g, 0.0f, 1.0f);
+  b = std::clamp(b, 0.0f, 1.0f);
   const LEDTexture & led_texture = led_textures[index];
   LED & led = leds[index];
   if (!force && !led.color.set_rgb(r, g, b)) return;
