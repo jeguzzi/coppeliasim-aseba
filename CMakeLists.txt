@@ -113,9 +113,22 @@ include_directories(${LIBXML2_INCLUDE_DIR} )
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external)
 
+if(${COPPELIASIM_VERSION} VERSION_GREATER_EQUAL 4.6)
+    set(_PLUGIN_NAME simAseba)
+    set(_PLUGIN_NAME_XML simAseba)
+    set(PREFIX sim)
+    set(_KEYWORD PRIVATE)
+else()
+    set(_PLUGIN_NAME simExtAseba)
+    set(_PLUGIN_NAME_XML Aseba)  
+    set(PREFIX "''")  
+endif()  
+
+execute_process(COMMAND bash -c "sed s/PLUGIN_NAME/${_PLUGIN_NAME_XML}/g ${CMAKE_CURRENT_SOURCE_DIR}/lua/callbacks.xml > callbacks.xml" WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
 coppeliasim_generate_stubs(
   ${CMAKE_CURRENT_BINARY_DIR}/generated
-  XML_FILE ${CMAKE_CURRENT_SOURCE_DIR}/lua/callbacks.xml
+  XML_FILE ${CMAKE_CURRENT_BINARY_DIR}/callbacks.xml
   LUA_FILE ${CMAKE_CURRENT_SOURCE_DIR}/lua/simAseba.lua
 )
 
@@ -148,7 +161,7 @@ target_link_libraries(test
   ${EXTRA_LIBS}
 )
 
-coppeliasim_add_plugin(simExtAseba
+coppeliasim_add_plugin(${_PLUGIN_NAME}
   SOURCES
   src/plugin.cpp
   src/coppeliasim_robot.cpp
@@ -178,14 +191,14 @@ add_custom_target(
   COMMAND
     ${EXPORT_} "PYTHONPATH=${LIBPLUGIN_DIR}/simStubsGen:${COPPELIASIM_INCLUDE_DIR}/simStubsGen"
     &&
-    ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_split_reference.py --directory ${CMAKE_CURRENT_BINARY_DIR}/generated
+    ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_split_reference.py --directory ${CMAKE_CURRENT_BINARY_DIR}/generated --prefix ${PREFIX}
     &&
     ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_lua.py Thymio _thymio2_ --directory ${CMAKE_CURRENT_BINARY_DIR}/generated
     &&
     ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_lua.py EPuck _epuck_ --directory ${CMAKE_CURRENT_BINARY_DIR}/generated
   BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/generated/simThymio-typecheck.lua
              ${CMAKE_CURRENT_BINARY_DIR}/generated/simEPuck-typecheck.lua
-  DEPENDS simExtAseba
+  DEPENDS ${_PLUGIN_NAME}
   COMMENT "Generating Thymio and e-puck lua script"
 )
 
@@ -203,8 +216,8 @@ add_custom_target(
   COMMENT "Generating docs"
 )
 
-target_link_libraries(simExtAseba
-  ${OpenCV_LIBS} ${LIBXML2_LIBRARIES}
+target_link_libraries(${_PLUGIN_NAME} ${_KEYWORD}
+  ${OpenCV_LIBS} ${LIBXML2_LIBRARIES} 
   dashel asebacommon asebavmbuffer asebavm asebacompiler
   ${EXTRA_LIBS}
 )

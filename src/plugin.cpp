@@ -66,7 +66,11 @@ uint64_t micros() {
 
 class Plugin : public sim::Plugin {
  public:
+#if SIM_PROGRAM_VERSION_NB < 40600
     void onStart() {
+#else
+    void onInit() {
+#endif
         if (!registerScriptStuff())
             throw std::runtime_error("script stuff initialization failed");
         setExtVersion("ASEBA");
@@ -100,7 +104,11 @@ class Plugin : public sim::Plugin {
       Aseba::remove_all_networks();
     }
 
+#if SIM_PROGRAM_VERSION_NB < 40600
     void onModuleHandle(char *customData) {
+#else 
+    void onSimulationBeforeActuation() {
+#endif
       simFloat time_step = simGetSimulationTimeStep();
       for (auto uid : standalone_thymios) {
         thymios.at(uid).do_step(time_step);
@@ -717,5 +725,11 @@ class Plugin : public sim::Plugin {
   std::map<int, int> prox_comm_tx;
 };
 
+
+#if SIM_PROGRAM_VERSION_NB < 40600
 SIM_PLUGIN(PLUGIN_NAME, PLUGIN_VERSION, Plugin)
+#else
+SIM_PLUGIN(Plugin)
+#endif
+
 #include "stubsPlusPlus.cpp"

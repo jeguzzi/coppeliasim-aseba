@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <?xml-stylesheet type="text/xsl" href="callbacks.xsl"?>
 
-<plugin name="Aseba" author="jerome.guzzi@idsia.ch">
+<plugin name="PLUGIN_NAME" author="jerome.guzzi@idsia.ch">
     <description>A plugin to emulate Aseba nodes in CoppeliaSim</description>
     <command name="set_address">
         <description>Set the IP address on which Dashel listen for connection (by default 0.0.0.0). Should be called before creating nodes.</description>
