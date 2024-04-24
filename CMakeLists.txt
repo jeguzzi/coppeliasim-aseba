@@ -122,7 +122,13 @@ else()
     set(_PLUGIN_NAME simExtAseba)
     set(_PLUGIN_NAME_XML Aseba)  
     set(PREFIX "''")  
-endif()  
+endif() 
+
+if(${COPPELIASIM_VERSION} VERSION_GREATER_EQUAL 4.5)
+    set(MODEL_VERSION "")
+else()
+    set(MODEL_VERSION 44) 
+endif()   
 
 execute_process(COMMAND bash -c "sed s/PLUGIN_NAME/${_PLUGIN_NAME_XML}/g ${CMAKE_CURRENT_SOURCE_DIR}/lua/callbacks.xml > callbacks.xml" WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -225,13 +231,13 @@ target_link_libraries(${_PLUGIN_NAME} ${_KEYWORD}
 if(DEFINED MODEL_DIR)
   install(
     FILES
-      ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio.ttm
-      ${CMAKE_CURRENT_SOURCE_DIR}/models/mighty_thymio.ttm
+      ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio${MODEL_VERSION}.ttm
+      ${CMAKE_CURRENT_SOURCE_DIR}/models/mighty_thymio${MODEL_VERSION}.ttm
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-diffusionMap0.png
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-diffusionMap1.png
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-diffusionMap2.png
       ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-texture.png
-      ${CMAKE_CURRENT_SOURCE_DIR}/models/e-puck-aseba.ttm
+      ${CMAKE_CURRENT_SOURCE_DIR}/models/e-puck-aseba${MODEL_VERSION}.ttm
       ${CMAKE_CURRENT_SOURCE_DIR}/models/epuck.png
     DESTINATION ${MODEL_DIR}
   )
