@@ -182,9 +182,9 @@ In addition to the list presented before for the Thymio, this simulation adds sp
 
 ## Troubleshooting
 
-### Zeroconf
+### Failing Zeroconf registration
 
-- [ThymioSuite](https://www.thymio.org/products/programming-with-thymio-suite/) discovers Aseba nodes through [DNS-SD](http://www.dns-sd.org), in particular nodes that are advertised by the simulation. On macOs Sequoia, this link is broken: `mDNSResponder`, the daemon that keeps the service register, does not process requests from CoppeliaSim, for reasons that I could not discover, but returns a `kDNSServiceErr_PolicyDenied` error code. Therefore, Aseba nodes created in simulation are not be discovered by clients. If this is the case, the CoppeliaSim log will report an error
+[ThymioSuite](https://www.thymio.org/products/programming-with-thymio-suite/) discovers Aseba nodes through [DNS-SD](http://www.dns-sd.org), in particular nodes that are advertised by the simulation. On macOs Sequoia, this link is broken: `mDNSResponder`, the daemon that keeps the service register, does not process requests from CoppeliaSim, for reasons that I could not discover, but returns a `kDNSServiceErr_PolicyDenied` error code. Therefore, Aseba nodes created in simulation are not be discovered by clients. If this is the case, the CoppeliaSim log will report an error
 
 ```
 [simAseba:error] Advertise: DNSServiceRegisterReply: error -65570
