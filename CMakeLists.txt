@@ -258,13 +258,13 @@ target_link_libraries(
 
 if(DEFINED MODEL_DIR)
   install(
-    FILES ${CMAKE_CURRENT_SOURCE_DIR}/models${MODEL_VERSION}/thymio.ttm
-          ${CMAKE_CURRENT_SOURCE_DIR}/models${MODEL_VERSION}/mighty_thymio.ttm
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/models/${MODEL_VERSION}/thymio.ttm
+          ${CMAKE_CURRENT_SOURCE_DIR}/models/${MODEL_VERSION}/mighty_thymio.ttm
           ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-diffusionMap0.png
           ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-diffusionMap1.png
           ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-diffusionMap2.png
           ${CMAKE_CURRENT_SOURCE_DIR}/models/thymio-body-texture.png
-          ${CMAKE_CURRENT_SOURCE_DIR}/models${MODEL_VERSION}/e-puck-aseba.ttm
+          ${CMAKE_CURRENT_SOURCE_DIR}/models/${MODEL_VERSION}/e-puck-aseba.ttm
           ${CMAKE_CURRENT_SOURCE_DIR}/models/epuck.png
     DESTINATION ${MODEL_DIR})
 endif()
