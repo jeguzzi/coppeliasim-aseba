@@ -197,6 +197,4 @@ simAseba.configure_advertisement(true, true)
 
 ThymioSuite should be already running when the command executes (i.e., when the simulation launches).
 
-If anybody know what could cause the `PolicyDenied` error, let me know. Note that:
-- the same registration is accepted when execute in a different executable.
-- except when it is installed in the same directory as the CoppeliaSim executable.
+If anybody know what could cause the `PolicyDenied` error, let me know. Note that the same registration is accepted when executed in a different executable, except when this executable is installed in the same directory as the CoppeliaSim executable.
