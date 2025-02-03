@@ -545,6 +545,10 @@ class Plugin : public sim::Plugin {
           node->set_friendly_name(in->name);
     }
 
+    void configure_advertisement(configure_advertisement_in *in, configure_advertisement_out *out) {
+      Aseba::configure_advertisement(in->enabled, in->external);
+    }
+
     void set_address(set_address_in *in, set_address_out *out) {
       Aseba::set_address(in->address);
     }

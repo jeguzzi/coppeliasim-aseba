@@ -179,3 +179,24 @@ In addition to the list presented before for the Thymio, this simulation adds sp
   - gyroscope
   - basic support for rc, microphones, battery, and selector
   - customizable e-puck Aseba node
+
+## Troubleshooting
+
+### Zeroconf
+
+- [ThymioSuite](https://www.thymio.org/products/programming-with-thymio-suite/) discovers Aseba nodes through [DNS-SD](http://www.dns-sd.org), in particular nodes that are advertised by the simulation. On macOs Sequoia, this link is broken: `mDNSResponder`, the daemon that keeps the service register, does not process requests from CoppeliaSim, for reasons that I could not discover, but returns a `kDNSServiceErr_PolicyDenied` error code. Therefore, Aseba nodes created in simulation are not be discovered by clients. If this is the case, the CoppeliaSim log will report an error
+
+```
+[simAseba:error] Advertise: DNSServiceRegisterReply: error -65570
+```
+
+To overcome this problem, we can configure `simAseba` to use an external command (setting the second argument to `true`) to perform the registration:
+```lua
+simAseba.configure_advertisement(true, true)
+```
+
+ThymioSuite should be already running when the command executes (i.e., when the simulation launches).
+
+If anybody know what could cause the `PolicyDenied` error, let me know. Note that:
+- the same registration is accepted when execute in a different executable.
+- except when it is installed in the same directory as the CoppeliaSim executable.

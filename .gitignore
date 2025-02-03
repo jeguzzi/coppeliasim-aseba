@@ -32,10 +32,14 @@
 *.app
 
 archive
-*build
-thymio
+build*
 __pycache__
 aseba_fw14
 scenes
 models
 playground
+notes
+.DS_Store
+*.old.*
+*.dev.*
+bags

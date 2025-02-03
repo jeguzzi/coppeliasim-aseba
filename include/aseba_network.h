@@ -10,6 +10,7 @@
 namespace Aseba {
 
 void set_address(const std::string &);
+void configure_advertisement(bool enabled, bool external);
 void spin(float dt);
 void add_node(DynamicAsebaNode * node, unsigned port, unsigned uid);
 void destroy_node(unsigned uid);

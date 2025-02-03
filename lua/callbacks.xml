@@ -3,6 +3,17 @@
 
 <plugin name="PLUGIN_NAME" author="jerome.guzzi@idsia.ch">
     <description>A plugin to emulate Aseba nodes in CoppeliaSim</description>
+    <command name="configure_advertisement">
+        <description>Configure if/how to use Zeroconf to register the aseba service.</description>
+        <params>
+          <param name="enabled" type="bool">
+            <description>Whether to advertise the service.</description>
+          </param>
+          <param name="external" type="bool">
+            <description>Whether to use an external process to advertise the service.</description>
+          </param>
+        </params>
+    </command>
     <command name="set_address">
         <description>Set the IP address on which Dashel listen for connection (by default 0.0.0.0). Should be called before creating nodes.</description>
         <params>

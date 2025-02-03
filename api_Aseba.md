@@ -9,6 +9,7 @@
 ## Functions
 | function |
 |----|
+| [simAseba.configure_advertisement](#configure_advertisement) |
 | [simAseba.set_address](#set_address) |
 | [simAseba.create_node](#create_node) |
 | [simAseba.destroy_node](#destroy_node) |
@@ -55,8 +56,16 @@ node_t = {int port , string name , int id }
 
 
 
+#### configure_advertisement
 
+Configure if/how to use Zeroconf to register the aseba service. Should be called before creating nodes.
+```C++
+simAseba.configure_advertisement(bool enabled, bool external)
+```
+*parameters*
 
+  - **enabled** Whether Zeroconf advertisement are enabled
+  - **external** Whether Zeroconf advertisement are executed by an external command
 
 
 
