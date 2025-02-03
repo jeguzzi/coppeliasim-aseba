@@ -124,10 +124,12 @@ else()
   set(PREFIX "''")
 endif()
 
-if(${COPPELIASIM_VERSION} VERSION_GREATER_EQUAL 4.5)
-  set(MODEL_VERSION "")
+if(${COPPELIASIM_VERSION} VERSION_GREATER_EQUAL 4.8)
+  set(MODEL_VERSION "v3")
+elseif(${COPPELIASIM_VERSION} VERSION_GREATER_EQUAL 4.5)
+  set(MODEL_VERSION "v2")
 else()
-  set(MODEL_VERSION "/4.4")
+  set(MODEL_VERSION "v1")
 endif()
 
 execute_process(
