@@ -14,7 +14,7 @@ You can control the robots/nodes
 
 - [Aseba](https://github.com/aseba-community/aseba)  (available as submodule)
 - [Dashel](https://github.com/aseba-community/dashel) (available as submodule)
-- [CoppeliaSim v4.3--4.9](https://coppeliarobotics.com)
+- [CoppeliaSim v4.3--4.10](https://coppeliarobotics.com)
 - [xsltproc](http://xmlsoft.org/xslt/xsltproc.html) (CoppeliaSim plugins dependency)
 - [xmlschema](https://github.com/sissaschool/xmlschema) (CoppeliaSim plugins dependency)
 - Cmake >= 3.5
