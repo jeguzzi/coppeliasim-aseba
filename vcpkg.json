@@ -1,0 +1,11 @@
+{
+  "dependencies": [
+    "boost-algorithm",
+    "boost-assign",
+    "boost-format",
+    "boost-regex",
+    "libxml2",
+    "opencv",
+    "boost-lexical-cast"
+  ]
+}
