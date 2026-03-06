@@ -16,6 +16,8 @@ if(WIN32)
   add_definitions(-DDISABLE_WEAK_CALLBACKS)
 endif()
 
+option(BUILD_SHARED_LIBS "" OFF)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -73,11 +75,13 @@ include_directories(${ASEBA_DIR}/aseba)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/zeroconf.cmake)
 if(HAS_ZEROCONF_SUPPORT)
-  message("With support for Zeroconf")
+  message("With Zeroconf support")
   add_compile_definitions(ZEROCONF=1)
   add_subdirectory(${ASEBA_DIR}/aseba/transport/dashel_plugins dashel_plugins
                    EXCLUDE_FROM_ALL)
   set(EXTRA_LIBS asebazeroconf asebadashelplugins)
+else()
+  message("Without Zeroconf support")
 endif()
 
 find_package(LibXml2 REQUIRED)
@@ -277,5 +281,5 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/generated/simEPuck-typecheck.lua
               ${CMAKE_CURRENT_SOURCE_DIR}/lua/simEPuck.lua
         DESTINATION ${COPPELIASIM_LUA_DIR})
 
-install(TARGETS dashel asebacommon asebavmbuffer asebavm asebacompiler
-                ${EXTRA_LIBS} DESTINATION ${COPPELIASIM_LIBRARIES_DIR})
+# install(TARGETS dashel asebacommon asebavmbuffer asebavm asebacompiler
+#                 ${EXTRA_LIBS} DESTINATION ${COPPELIASIM_LIBRARIES_DIR})
