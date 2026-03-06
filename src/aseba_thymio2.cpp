@@ -62,7 +62,7 @@ AsebaThymio2::AsebaThymio2(int node_id, const std::string & _name,
 #define TAP_THRESHOLD 11
 // input in m^2/s
 
-inline uint16_t aseba_acc(float a) {
+inline int16_t aseba_acc(float a) {
   return round(std::max(std::min(a / G * 23.0f, 32.0f), -32.0f));
 }
 
