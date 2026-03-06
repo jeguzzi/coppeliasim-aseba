@@ -102,6 +102,22 @@ set(CMAKE_CXX_STANDARD 17)
 
 find_package(CoppeliaSim 4.3 REQUIRED)
 
+option(ARCHIVE "Create a TAR.GZ archive using CPACK" OFF)
+
+if(ARCHIVE)
+  if(APPLE)
+    set(COPPELIASIM_LUA_DIR Contents/Resources/lua)
+    set(COPPELIASIM_MODELS_DIR Contents/Resources/models)
+    set(COPPELIASIM_MANUAL_DIR Contents/Resources/manual)
+    set(COPPELIASIM_PLUGINS_DIR Contents/MacOS)
+  else()
+    set(COPPELIASIM_LUA_DIR lua)
+    set(COPPELIASIM_MODELS_DIR models)
+    set(COPPELIASIM_MANUAL_DIR manual)
+    set(COPPELIASIM_PLUGINS_DIR .)
+  endif()
+endif()
+
 set(LIB_INSTALL_DIR
     ${COPPELIASIM_LIBRARIES_DIR}
     CACHE FILEPATH "")
@@ -283,3 +299,14 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/generated/simEPuck-typecheck.lua
 
 # install(TARGETS dashel asebacommon asebavmbuffer asebavm asebacompiler
 #                 ${EXTRA_LIBS} DESTINATION ${COPPELIASIM_LIBRARIES_DIR})
+
+
+if(ARCHIVE)
+  set(CPACK_GENERATOR TGZ)
+  set(CPACK_PACKAGE_NAME "simAseba")
+  set(CPACK_OUTPUT_FILE_PREFIX "archives")
+  set(CPACK_PACKAGE_FILE_NAME
+      ${CPACK_PACKAGE_NAME}-${CMAKE_PROJECT_VERSION_MAJOR}.${CMAKE_PROJECT_VERSION_MINOR}-CoppeliaSim-${COPPELIASIM_VERSION_MAJOR}.${COPPELIASIM_VERSION_MINOR}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}
+  )
+  include(CPack)
+endif()
