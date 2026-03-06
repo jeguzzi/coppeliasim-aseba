@@ -1,0 +1,8 @@
+name: Build and Release CoppeliaSim plugins
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - run: echo "HELLO"
