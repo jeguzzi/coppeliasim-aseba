@@ -13,6 +13,7 @@ env:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         config:
           - os: macos-latest
@@ -49,7 +50,7 @@ jobs:
         name: install apt deps
         run: |
           sudo apt-get update
-          sudo apt-get install xsltproc -y
+          sudo apt-get install xsltproc autoconf autoconf-archive automake libtool -y
       - if: runner.os == 'Windows'
         name: install choco deps
         run: |
