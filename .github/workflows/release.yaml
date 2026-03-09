@@ -56,10 +56,6 @@ jobs:
         name: install choco deps
         run: |
           choco install pkgconfiglite xsltproc -y
-      - if: runner.os == 'Windows'
-        name: install choco deps
-        run: |
-          choco install pkgconfiglite xsltproc -y
       - name: build vcpkg deps
         uses: johnwason/vcpkg-action@v7
         id: vcpkg
@@ -68,7 +64,7 @@ jobs:
           revision: master
           token: ${{ github.token }}
           pkgs: libxml2
-          # manifest-dir: ${{ github.workspace }}
+          manifest-dir: ''
       - uses: ilammy/msvc-dev-cmd@v1
       - name: build (unix)
         if: runner.os != 'Windows'
