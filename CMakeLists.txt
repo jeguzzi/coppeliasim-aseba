@@ -207,11 +207,13 @@ if(HAS_ZEROCONF_SUPPORT)
   target_include_directories(
     aseba_register
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/aseba/aseba/common/zeroconf)
-  install(TARGETS aseba_register DESTINATION ${COPPELIASIM_LIBRARIES_DIR})
+  install(TARGETS aseba_register DESTINATION ${COPPELIASIM_PLUGINS_DIR})
+  if(NOT ARCHIVE)
   set_target_properties(aseba_register
-                        PROPERTIES INSTALL_RPATH "${COPPELIASIM_LIBRARIES_DIR}")
+                        PROPERTIES INSTALL_RPATH "${COPPELIASIM_PLUGINS_DIR}")
+  endif()
   add_compile_definitions(
-    REGISTER_CMD="${COPPELIASIM_LIBRARIES_DIR}/aseba_register")
+    REGISTER_CMD="aseba_register")
 endif()
 
 coppeliasim_add_plugin(
@@ -239,6 +241,8 @@ if(WIN32)
 else()
   set(EXPORT_ export)
 endif()
+
+target_compile_definitions(${_PLUGIN_NAME} PRIVATE -DEXTERNAL_ADVERTISE)
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 add_custom_target(
