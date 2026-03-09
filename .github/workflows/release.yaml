@@ -50,7 +50,7 @@ jobs:
         name: install apt deps
         run: |
           sudo apt-get update
-          sudo apt-get install xsltproc autoconf autoconf-archive automake libtool -y
+          sudo apt-get install xsltproc autoconf autoconf-archive automake libtool libxi-dev libxtst-dev -y
       - if: runner.os == 'Windows'
         name: install choco deps
         run: |
@@ -67,12 +67,12 @@ jobs:
       - name: build (unix)
         if: runner.os != 'Windows'
         run: |
-          cmake -S . -B build --preset vcpkg -DARCHIVE=ON
+          cmake -S . -B build --preset release -DVCPKG_TARGET_TRIPLET=${{ matrix.config.vcpkg_triplet }}
           cmake --build build --config Release --parallel 4 --target package
       - name: build (windows)
         if: runner.os == 'Windows'
         run: |
-          cmake.exe -S . -B build --preset vcpkg -DARCHIVE=ON
+          cmake.exe -S . -B build --preset release -DVCPKG_TARGET_TRIPLET=${{ matrix.config.vcpkg_triplet }}
           cmake.exe --build build --config Release --parallel 4 --target package
       - name: archive package
         uses: actions/upload-artifact@v4

@@ -2,10 +2,12 @@
   "version": 3,
   "configurePresets": [
     {
-      "name": "vcpkg",
+      "name": "release",
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "CMAKE_POLICY_VERSION_MINIMUM": "3.5"
+        "ARCHIVE": "ON",
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded"
       }
     }
   ]
