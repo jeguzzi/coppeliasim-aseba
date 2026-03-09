@@ -10,6 +10,7 @@ permissions:
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+  ProgramFiles: "Program Files (x86)"
 jobs:
   build:
     strategy:
