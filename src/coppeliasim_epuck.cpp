@@ -176,7 +176,8 @@ void LEDRing::reset(bool reload) {
     // HACK(Jerome): in 4.5 SShapeVizInfo.textureCoords is an array of floats
     // while simApplyTexture accept an array of doubles!
 #if SIM_PROGRAM_VERSION_NB >= 40500
-    double textureCoords[3 * info.indicesSize];
+    std::vector<double> textureCoordsV(3 * info.indicesSize);
+    double * textureCoords = textureCoordsV.data();
     for (int i = 0; i < 3 * info.indicesSize; ++i) {
       textureCoords[i] = (double)info.textureCoords[i];
     }
