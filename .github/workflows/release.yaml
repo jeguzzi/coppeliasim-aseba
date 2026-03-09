@@ -63,8 +63,7 @@ jobs:
           triplet: ${{ matrix.config.vcpkg_triplet }}
           revision: master
           token: ${{ github.token }}
-          pkgs: libxml2
-          manifest-dir: ''
+          manifest-dir: ${{ github.workspace }}
       - uses: ilammy/msvc-dev-cmd@v1
       - name: build (unix)
         if: runner.os != 'Windows'
