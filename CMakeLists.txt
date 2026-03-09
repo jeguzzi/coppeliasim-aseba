@@ -11,11 +11,6 @@ project(
 
 set(CMAKE_POLICY_VERSION_MINIMUM "3.5")
 set(CMAKE_C_STANDARD 99)
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  # add_compile_options(-Wall -Wextra -Wpedantic)
-  add_compile_options(-Wno-c99-extensions -Wno-gnu-flexible-array-initializer)
-  # -Wc99-extensions
-endif()
 
 if(WIN32)
   # avoid to overwrite std::max in dashel-win32.cpp
@@ -23,7 +18,19 @@ if(WIN32)
   # force it to build .lib
   option(BUILD_SHARED_LIBS "" OFF)
   add_definitions(-DDISABLE_WEAK_CALLBACKS)
+else()
+  add_compile_options(
+    -fPIC
+    -Wall
+    -Wextra
+    -Wno-unused-parameter
+    -Wno-deprecated-declarations
+    -Wno-missing-field-initializers
+    -Wno-c99-extensions
+    -Wno-gnu-flexible-array-initializer
+    -Wno-unused-variable)
 endif()
+
 
 option(BUILD_SHARED_LIBS "" OFF)
 
