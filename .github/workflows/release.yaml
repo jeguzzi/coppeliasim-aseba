@@ -50,11 +50,11 @@ jobs:
         name: install apt deps
         run: |
           sudo apt-get update
-          sudo apt-get install xsltproc autoconf autoconf-archive automake libtool libxi-dev libxtst-dev -y
+          sudo apt-get install libavahi-compat-libdnssd-dev xsltproc autoconf autoconf-archive automake libtool libxi-dev libxtst-dev -y
       - if: runner.os == 'Windows'
         name: install choco deps
         run: |
-          choco install pkgconfiglite xsltproc -y
+          choco install bonjour pkgconfiglite xsltproc -y
       - name: build vcpkg deps
         uses: johnwason/vcpkg-action@v7
         id: vcpkg
