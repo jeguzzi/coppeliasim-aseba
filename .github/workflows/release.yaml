@@ -72,11 +72,11 @@ jobs:
         run: |
           cmake -S . -B build --preset release -DVCPKG_TARGET_TRIPLET=${{ matrix.config.vcpkg_triplet }}
           cmake --build build --config Release --parallel 4 --target package
-      # - if: runner.os == 'Windows'
-      #   uses: actions/checkout@v6
-      #   with:
-      #     repository: 'G-P-S/bonjour-win-sdk'
-      #     path: "bonjour-win-sdk"
+      - if: runner.os == 'Windows'
+        uses: actions/checkout@v6
+        with:
+          repository: 'G-P-S/bonjour-win-sdk'
+          path: "bonjour-win-sdk"
       - name: build (windows)
         if: runner.os == 'Windows'
         run: |
