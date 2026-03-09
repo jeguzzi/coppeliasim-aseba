@@ -4,6 +4,7 @@
 
 #ifdef _WIN32
 #include <winsock2.h>
+#include <windows.h>
 #else // _WIN32
 #include <unistd.h>
 #endif // _WIN32
@@ -12,7 +13,11 @@ static void advertise(const std::string &name, int port, float wait_time) {
   Aseba::ThreadZeroconf zeroconf;
   const Aseba::Zeroconf::TxtRecord txt{9, name, false};
   zeroconf.advertise(name, port, txt);
+#ifdef _WIN32
+  Sleep(static_cast<unsigned long>(wait_time * 1000));
+#else // _WIN32
   sleep(wait_time);
+#endif // _WIN32
   exit(0);
 }
 
