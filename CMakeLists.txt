@@ -267,11 +267,17 @@ endif()
 target_compile_definitions(${_PLUGIN_NAME} PRIVATE -DEXTERNAL_ADVERTISE)
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
+
+if(WIN32)
+  set(PYTHONPATH "${LIBPLUGIN_DIR}/simStubsGen;${COPPELIASIM_INCLUDE_DIR}/simStubsGen")
+else()
+  set(PYTHONPATH "${LIBPLUGIN_DIR}/simStubsGen:${COPPELIASIM_INCLUDE_DIR}/simStubsGen")
+endif()
+
 add_custom_target(
   generate_thymio_lua ALL
   COMMAND
-    ${EXPORT_}
-    "PYTHONPATH=${LIBPLUGIN_DIR}/simStubsGen:${COPPELIASIM_INCLUDE_DIR}/simStubsGen"
+    ${EXPORT_} "PYTHONPATH=${PYTHONPATH}"
     && ${Python3_EXECUTABLE}
     ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_split_reference.py --directory
     ${CMAKE_CURRENT_BINARY_DIR}/generated --prefix ${PREFIX} &&
@@ -287,8 +293,7 @@ add_custom_target(
 add_custom_target(
   docs
   COMMAND
-    ${EXPORT_}
-    "PYTHONPATH=${LIBPLUGIN_DIR}/simStubsGen:${COPPELIASIM_INCLUDE_DIR}/simStubsGen"
+    ${EXPORT_} "PYTHONPATH=${PYTHONPATH}"
     && ${Python3_EXECUTABLE}
     ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_markdown_api.py --directory
     ${CMAKE_CURRENT_BINARY_DIR}/generated --file reference_Aseba.xml &&
