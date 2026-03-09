@@ -2,15 +2,14 @@
 
 This repository contain code to simulate specific robots ([Thymio2](http://www.thymio.org) and [e-puck](http://http://www.e-puck.org)) and generic [Aseba](https://www.thymio.org/products/programming-with-thymio-suite/program-thymio-aseba/) nodes in [CoppeliaSim](https://coppeliarobotics.com).
 
-
 You can control the robots/nodes
 - in lua, using the interpreter embedded in CoppeliaSim
 - in Aseba using [Aseba Studio](http://wiki.thymio.org/en:asebastudio), [ThymioSuite](https://www.thymio.org/products/programming-with-thymio-suite/), or even from CoppeliaSim (with a more limited support).
 - in ROS, using my own [Aseba-ROS bridge](http://jeguzzi.github.io/ros-aseba/).
 
-## Installation
+## Dependencies
 
-### Dependencies
+The plugin requires the following dependencies:
 
 - [Aseba](https://github.com/aseba-community/aseba)  (available as submodule)
 - [Dashel](https://github.com/aseba-community/dashel) (available as submodule)
@@ -24,41 +23,9 @@ You can control the robots/nodes
 - [optional, for autodiscovery] Avahi or Bonjour
 - [optional, to autogenerate the docs] [Jinjia2](https://jinja.palletsprojects.com)
 
-#### Linux
+## Installation
 
-```console
-sudo apt install cmake libopencv-dev xsltproc [libxml2-dev] [libavahi-compat-libdnssd-dev]
-[python3 -m pip install Jinja2 xmlschema]
-```
-
-#### MacOs
-```console
-brew install cmake opencv [libxml2]
-[python3 -m pip install Jinja2 xmlschema]
-```
-
-### CoppeliaSim
-
-To compile and then use the CoppeliaSim plugin you need ... [CoppeliaSim](https://www.coppeliarobotics.com).
-Download the latest release and export the location where you place it with
-```bash
-export COPPELIASIM_ROOT_DIR=<path to the folder containing the programming subfolder>
-```
-which on Linux is the root folder that you download, while on MacOs is `/Applications/coppeliaSim.app/Contents/Resources`, if you install the app to the default location.
-
-### Build
-
-#### Linux and MacOs
-```bash
-$ git clone --recursive https://github.com/jeguzzi/coppeliasim-aseba.git
-$ cd coppeliasim-aseba
-$ mkdir -p build
-$ cd build
-$ cmake -DCMAKE_BUILD_TYPE=Release ..
-$ make install -j4
-```
-
-This will build the plugin and install it together with the robot model[s].
+Installation from pre-compiled binaries or from sources in described in [INSTALL.md](INSTALL.md).
 
 ## Running
 
