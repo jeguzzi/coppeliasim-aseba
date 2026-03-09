@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
     }
     if (sscanf(argv[1], "%55c", name) && sscanf(argv[2], "%u", &port)) {
       std::cout << "Advertise " << name << " on port " << port << " for "
-                << wait seconds << " seconds." << std::endl;
+                << wait_time << " seconds." << std::endl;
       advertise(name, port, wait_time);
       return 0;
     }
