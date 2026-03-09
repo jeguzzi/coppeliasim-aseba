@@ -10,7 +10,8 @@
       "name": "opencv4",
       "features": [
         "png"
-      ]
+      ],
+      "default-features": false
     }
   ]
 }
