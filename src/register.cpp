@@ -1,7 +1,12 @@
 #include "zeroconf-thread.h"
 #include <iostream>
 #include <string>
+
+#ifdef _WIN32
+#include <winsock2.h>
+#else // _WIN32
 #include <unistd.h>
+#endif // _WIN32
 
 static void advertise(const std::string &name, int port, float wait_time) {
   Aseba::ThreadZeroconf zeroconf;
