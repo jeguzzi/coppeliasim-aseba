@@ -3,9 +3,14 @@
     "boost-algorithm",
     "boost-assign",
     "boost-format",
+    "boost-lexical-cast",
     "boost-regex",
     "libxml2",
-    "opencv",
-    "boost-lexical-cast"
+    {
+      "name": "opencv4",
+      "features": [
+        "png"
+      ]
+    }
   ]
 }
