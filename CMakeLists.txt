@@ -28,7 +28,8 @@ else()
     -Wno-missing-field-initializers
     -Wno-c99-extensions
     -Wno-gnu-flexible-array-initializer
-    -Wno-unused-variable)
+    -Wno-unused-variable
+    -Wno-unused-function)
 endif()
 
 

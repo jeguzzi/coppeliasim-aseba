@@ -10,7 +10,6 @@ permissions:
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   VCPKG_ROOT: ${{ github.workspace }}/vcpkg
-  ProgramFiles: ${{ github.workspace }}
 jobs:
   build:
     strategy:
@@ -25,6 +24,9 @@ jobs:
           #   coppeliasim_subdir: Contents/Resources
           # - os: ubuntu-22.04
           #   vcpkg_triplet: x64-linux-release
+          #   coppeliasim_subdir: ''
+          # - os: ubuntu-22.04-arm
+          #   vcpkg_triplet: arm64-linux-release
           #   coppeliasim_subdir: ''
           - os: windows-latest
             vcpkg_triplet: x64-windows-static-release
@@ -74,11 +76,15 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: 'G-P-S/bonjour-win-sdk'
-          path: "Bonjour SDK"
+          path: "bonjour-win-sdk"
+      - if: runner.os == 'Windows'
+        run: |
+          dir
+          dir bonjour-win-sdk
       - name: build (windows)
         if: runner.os == 'Windows'
         run: |
-          cmake.exe -S . -B build --preset release -DVCPKG_TARGET_TRIPLET=${{ matrix.config.vcpkg_triplet }}
+          cmake.exe -S . -B build --preset release -DVCPKG_TARGET_TRIPLET=${{ matrix.config.vcpkg_triplet }} -DDNSSD_ROOT=${{ github.workspace }}/bonjour-win-sdk
           cmake.exe --build build --config Release --parallel 4 --target package
       - name: archive package
         uses: actions/upload-artifact@v4
@@ -105,11 +111,6 @@ jobs:
           path: archives
           merge-multiple: true
           github-token: ${{ secrets.GH_PAT }}
-      # - name: Sign the archives with Sigstore
-      #   uses: sigstore/gh-action-sigstore-python@v3.0.0
-      #   with:
-      #     inputs: >-
-      #       ./archives/*.tar.gz
       - name: Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ github.token }}
