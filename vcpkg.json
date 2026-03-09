@@ -1,0 +1,17 @@
+{
+  "dependencies": [
+    "boost-algorithm",
+    "boost-assign",
+    "boost-format",
+    "boost-lexical-cast",
+    "boost-regex",
+    "libxml2",
+    {
+      "name": "opencv4",
+      "features": [
+        "png"
+      ],
+      "default-features": false
+    }
+  ]
+}

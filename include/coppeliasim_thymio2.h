@@ -94,7 +94,7 @@ struct SDCard {
     }
     // if we have to open another file
     if (number >= 0) {
-      const char * file_path = path_for_number(number).c_str();
+      const char * file_path = path_for_number(number).string().c_str();
       stream.open(file_path, std::ios::in | std::ios::out | std::ios::binary);
       if (stream.fail()) {
         // failed... maybe the file does not exist, try with trunc
@@ -368,7 +368,7 @@ class Thymio2 : public Robot {
   }
 
   std::string sd_path() const {
-    return sd_card.path;
+    return sd_card.path.string();
   }
 
 };

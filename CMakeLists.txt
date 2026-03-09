@@ -1,20 +1,38 @@
 cmake_minimum_required(VERSION 3.10)
-project(simExtAseba)
 
-set(CMAKE_C_STANDARD 99)
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  # add_compile_options(-Wall -Wextra -Wpedantic)
-  add_compile_options(-Wno-c99-extensions -Wno-gnu-flexible-array-initializer)
-  # -Wc99-extensions
+if(POLICY CMP0091)
+  cmake_policy(SET CMP0091 NEW)
 endif()
+
+project(
+  simExtAseba
+  VERSION 1.0
+  LANGUAGES CXX C)
+
+set(CMAKE_POLICY_VERSION_MINIMUM "3.5")
+set(CMAKE_C_STANDARD 99)
 
 if(WIN32)
   # avoid to overwrite std::max in dashel-win32.cpp
-  add_compile_definitions(NOMINMAX)
+  add_compile_definitions(NOMINMAX _ALLOW_KEYWORD_MACROS)
   # force it to build .lib
   option(BUILD_SHARED_LIBS "" OFF)
   add_definitions(-DDISABLE_WEAK_CALLBACKS)
+else()
+  add_compile_options(
+    -fPIC
+    -Wall
+    -Wextra
+    -Wno-unused-parameter
+    -Wno-deprecated-declarations
+    -Wno-missing-field-initializers
+    -Wno-c99-extensions
+    -Wno-gnu-flexible-array-initializer
+    -Wno-unused-variable
+    -Wno-unused-function)
 endif()
+
+option(BUILD_SHARED_LIBS "" OFF)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
@@ -22,24 +40,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_MACOSX_RPATH 1)
 # option(ZEROCONF "" OFF)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
-
-if(NOT COPPELIASIM_INCLUDE_DIR)
-  if(DEFINED ENV{COPPELIASIM_ROOT_DIR})
-    set(COPPELIASIM_INCLUDE_DIR $ENV{COPPELIASIM_ROOT_DIR}/programming/include)
-  else()
-    set(COPPELIASIM_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-  endif()
-endif()
-if(NOT LIBPLUGIN_DIR)
-  if(DEFINED ENV{COPPELIASIM_ROOT_DIR})
-    set(LIBPLUGIN_DIR $ENV{COPPELIASIM_ROOT_DIR}/programming/libPlugin)
-  else()
-    set(LIBPLUGIN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../libPlugin)
-  endif()
-endif()
-
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules
-     ${COPPELIASIM_INCLUDE_DIR}/cmake ${LIBPLUGIN_DIR}/cmake)
 
 macro(codesign target)
 
@@ -73,11 +73,13 @@ include_directories(${ASEBA_DIR}/aseba)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/zeroconf.cmake)
 if(HAS_ZEROCONF_SUPPORT)
-  message("With support for Zeroconf")
+  message("With Zeroconf support")
   add_compile_definitions(ZEROCONF=1)
   add_subdirectory(${ASEBA_DIR}/aseba/transport/dashel_plugins dashel_plugins
                    EXCLUDE_FROM_ALL)
   set(EXTRA_LIBS asebazeroconf asebadashelplugins)
+else()
+  message("Without Zeroconf support")
 endif()
 
 find_package(LibXml2 REQUIRED)
@@ -96,12 +98,47 @@ add_subdirectory(${ASEBA_DIR}/aseba/compiler asebacompiler EXCLUDE_FROM_ALL)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
 
+if(NOT COPPELIASIM_INCLUDE_DIR)
+  if(DEFINED ENV{COPPELIASIM_ROOT_DIR})
+    set(COPPELIASIM_INCLUDE_DIR $ENV{COPPELIASIM_ROOT_DIR}/programming/include)
+  else()
+    set(COPPELIASIM_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+  endif()
+endif()
+if(NOT LIBPLUGIN_DIR)
+  if(DEFINED ENV{COPPELIASIM_ROOT_DIR})
+    set(LIBPLUGIN_DIR $ENV{COPPELIASIM_ROOT_DIR}/programming/libPlugin)
+  else()
+    set(LIBPLUGIN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../libPlugin)
+  endif()
+endif()
+
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules
+     ${COPPELIASIM_INCLUDE_DIR}/cmake ${LIBPLUGIN_DIR}/cmake)
+
 find_package(CoppeliaSim 4.3 REQUIRED)
+
+option(ARCHIVE "Create a TAR.GZ archive using CPACK" OFF)
+
+if(ARCHIVE)
+  if(APPLE)
+    set(COPPELIASIM_LUA_DIR Contents/Resources/lua)
+    set(COPPELIASIM_MODELS_DIR Contents/Resources/models)
+    set(COPPELIASIM_MANUAL_DIR Contents/Resources/manual)
+    set(COPPELIASIM_PLUGINS_DIR Contents/MacOS)
+  else()
+    set(COPPELIASIM_LUA_DIR lua)
+    set(COPPELIASIM_MODELS_DIR models)
+    set(COPPELIASIM_MANUAL_DIR manual)
+    set(COPPELIASIM_PLUGINS_DIR .)
+  endif()
+endif()
 
 set(LIB_INSTALL_DIR
     ${COPPELIASIM_LIBRARIES_DIR}
     CACHE FILEPATH "")
-set(MODEL_DIR ${COPPELIASIM_MODELS_DIR}/robots/mobile)
+set(MODEL_RELATIVE_PATH robots/mobile)
+set(MODEL_DIR ${COPPELIASIM_MODELS_DIR}/${MODEL_RELATIVE_PATH})
 
 find_package(
   OpenCV 4
@@ -132,11 +169,19 @@ else()
   set(MODEL_VERSION "v1")
 endif()
 
-execute_process(
-  COMMAND
-    bash -c
-    "sed s/PLUGIN_NAME/${_PLUGIN_NAME_XML}/g ${CMAKE_CURRENT_SOURCE_DIR}/lua/callbacks.xml > callbacks.xml"
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+if(WIN32)
+  execute_process(
+    COMMAND
+      powershell -Command
+      "(gc ${CMAKE_CURRENT_SOURCE_DIR}/lua/callbacks.xml) -replace 'PLUGIN_NAME', '${_PLUGIN_NAME_XML}' | Out-File -encoding ASCII callbacks.xml"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+else()
+  execute_process(
+    COMMAND
+      bash -c
+      "sed s/PLUGIN_NAME/${_PLUGIN_NAME_XML}/g ${CMAKE_CURRENT_SOURCE_DIR}/lua/callbacks.xml > callbacks.xml"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+endif()
 
 coppeliasim_generate_stubs(
   ${CMAKE_CURRENT_BINARY_DIR}/generated XML_FILE
@@ -149,7 +194,7 @@ coppeliasim_generate_stubs(
 # ${CMAKE_CURRENT_BINARY_DIR}/generated/simThymio-typecheck.lua COMMENT
 # "Generating Thymio lua script" )
 
-add_compile_definitions(TEXTURE_DIR="${MODEL_DIR}")
+add_compile_definitions(MODEL_RELATIVE_PATH="${MODEL_RELATIVE_PATH}")
 add_compile_definitions(PLUGIN_NAME_XML="${_PLUGIN_NAME_XML}")
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/config.h.in
@@ -176,11 +221,16 @@ if(HAS_ZEROCONF_SUPPORT)
   target_include_directories(
     aseba_register
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/aseba/aseba/common/zeroconf)
-  install(TARGETS aseba_register DESTINATION ${COPPELIASIM_LIBRARIES_DIR})
-  set_target_properties(aseba_register
-                        PROPERTIES INSTALL_RPATH "${COPPELIASIM_LIBRARIES_DIR}")
-  add_compile_definitions(
-    REGISTER_CMD="${COPPELIASIM_LIBRARIES_DIR}/aseba_register")
+  install(TARGETS aseba_register DESTINATION ${COPPELIASIM_PLUGINS_DIR})
+  if(NOT ARCHIVE)
+    set_target_properties(aseba_register
+                          PROPERTIES INSTALL_RPATH "${COPPELIASIM_PLUGINS_DIR}")
+  endif()
+  if(WIN32)
+    add_compile_definitions(REGISTER_CMD="aseba_register.exe")
+  else()
+    add_compile_definitions(REGISTER_CMD="aseba_register")
+  endif()
 endif()
 
 coppeliasim_add_plugin(
@@ -209,13 +259,26 @@ else()
   set(EXPORT_ export)
 endif()
 
+if(CMAKE_COMPILER_IS_GNUCXX)
+  target_link_libraries(${_PLUGIN_NAME} PRIVATE "-Wl,-Bsymbolic")
+endif()
+
+target_compile_definitions(${_PLUGIN_NAME} PRIVATE -DEXTERNAL_ADVERTISE)
+
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
+
+if(WIN32)
+  set(PYTHONPATH
+      "${LIBPLUGIN_DIR}/simStubsGen;${COPPELIASIM_INCLUDE_DIR}/simStubsGen")
+else()
+  set(PYTHONPATH
+      "${LIBPLUGIN_DIR}/simStubsGen:${COPPELIASIM_INCLUDE_DIR}/simStubsGen")
+endif()
+
 add_custom_target(
   generate_thymio_lua ALL
   COMMAND
-    ${EXPORT_}
-    "PYTHONPATH=${LIBPLUGIN_DIR}/simStubsGen:${COPPELIASIM_INCLUDE_DIR}/simStubsGen"
-    && ${Python3_EXECUTABLE}
+    ${EXPORT_} "PYTHONPATH=${PYTHONPATH}" && ${Python3_EXECUTABLE}
     ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_split_reference.py --directory
     ${CMAKE_CURRENT_BINARY_DIR}/generated --prefix ${PREFIX} &&
     ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_lua.py
@@ -230,9 +293,7 @@ add_custom_target(
 add_custom_target(
   docs
   COMMAND
-    ${EXPORT_}
-    "PYTHONPATH=${LIBPLUGIN_DIR}/simStubsGen:${COPPELIASIM_INCLUDE_DIR}/simStubsGen"
-    && ${Python3_EXECUTABLE}
+    ${EXPORT_} "PYTHONPATH=${PYTHONPATH}" && ${Python3_EXECUTABLE}
     ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_markdown_api.py --directory
     ${CMAKE_CURRENT_BINARY_DIR}/generated --file reference_Aseba.xml &&
     ${Python3_EXECUTABLE}
@@ -277,5 +338,15 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/generated/simEPuck-typecheck.lua
               ${CMAKE_CURRENT_SOURCE_DIR}/lua/simEPuck.lua
         DESTINATION ${COPPELIASIM_LUA_DIR})
 
-install(TARGETS dashel asebacommon asebavmbuffer asebavm asebacompiler
-                ${EXTRA_LIBS} DESTINATION ${COPPELIASIM_LIBRARIES_DIR})
+# install(TARGETS dashel asebacommon asebavmbuffer asebavm asebacompiler
+# ${EXTRA_LIBS} DESTINATION ${COPPELIASIM_LIBRARIES_DIR})
+
+if(ARCHIVE)
+  set(CPACK_GENERATOR TGZ)
+  set(CPACK_PACKAGE_NAME "simAseba")
+  set(CPACK_OUTPUT_FILE_PREFIX "archives")
+  set(CPACK_PACKAGE_FILE_NAME
+      ${CPACK_PACKAGE_NAME}-${CMAKE_PROJECT_VERSION_MAJOR}.${CMAKE_PROJECT_VERSION_MINOR}-CoppeliaSim-${COPPELIASIM_VERSION_MAJOR}.${COPPELIASIM_VERSION_MINOR}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}
+  )
+  include(CPack)
+endif()

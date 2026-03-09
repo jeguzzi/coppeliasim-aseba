@@ -2,8 +2,6 @@
 TODO: preamble
 */
 
-#include "aseba_network.h"
-
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
@@ -11,10 +9,17 @@ TODO: preamble
 #include <set>
 #include <sstream>
 #include <stack>
+#include <filesystem>
 
+#include "aseba_network.h"
 #include "common/zeroconf/zeroconf-dashelhub.h"
 #include "dashel/dashel.h"
 #include "logging.h"
+
+#ifdef EXTERNAL_ADVERTISE
+#include <simPlusPlus/Lib.h>
+#endif
+
 
 class AsebaDashel : public Dashel::Hub {
 private:
@@ -92,7 +97,8 @@ public:
 
   // run an external process
   void advertise_ext() {
-    std::string cmd(REGISTER_CMD);
+#if EXTERNAL_ADVERTISE
+    std::string cmd = (std::filesystem::path(simGetStringProperty(sim_handle_app, "appPath")) / std::filesystem::path(REGISTER_CMD)).string();
     std::string name = "";
     for (auto const &[id, node] : nodes) {
       std::string n_name = node->advertized_name();
@@ -113,6 +119,7 @@ public:
     } else {
       log_error("Failed to advertise using external command %s", cmd.c_str());
     }
+#endif // EXTERNAL_ADVERTISE
   }
 
   void advertise() {

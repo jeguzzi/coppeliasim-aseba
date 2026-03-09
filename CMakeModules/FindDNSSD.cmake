@@ -69,6 +69,8 @@ if(WIN32)
 endif()
 list(APPEND _dnssd_lib_paths /usr /usr/local /opt/local /opt  $ENV{DNSSD_ROOT} ${DNSSD_ROOT})
 
+message("DNSSD search paths: ${_dnssd_lib_paths}")
+
 find_path(_dnssd_INCLUDE_DIR dns_sd.h
   PATH_SUFFIXES include Include
   PATHS ${_dnssd_lib_paths}
