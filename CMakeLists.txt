@@ -32,7 +32,6 @@ else()
     -Wno-unused-function)
 endif()
 
-
 option(BUILD_SHARED_LIBS "" OFF)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -99,7 +98,6 @@ add_subdirectory(${ASEBA_DIR}/aseba/compiler asebacompiler EXCLUDE_FROM_ALL)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
 
-
 if(NOT COPPELIASIM_INCLUDE_DIR)
   if(DEFINED ENV{COPPELIASIM_ROOT_DIR})
     set(COPPELIASIM_INCLUDE_DIR $ENV{COPPELIASIM_ROOT_DIR}/programming/include)
@@ -141,7 +139,6 @@ set(LIB_INSTALL_DIR
     CACHE FILEPATH "")
 set(MODEL_RELATIVE_PATH robots/mobile)
 set(MODEL_DIR ${COPPELIASIM_MODELS_DIR}/${MODEL_RELATIVE_PATH})
-
 
 find_package(
   OpenCV 4
@@ -197,7 +194,6 @@ coppeliasim_generate_stubs(
 # ${CMAKE_CURRENT_BINARY_DIR}/generated/simThymio-typecheck.lua COMMENT
 # "Generating Thymio lua script" )
 
-
 add_compile_definitions(MODEL_RELATIVE_PATH="${MODEL_RELATIVE_PATH}")
 add_compile_definitions(PLUGIN_NAME_XML="${_PLUGIN_NAME_XML}")
 
@@ -227,11 +223,14 @@ if(HAS_ZEROCONF_SUPPORT)
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/aseba/aseba/common/zeroconf)
   install(TARGETS aseba_register DESTINATION ${COPPELIASIM_PLUGINS_DIR})
   if(NOT ARCHIVE)
-  set_target_properties(aseba_register
-                        PROPERTIES INSTALL_RPATH "${COPPELIASIM_PLUGINS_DIR}")
+    set_target_properties(aseba_register
+                          PROPERTIES INSTALL_RPATH "${COPPELIASIM_PLUGINS_DIR}")
   endif()
-  add_compile_definitions(
-    REGISTER_CMD="aseba_register")
+  if(WIN32)
+    add_compile_definitions(REGISTER_CMD="aseba_register.exe")
+  else()
+    add_compile_definitions(REGISTER_CMD="aseba_register")
+  endif()
 endif()
 
 coppeliasim_add_plugin(
@@ -269,16 +268,17 @@ target_compile_definitions(${_PLUGIN_NAME} PRIVATE -DEXTERNAL_ADVERTISE)
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
 if(WIN32)
-  set(PYTHONPATH "${LIBPLUGIN_DIR}/simStubsGen;${COPPELIASIM_INCLUDE_DIR}/simStubsGen")
+  set(PYTHONPATH
+      "${LIBPLUGIN_DIR}/simStubsGen;${COPPELIASIM_INCLUDE_DIR}/simStubsGen")
 else()
-  set(PYTHONPATH "${LIBPLUGIN_DIR}/simStubsGen:${COPPELIASIM_INCLUDE_DIR}/simStubsGen")
+  set(PYTHONPATH
+      "${LIBPLUGIN_DIR}/simStubsGen:${COPPELIASIM_INCLUDE_DIR}/simStubsGen")
 endif()
 
 add_custom_target(
   generate_thymio_lua ALL
   COMMAND
-    ${EXPORT_} "PYTHONPATH=${PYTHONPATH}"
-    && ${Python3_EXECUTABLE}
+    ${EXPORT_} "PYTHONPATH=${PYTHONPATH}" && ${Python3_EXECUTABLE}
     ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_split_reference.py --directory
     ${CMAKE_CURRENT_BINARY_DIR}/generated --prefix ${PREFIX} &&
     ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_lua.py
@@ -293,8 +293,7 @@ add_custom_target(
 add_custom_target(
   docs
   COMMAND
-    ${EXPORT_} "PYTHONPATH=${PYTHONPATH}"
-    && ${Python3_EXECUTABLE}
+    ${EXPORT_} "PYTHONPATH=${PYTHONPATH}" && ${Python3_EXECUTABLE}
     ${CMAKE_CURRENT_SOURCE_DIR}/helpers/generate_markdown_api.py --directory
     ${CMAKE_CURRENT_BINARY_DIR}/generated --file reference_Aseba.xml &&
     ${Python3_EXECUTABLE}
@@ -340,8 +339,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/generated/simEPuck-typecheck.lua
         DESTINATION ${COPPELIASIM_LUA_DIR})
 
 # install(TARGETS dashel asebacommon asebavmbuffer asebavm asebacompiler
-#                 ${EXTRA_LIBS} DESTINATION ${COPPELIASIM_LIBRARIES_DIR})
-
+# ${EXTRA_LIBS} DESTINATION ${COPPELIASIM_LIBRARIES_DIR})
 
 if(ARCHIVE)
   set(CPACK_GENERATOR TGZ)
