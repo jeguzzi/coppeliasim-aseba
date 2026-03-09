@@ -41,24 +41,6 @@ set(CMAKE_MACOSX_RPATH 1)
 # option(ZEROCONF "" OFF)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
-if(NOT COPPELIASIM_INCLUDE_DIR)
-  if(DEFINED ENV{COPPELIASIM_ROOT_DIR})
-    set(COPPELIASIM_INCLUDE_DIR $ENV{COPPELIASIM_ROOT_DIR}/programming/include)
-  else()
-    set(COPPELIASIM_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-  endif()
-endif()
-if(NOT LIBPLUGIN_DIR)
-  if(DEFINED ENV{COPPELIASIM_ROOT_DIR})
-    set(LIBPLUGIN_DIR $ENV{COPPELIASIM_ROOT_DIR}/programming/libPlugin)
-  else()
-    set(LIBPLUGIN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../libPlugin)
-  endif()
-endif()
-
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules
-     ${COPPELIASIM_INCLUDE_DIR}/cmake ${LIBPLUGIN_DIR}/cmake)
-
 macro(codesign target)
 
 endmacro(codesign)
@@ -115,6 +97,25 @@ add_subdirectory(${ASEBA_DIR}/aseba/compiler asebacompiler EXCLUDE_FROM_ALL)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
+
+
+if(NOT COPPELIASIM_INCLUDE_DIR)
+  if(DEFINED ENV{COPPELIASIM_ROOT_DIR})
+    set(COPPELIASIM_INCLUDE_DIR $ENV{COPPELIASIM_ROOT_DIR}/programming/include)
+  else()
+    set(COPPELIASIM_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+  endif()
+endif()
+if(NOT LIBPLUGIN_DIR)
+  if(DEFINED ENV{COPPELIASIM_ROOT_DIR})
+    set(LIBPLUGIN_DIR $ENV{COPPELIASIM_ROOT_DIR}/programming/libPlugin)
+  else()
+    set(LIBPLUGIN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../libPlugin)
+  endif()
+endif()
+
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules
+     ${COPPELIASIM_INCLUDE_DIR}/cmake ${LIBPLUGIN_DIR}/cmake)
 
 find_package(CoppeliaSim 4.3 REQUIRED)
 
