@@ -14,7 +14,7 @@ set(CMAKE_C_STANDARD 99)
 
 if(WIN32)
   # avoid to overwrite std::max in dashel-win32.cpp
-  add_compile_definitions(NOMINMAX)
+  add_compile_definitions(NOMINMAX _ALLOW_KEYWORD_MACROS)
   # force it to build .lib
   option(BUILD_SHARED_LIBS "" OFF)
   add_definitions(-DDISABLE_WEAK_CALLBACKS)
