@@ -156,6 +156,14 @@ class Robot {
   virtual void update_actuation(float dt);
   virtual void do_step(float dt);
 
+  static std::filesystem::path get_models_path() {
+     return std::filesystem::path(simGetStringProperty(sim_handle_app, "modelPath"));
+  }
+
+  static std::filesystem::path get_texture_path(const std::string & filename) {
+    return get_models_path() / std::filesystem::path(MODEL_RELATIVE_PATH) / std::filesystem::path(filename);
+  }
+  
   const float * get_acceleration_values() const {
     return accelerometer.values;
   }

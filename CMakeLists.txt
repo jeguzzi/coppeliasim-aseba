@@ -1,6 +1,15 @@
 cmake_minimum_required(VERSION 3.10)
-project(simExtAseba)
 
+if(POLICY CMP0091)
+  cmake_policy(SET CMP0091 NEW)
+endif()
+
+project(
+  simExtAseba
+  VERSION 1.0
+  LANGUAGES CXX C)
+
+set(CMAKE_POLICY_VERSION_MINIMUM "3.5")
 set(CMAKE_C_STANDARD 99)
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   # add_compile_options(-Wall -Wextra -Wpedantic)
@@ -121,7 +130,9 @@ endif()
 set(LIB_INSTALL_DIR
     ${COPPELIASIM_LIBRARIES_DIR}
     CACHE FILEPATH "")
-set(MODEL_DIR ${COPPELIASIM_MODELS_DIR}/robots/mobile)
+set(MODEL_RELATIVE_PATH robots/mobile)
+set(MODEL_DIR ${COPPELIASIM_MODELS_DIR}/${MODEL_RELATIVE_PATH})
+
 
 find_package(
   OpenCV 4
@@ -169,7 +180,7 @@ coppeliasim_generate_stubs(
 # ${CMAKE_CURRENT_BINARY_DIR}/generated/simThymio-typecheck.lua COMMENT
 # "Generating Thymio lua script" )
 
-add_compile_definitions(TEXTURE_DIR="${MODEL_DIR}")
+add_compile_definitions(MODEL_RELATIVE_PATH="${MODEL_RELATIVE_PATH}")
 add_compile_definitions(PLUGIN_NAME_XML="${_PLUGIN_NAME_XML}")
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/config.h.in
