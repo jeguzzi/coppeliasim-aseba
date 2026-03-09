@@ -180,6 +180,7 @@ coppeliasim_generate_stubs(
 # ${CMAKE_CURRENT_BINARY_DIR}/generated/simThymio-typecheck.lua COMMENT
 # "Generating Thymio lua script" )
 
+
 add_compile_definitions(MODEL_RELATIVE_PATH="${MODEL_RELATIVE_PATH}")
 add_compile_definitions(PLUGIN_NAME_XML="${_PLUGIN_NAME_XML}")
 
@@ -240,6 +241,10 @@ if(WIN32)
   set(EXPORT_ set)
 else()
   set(EXPORT_ export)
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX)
+  target_link_libraries(${_PLUGIN_NAME} PRIVATE "-Wl,-Bsymbolic")
 endif()
 
 target_compile_definitions(${_PLUGIN_NAME} PRIVATE -DEXTERNAL_ADVERTISE)
